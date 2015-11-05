@@ -7,7 +7,7 @@
         <display-name>Hub</display-name>
         <version>${plugin.version}</version>
         <description>
-        <![CDATA[Open Source Governance with Black Duck Hub.]]>
+        <![CDATA[Open Source Governance with Black Duck Hub (TM).]]>
 		</description>
         <download-url></download-url>
         <vendor>
