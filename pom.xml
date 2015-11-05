@@ -1,0 +1,325 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.blackducksoftware.integration</groupId>
+	<artifactId>hub-teamcity</artifactId>
+	<!-- !!! Also update the url below on release !!! -->
+	<version>1.1.X-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Black Duck Hub Plugin for TeamCity</name>
+	<description>Open Source Governance with Black Duck Hub.</description>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>Black Duck Commercial License</name>
+			<url>http://www.blackducksoftware.com/</url>
+			<distribution>manual</distribution>
+			<comments>Use of this plugin is governed by the license under which you use Black Duck Software Hub (TM)</comments>
+		</license>
+	</licenses>
+	<organization>
+		<name>Black Duck Software, Inc.</name>
+		<url>http://www.blackducksoftware.com/</url>
+	</organization>
+	<developers>
+		<developer>
+			<id>jrichard</id>
+			<name>James Richard</name>
+			<email>jrichard@blackducksoftware.com</email>
+			<organization>Black Duck Software, Inc.</organization>
+			<organizationUrl>http://www.blackducksoftware.com/</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+	</developers>
+	<contributors>
+	</contributors>
+	
+	<modules>
+		<module>server</module>
+		<module>common</module>
+		<module>agent</module>
+		<module>assembly</module>
+	</modules>
+
+
+	<repositories>
+		<repository>
+			<id>integrationRelease</id>
+			<name>bds-artifactory</name>
+			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>integrationSnap</id>
+			<name>bds-artifactory</name>
+			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration-snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>bds-artifactory</id>
+			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration-plugins</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory.blackducksoftware.com</id>
+			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<cxf.version>2.7.8</cxf.version>
+		<bds.cxf.utilities.version>1.1.1</bds.cxf.utilities.version>
+		<teamcity.version>7.1.0</teamcity.version>
+		<plugin.version>${project.version}</plugin.version>
+		<spring.version>3.0.6.RELEASE</spring.version>
+	</properties>
+
+	<dependencies>
+		<!-- Black Duck dependencies -->
+		<dependency>
+			<groupId>com.blackducksoftware.integration</groupId>
+			<artifactId>hub-ci</artifactId>
+			<version>1.1.0-SNAPSHOT</version>
+		</dependency>
+		<!-- Black Duck dependencies End -->
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+			<version>1.4.8</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom</artifactId>
+			<version>1.1.3</version>
+		</dependency>
+
+		<!-- TeamCity dependencies -->
+		<dependency>
+			<groupId>org.jetbrains.teamcity.agent</groupId>
+			<artifactId>annotations</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.agent</groupId>
+			<artifactId>common</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.agent</groupId>
+			<artifactId>common-runtime</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.agent</groupId>
+			<artifactId>runtime-util</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- <dependency>
+			<groupId>org.jetbrains.teamcity.agent</groupId>
+			<artifactId>server-logging</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency> -->
+		<dependency>
+			<groupId>org.jetbrains.teamcity.tomcat</groupId>
+			<artifactId>annotations-api</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>annotations</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>common-api</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>server</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>server-api</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>spring</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.teamcity.webapp</groupId>
+			<artifactId>util</artifactId>
+			<version>${teamcity.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- END TeamCity dependencies -->
+
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.8.4</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+
+
+
+	<dependencyManagement>
+		<dependencies>
+		<!-- Protex dependencies -->
+			<!-- <dependency>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-rt-transports-http</artifactId>
+				<version>${cxf.version}</version>
+			</dependency>
+			Need this to load the saaj impl classes and the soap factory classes 
+				from the Jdk 
+			Otherwise throws class cast exceptions 
+			<dependency>
+				<groupId>com.sun.xml.messaging.saaj</groupId>
+				<artifactId>saaj-impl</artifactId>
+				<version>1.3</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>javax.xml.soap</groupId>
+				<artifactId>javax.xml.soap-api</artifactId>
+				<version>1.3.5</version>
+				<scope>provided</scope>
+			</dependency>
+			 Ends here
+			 -->
+
+		</dependencies>
+	</dependencyManagement>
+
+
+
+
+
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.18.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<configuration>
+						<classpathContainers>
+							<classpathContainer>
+								org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java
+								SE 7
+							</classpathContainer>
+						</classpathContainers>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.7</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.4</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.1</version>
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<profiles>
+		<profile>
+			<id>Sonargraph</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>hello2morrow.maven.repository</id>
+					<url>http://artifactory.blackducksoftware.com:8081/artifactory/hello2morrow</url>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+	</profiles>
+</project>
