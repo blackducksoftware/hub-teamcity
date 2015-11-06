@@ -1,9 +1,15 @@
 package com.blackducksoftware.integration.hub.teamcity.common.beans;
 
+import java.io.IOException;
 import java.io.Serializable;
 
-import org.apache.commons.lang3.StringUtils;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.UnsupportedCallbackException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ws.security.WSPasswordCallback;
+
+import com.blackducksoftware.integration.suite.sdk.util.ProgrammedEncryptedPasswordCallback;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("globalCredentials")
@@ -44,6 +50,17 @@ public class HubCredentialsBean implements Serializable {
 
     public void setEncryptedPassword(String encryptedPassword) {
         hubPass = encryptedPassword;
+    }
+
+    public String getDecryptedPassword() throws IOException, UnsupportedCallbackException {
+        ProgrammedEncryptedPasswordCallback passwordCallback = new ProgrammedEncryptedPasswordCallback();
+        passwordCallback.addUserNameAndPassword(hubUser, hubPass);
+        Callback[] callbacks = new Callback[1];
+        WSPasswordCallback callback = new WSPasswordCallback(hubUser, 2);
+        callbacks[0] = callback;
+        passwordCallback.handle(callbacks);
+
+        return callback.getPassword();
     }
 
     public boolean isEmpty() {

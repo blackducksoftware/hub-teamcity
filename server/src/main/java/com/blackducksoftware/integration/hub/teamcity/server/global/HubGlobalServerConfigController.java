@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
-import java.net.Proxy.Type;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -14,13 +13,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -33,6 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
@@ -104,18 +105,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         if (StringUtils.isBlank(credentials.getEncryptedPassword())) {
             errors.addError("errorPassword", "There is no saved Password. Please specify a Password.");
         }
-        String timeout = request.getParameter("hubTimeout");
-        int timeoutInteger = 300;
-        if (StringUtils.isBlank(timeout)) {
-            errors.addError("errorTimeout", "Please specify a timeout.");
-        } else {
-            try {
-                timeoutInteger = Integer.valueOf(timeout);
-            } catch (NumberFormatException e) {
-                timeoutInteger = configPersistenceManager.getConfiguredServer().getHubTimeout();
-                errors.addError("errorTimeout", "Please specify the server timeout as an integer. " + e.toString());
-            }
-        }
 
         HubProxyInfo proxyInfo = null;
         if (configPersistenceManager.getConfiguredServer().getProxyInfo() != null) {
@@ -123,6 +112,108 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         } else {
             proxyInfo = new HubProxyInfo();
         }
+
+        checkProxySettings(request, proxyInfo, errors);
+
+        if (errors.hasNoErrors()) {
+            // Need to add this here to make sure the proxy settings are used in the checkUrl
+            configPersistenceManager.getConfiguredServer().setProxyInfo(proxyInfo);
+        }
+
+        String url = request.getParameter("hubUrl");
+        if (StringUtils.isBlank(url)) {
+            errors.addError("errorUrl", "Please specify a URL.");
+        } else {
+            // if (isTestConnectionRequest(request)) {
+            // checkUrl(url, errors, true);
+            // } else {
+            // checkUrl(url, errors, false);
+            // }
+            checkUrl(url, errors);
+        }
+
+        if (errors.hasNoErrors()) {
+            configPersistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
+            configPersistenceManager.getConfiguredServer().setHubUrl(url);
+        }
+    }
+
+    private ActionErrors checkUrl(final String url, final ActionErrors errors) { // , boolean isTestConnection) {
+
+        URL testUrl = null;
+        try {
+            testUrl = new URL(url);
+            try {
+                testUrl.toURI();
+            } catch (URISyntaxException e) {
+                errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
+            }
+        } catch (MalformedURLException e) {
+            errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
+        }
+        // if (isTestConnection) {
+        if (testUrl != null) {
+            try {
+                if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {
+                    // If this property is not set the default is 20
+                    // When not set the Authenticator redirects in a loop and results in an error for too many redirects
+                    System.setProperty("http.maxRedirects", "3");
+                }
+                Proxy proxy = null;
+                if (configPersistenceManager.getConfiguredServer().getProxyInfo() != null) {
+
+                    HubProxyInfo proxyInfo = configPersistenceManager.getConfiguredServer().getProxyInfo();
+
+                    if (StringUtils.isNotBlank(proxyInfo.getHost()) && StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
+                        for (Pattern p : proxyInfo.getNoProxyHostPatterns()) {
+                            if (p.matcher(proxyInfo.getHost()).matches()) {
+                                proxy = Proxy.NO_PROXY;
+                            }
+                        }
+                    }
+                    if (proxy == null && StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != null) {
+                        proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo.getHost(), proxyInfo.getPort()));
+                    }
+                }
+
+                if (proxy != null && proxy != Proxy.NO_PROXY) {
+
+                    if (StringUtils.isNotBlank(configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyUsername())
+                            && StringUtils.isNotBlank(configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword())) {
+                        Authenticator.setDefault(
+                                new Authenticator() {
+                                    @Override
+                                    public PasswordAuthentication getPasswordAuthentication() {
+                                        return new PasswordAuthentication(
+                                                configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyUsername(),
+                                                configPersistenceManager
+                                                        .getConfiguredServer().getProxyInfo().getProxyPassword().toCharArray());
+                                    }
+                                }
+                                );
+                    } else {
+                        Authenticator.setDefault(null);
+                    }
+                }
+                URLConnection connection = null;
+                if (proxy != null) {
+                    connection = testUrl.openConnection(proxy);
+                } else {
+                    connection = testUrl.openConnection();
+                }
+
+                connection.getContent();
+            } catch (IOException ioe) {
+                errors.addError("errorUrl", "Trouble reaching the Hub server. " + ioe.toString());
+            } catch (RuntimeException e) {
+                errors.addError("errorUrl", "Not a valid Hub server. " + e.toString());
+            }
+        }
+        // }
+        return errors;
+    }
+
+    private ActionErrors checkProxySettings(final HttpServletRequest request, final HubProxyInfo proxyInfo, final ActionErrors errors) {
 
         String proxyServer = request.getParameter("hubProxyServer");
         if (StringUtils.isNotBlank(proxyServer)) {
@@ -195,84 +286,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             proxyInfo.setProxyPassword("");
         }
 
-        if (errors.hasNoErrors()) {
-            // Need to add this here to make sure the proxy settings are used in the checkUrl
-            configPersistenceManager.getConfiguredServer().setProxyInfo(proxyInfo);
-        }
-
-        String url = request.getParameter("hubUrl");
-        if (StringUtils.isBlank(url)) {
-            errors.addError("errorUrl", "Please specify a URL.");
-        } else {
-            if (isTestConnectionRequest(request)) {
-                checkUrl(url, errors, true);
-            } else {
-                checkUrl(url, errors, false);
-            }
-        }
-
-        if (errors.hasNoErrors()) {
-            configPersistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
-            configPersistenceManager.getConfiguredServer().setHubUrl(url);
-            configPersistenceManager.getConfiguredServer().setHubTimeout(timeoutInteger);
-        }
-    }
-
-    private ActionErrors checkUrl(final String url, final ActionErrors errors, boolean isTestConnection) {
-
-        URL testUrl = null;
-        try {
-            testUrl = new URL(url);
-            try {
-                testUrl.toURI();
-            } catch (URISyntaxException e) {
-                errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
-            }
-        } catch (MalformedURLException e) {
-            errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
-        }
-        if (isTestConnection) {
-            if (testUrl != null) {
-                try {
-                    Proxy proxy = null;
-                    if (!checkMatchingNoProxyHostPatterns(url, configPersistenceManager.getConfiguredServer().getProxyInfo().getNoProxyHostPatterns())) {
-
-                        if (StringUtils.isNotBlank(configPersistenceManager.getConfiguredServer().getProxyInfo().getHost())
-                                && configPersistenceManager.getConfiguredServer().getProxyInfo().getPort() != null) {
-                            proxy = new Proxy(Type.HTTP, InetSocketAddress.createUnresolved(
-                                    configPersistenceManager.getConfiguredServer().getProxyInfo().getHost(),
-                                    configPersistenceManager.getConfiguredServer().getProxyInfo().getPort()));
-                            if (StringUtils.isNotBlank(configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyUsername())
-                                    && StringUtils.isNotBlank(configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword())) {
-                                Authenticator.setDefault(
-                                        new Authenticator() {
-                                            @Override
-                                            public PasswordAuthentication getPasswordAuthentication() {
-                                                return new PasswordAuthentication(
-                                                        configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyUsername(),
-                                                        configPersistenceManager
-                                                                .getConfiguredServer().getProxyInfo().getProxyPassword().toCharArray());
-                                            }
-                                        }
-                                        );
-                            }
-                        }
-                    }
-                    URLConnection connection = null;
-                    if (proxy != null) {
-                        connection = testUrl.openConnection(proxy);
-                    } else {
-                        connection = testUrl.openConnection();
-                    }
-
-                    connection.getContent();
-                } catch (IOException ioe) {
-                    errors.addError("errorUrl", "Trouble reaching the Hub server. " + ioe.toString());
-                } catch (RuntimeException e) {
-                    errors.addError("errorUrl", "Not a valid Hub server. " + e.toString());
-                }
-            }
-        }
         return errors;
     }
 
@@ -289,10 +302,21 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             try {
                 serverLogger.info("Validating the credentials for the Server : " + serverConfig.getHubUrl());
 
-                // TODO test the connection
+                HubIntRestService service = getRestService(serverConfig, proxyInfo, true);
 
+                int responseCode = service.setCookies(serverConfig.getGlobalCredentials().getHubUser(), serverConfig.getGlobalCredentials()
+                        .getDecryptedPassword());
+
+                if (responseCode == 401) {
+                    // If User is Not Authorized, 401 error, an exception should be thrown by the ClientResource
+                    errors.addError("errorConnection", "The provided credentials are not valid for the Hub server '" + serverConfig.getHubUrl() + "'");
+                } else if (responseCode != 200 && responseCode != 204 && responseCode != 202) {
+                    // return FormValidation.ok(Messages.HubBuildScan_getCredentialsValidFor_0_(serverUrl));
+                    errors.addError("errorConnection", "Connection failed to the Hub server '" + serverConfig.getHubUrl() +
+                            "'. With response code " + responseCode);
+                }
             } catch (Exception e) {
-                Loggers.SERVER.error(e.toString(), e);
+                serverLogger.error(e);
                 errors.addError("errorConnection", e.toString());
             }
         }
@@ -336,33 +360,42 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         return StringUtils.isNotBlank(savingParamValue) && Boolean.valueOf(savingParamValue);
     }
 
-    /**
-     * Checks the list of user defined host names that should be connected to directly and not go through the proxy. If
-     * the hostToMatch matches any of these hose names then this method returns true.
-     *
-     * @param hostToMatch
-     *            String the hostName to check if it is in the list of hosts that should not go through the proxy.
-     *
-     * @return boolean
-     */
-    private boolean checkMatchingNoProxyHostPatterns(String hostToMatch, List<Pattern> noProxyHosts) {
-        if (noProxyHosts.isEmpty()) {
-            // User did not specify any hosts to ignore the proxy
-            return false;
+    private HubIntRestService getRestService(ServerHubConfigBean serverConfig, HubProxyInfo proxyInfo, boolean isTestConnection)
+            throws HubIntegrationException, URISyntaxException,
+            IOException, UnsupportedCallbackException {
+        if (serverConfig == null) {
+            return null;
         }
-        boolean match = false;
-        if (!StringUtils.isBlank(hostToMatch) && !noProxyHosts.isEmpty()) {
+        HubIntRestService service = new HubIntRestService(serverConfig.getHubUrl());
+        if (proxyInfo != null) {
 
-            for (Pattern pattern : noProxyHosts) {
-                if (!match) {
-                    Matcher m = pattern.matcher(hostToMatch);
-                    while (m.find()) {
-                        match = true;
+            Proxy proxy = null;
+
+            if (StringUtils.isNotBlank(proxyInfo.getHost()) && StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
+                for (Pattern p : proxyInfo.getNoProxyHostPatterns()) {
+                    if (p.matcher(proxyInfo.getHost()).matches()) {
+                        proxy = Proxy.NO_PROXY;
+                    }
+                }
+            }
+
+            if (proxyInfo != null && (proxy == null || proxy != Proxy.NO_PROXY)) {
+                if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
+                    if (StringUtils.isNotBlank(proxyInfo.getProxyUsername()) && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
+                        service.setProxyProperties(proxyInfo.getHost(), proxyInfo.getPort(), null, proxyInfo.getProxyUsername(),
+                                proxyInfo.getProxyPassword());
+                    } else {
+                        service.setProxyProperties(proxyInfo.getHost(), proxyInfo.getPort(), null, null, null);
                     }
                 }
             }
         }
-        return match;
+        if (serverConfig != null && !isTestConnection) {
+            service.setCookies(serverConfig.getGlobalCredentials().getHubUser(),
+                    serverConfig.getGlobalCredentials().getDecryptedPassword());
+        }
+
+        return service;
     }
 
 }

@@ -129,7 +129,6 @@
                 load: function() {
                 	"${serverHubConfigPersistenceManager.loadSettings()}";
                 	${'hubUrl'}.value = "${serverHubConfigPersistenceManager.configuredServer.getHubUrl()}";
-                	${'hubTimeout'}.value = "${serverHubConfigPersistenceManager.configuredServer.getHubTimeout()}";
                 	${'hubUser'}.value = "${serverHubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
                 	${'hubProxyServer'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
                 	${'hubProxyPort'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
@@ -246,23 +245,6 @@
             <tr>
                 <td colspan="2">
                     <span class="error" id="errorPassword" style="margin-left: 0;"></span>
-                </td>
-            </tr>
-            <tr>
-                <td width="200px" >
-                    <label class="label" for="hubTimeout">Timeout:
-                        <span class="mandatoryAsterix" title="Mandatory field">*</span>
-                        <bs:helpIcon
-                                iconTitle="Network timeout in seconds."/>
-                    </label>
-                </td>
-                <td>
-                    <forms:textField className="textFieldLong" name="hubTimeout" value="300" id="hubTimeout" />
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <span class="error" id="errorTimeout" style="margin-left: 0;"></span>
                 </td>
             </tr>
         </table>

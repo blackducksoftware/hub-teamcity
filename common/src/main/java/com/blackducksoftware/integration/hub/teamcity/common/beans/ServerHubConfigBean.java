@@ -7,8 +7,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("serializableCCServer")
 public class ServerHubConfigBean implements Serializable {
 
-    public static final int DEFAULT_TIMEOUT = 300;
-
     private String hubUrl = "";
 
     @XStreamAlias("globalCredentials")
@@ -17,12 +15,7 @@ public class ServerHubConfigBean implements Serializable {
     @XStreamAlias("serializableProxyInfo")
     private HubProxyInfo proxyInfo = new HubProxyInfo();
 
-    private int hubTimeout = DEFAULT_TIMEOUT;
-
     public ServerHubConfigBean() {
-        if (hubTimeout == 0) {
-            hubTimeout = DEFAULT_TIMEOUT;
-        }
     }
 
     public String getHubUrl() {
@@ -49,25 +42,15 @@ public class ServerHubConfigBean implements Serializable {
         this.proxyInfo = proxyInfo;
     }
 
-    public int getHubTimeout() {
-        return hubTimeout;
-    }
-
-    public void setHubTimeout(int hubTimeout) {
-        this.hubTimeout = hubTimeout;
-    }
-
     @Override
     public String toString() {
-        return "ServerHubConfigBean [hubUrl=" + hubUrl + ", globalCredentials=" + globalCredentials + ", proxyInfo=" + proxyInfo + ", hubTimeout=" + hubTimeout
-                + "]";
+        return "ServerHubConfigBean [hubUrl=" + hubUrl + ", globalCredentials=" + globalCredentials + ", proxyInfo=" + proxyInfo + "]";
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + hubTimeout;
         result = prime * result + ((hubUrl == null) ? 0 : hubUrl.hashCode());
         result = prime * result + ((globalCredentials == null) ? 0 : globalCredentials.hashCode());
         result = prime * result + ((proxyInfo == null) ? 0 : proxyInfo.hashCode());
@@ -86,9 +69,6 @@ public class ServerHubConfigBean implements Serializable {
             return false;
         }
         ServerHubConfigBean other = (ServerHubConfigBean) obj;
-        if (hubTimeout != other.hubTimeout) {
-            return false;
-        }
         if (hubUrl == null) {
             if (other.hubUrl != null) {
                 return false;
