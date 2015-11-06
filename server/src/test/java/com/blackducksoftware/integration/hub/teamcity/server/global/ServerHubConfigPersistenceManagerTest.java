@@ -8,8 +8,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import jetbrains.buildServer.log.LogInitializer;
@@ -209,67 +207,41 @@ public class ServerHubConfigPersistenceManagerTest {
         persistenceManager.loadSettings();
 
         ServerHubConfigBean originalConfig = new ServerHubConfigBean();
-        originalConfig.setProtexCredentials(persistenceManager.getGlobalConfig().getProtexCredentials());
-        originalConfig.setProtexServers(persistenceManager.getGlobalConfig().getProtexServers());
-        originalConfig.setProxyInfo(persistenceManager.getGlobalConfig().getProxyInfo());
+        originalConfig.setGlobalCredentials(persistenceManager.getConfiguredServer().getGlobalCredentials());
+        originalConfig.setHubUrl(persistenceManager.getConfiguredServer().getHubUrl());
+        originalConfig.setProxyInfo(persistenceManager.getConfiguredServer().getProxyInfo());
 
-        assertEquals(2, originalConfig.getProtexCredentials().size());
-        assertEquals(5, originalConfig.getProtexServers().size());
         try {
-            List<ProtexCredential> protexCredentials = new ArrayList<ProtexCredential>();
-            ProtexCredential credential1 = new ProtexCredential("FakeUser");
-            protexCredentials.add(credential1);
-            persistenceManager.getGlobalConfig().setProtexCredentials(protexCredentials);
-
-            List<ProtexServer> protexServers = new ArrayList<ProtexServer>();
-            ProtexServer server1 = new ProtexServer();
-            server1.setProtexName("Server1");
-            server1.setProtexUrl("http://fake.com");
-
-            protexServers.add(server1);
-            persistenceManager.getGlobalConfig().setProtexServers(protexServers);
-
-            ProtexProxyInfo proxyInfo = new ProtexProxyInfo();
+            HubCredentialsBean credentials = new HubCredentialsBean("FakeUser", "EncryptedPassword");
+            HubProxyInfo proxyInfo = new HubProxyInfo();
             proxyInfo.setHost("testProxyHost");
             proxyInfo.setPort(4567);
+            proxyInfo.setProxyUsername("proxyusername");
+            proxyInfo.setProxyPassword("proxypassword");
             proxyInfo.setIgnoredProxyHosts("Ignore proxy");
-            persistenceManager.getGlobalConfig().setProxyInfo(proxyInfo);
+
+            persistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
+            persistenceManager.getConfiguredServer().setProxyInfo(proxyInfo);
+            persistenceManager.getConfiguredServer().setHubUrl("http://hubUrl");
 
             persistenceManager.persist();
 
-            persistenceManager.getGlobalConfig().setProtexCredentials(null);
-            persistenceManager.getGlobalConfig().setProtexServers(null);
-            persistenceManager.getGlobalConfig().setProxyInfo(null);
+            persistenceManager.getConfiguredServer().setGlobalCredentials(null);
+            persistenceManager.getConfiguredServer().setProxyInfo(null);
+            persistenceManager.getConfiguredServer().setHubUrl(null);
 
             persistenceManager.loadSettings();
 
-            assertEquals(1, persistenceManager.getGlobalConfig().getProtexCredentials().size());
-            assertTrue(persistenceManager.getGlobalConfig().getProtexCredentials().contains(credential1));
-
-            for (ProtexCredential credential : originalConfig.getProtexCredentials()) {
-                assertTrue(!persistenceManager.getGlobalConfig().getProtexCredentials().contains(credential));
-
-            }
-
-            assertEquals(1, persistenceManager.getGlobalConfig().getProtexServers().size());
-            assertTrue(persistenceManager.getGlobalConfig().getProtexServers().contains(server1));
-
-            for (ProtexServer server : originalConfig.getProtexServers()) {
-                assertTrue(!persistenceManager.getGlobalConfig().getProtexServers().contains(server));
-
-            }
-
-            assertEquals(persistenceManager.getGlobalConfig().getProxyInfo(), proxyInfo);
-
-            assertTrue(!persistenceManager.getGlobalConfig().getProxyInfo().equals(originalConfig.getProxyInfo()));
+            assertTrue(persistenceManager.getConfiguredServer().getGlobalCredentials().equals(originalConfig.getGlobalCredentials()));
+            assertTrue(persistenceManager.getConfiguredServer().getProxyInfo().equals(originalConfig.getProxyInfo()));
+            assertTrue(persistenceManager.getConfiguredServer().getHubUrl().equals(originalConfig.getHubUrl()));
 
         } finally {
 
-            ServerHubConfigBean defaultConfig = ServerTestHelper.getDefaultValidConfiguration();
             // reset the configuration to the original
-            persistenceManager.getGlobalConfig().setProtexCredentials(defaultConfig.getProtexCredentials());
-            persistenceManager.getGlobalConfig().setProtexServers(defaultConfig.getProtexServers());
-            persistenceManager.getGlobalConfig().setProxyInfo(defaultConfig.getProxyInfo());
+            persistenceManager.getConfiguredServer().setGlobalCredentials(originalConfig.getGlobalCredentials());
+            persistenceManager.getConfiguredServer().setProxyInfo(originalConfig.getProxyInfo());
+            persistenceManager.getConfiguredServer().setHubUrl(originalConfig.getHubUrl());
             persistenceManager.persist();
         }
     }
