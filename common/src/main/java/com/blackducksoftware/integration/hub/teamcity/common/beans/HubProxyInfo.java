@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("serializableProxyInfo")
+@XStreamAlias("serializableHubProxyInfo")
 public class HubProxyInfo implements Serializable {
 
     private String host = "";

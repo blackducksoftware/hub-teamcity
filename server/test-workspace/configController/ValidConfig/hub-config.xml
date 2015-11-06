@@ -1,0 +1,14 @@
+<com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean>
+  <hubUrl>http://integration-hub.blackducksoftware.com</hubUrl>
+  <globalCredentials>
+    <hubUser>sysadmin</hubUser>
+    <hubPass>wfTeviL+17xHic1UOdo7DerSd/Sfogvh6tJ39J+iC+Hq0nf0n6IL4erSd/Sfogvh6tJ39J+iC+Hq0nf0n6IL4Q==</hubPass>
+  </globalCredentials>
+  <proxyInfo>
+    <host>qasslproxy</host>
+    <port>3130</port>
+    <proxyUsername>bds</proxyUsername>
+    <proxyPassword>blackduck</proxyPassword>
+    <ignoredProxyHosts>testIgnore</ignoredProxyHosts>
+  </proxyInfo>
+</com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean>

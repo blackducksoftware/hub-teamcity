@@ -4,15 +4,15 @@ import java.io.Serializable;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("serializableCCServer")
+@XStreamAlias("serializableHubServer")
 public class ServerHubConfigBean implements Serializable {
 
     private String hubUrl = "";
 
-    @XStreamAlias("globalCredentials")
+    @XStreamAlias("globalHubCredentials")
     private HubCredentialsBean globalCredentials = new HubCredentialsBean("", "");
 
-    @XStreamAlias("serializableProxyInfo")
+    @XStreamAlias("serializableHubProxyInfo")
     private HubProxyInfo proxyInfo = new HubProxyInfo();
 
     public ServerHubConfigBean() {

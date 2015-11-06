@@ -12,7 +12,7 @@ import org.apache.ws.security.WSPasswordCallback;
 import com.blackducksoftware.integration.suite.sdk.util.ProgrammedEncryptedPasswordCallback;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("globalCredentials")
+@XStreamAlias("globalHubCredentials")
 public class HubCredentialsBean implements Serializable {
 
     private String hubUser;

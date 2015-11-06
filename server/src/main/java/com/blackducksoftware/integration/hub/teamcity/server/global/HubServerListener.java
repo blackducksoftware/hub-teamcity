@@ -36,7 +36,7 @@ public class HubServerListener extends BuildServerAdapter {
     // super.buildFinished(build);
     // }
 
-    public ServerHubConfigPersistenceManager getConfigModel() {
+    public ServerHubConfigPersistenceManager getConfigManager() {
         return configPersistenceManager;
     }
 

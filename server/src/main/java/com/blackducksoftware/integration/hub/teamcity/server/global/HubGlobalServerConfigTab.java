@@ -22,7 +22,7 @@ public class HubGlobalServerConfigTab extends SimpleCustomTab {
         setPosition(PositionConstraint.after("serverConfigGeneral"));
         register();
 
-        configPersistenceManager = codecenterListener.getConfigModel();
+        configPersistenceManager = codecenterListener.getConfigManager();
         controllerManager.registerController("/admin/hub/serverHubConfigTab.html",
                 new HubGlobalServerConfigController(configPersistenceManager));
     }
