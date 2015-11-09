@@ -2,7 +2,6 @@
   <hubUrl></hubUrl>
   <globalCredentials>
     <hubUser></hubUser>
-    <hubPass></hubPass>
   </globalCredentials>
   <proxyInfo>
     <host></host>

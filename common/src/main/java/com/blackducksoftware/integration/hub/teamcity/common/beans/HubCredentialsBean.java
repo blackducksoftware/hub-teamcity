@@ -1,15 +1,12 @@
 package com.blackducksoftware.integration.hub.teamcity.common.beans;
 
-import java.io.IOException;
 import java.io.Serializable;
-
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.UnsupportedCallbackException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ws.security.WSPasswordCallback;
 
-import com.blackducksoftware.integration.suite.sdk.util.ProgrammedEncryptedPasswordCallback;
+import com.blackducksoftware.integration.suite.sdk.util.PasswordDecrypter;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("globalHubCredentials")
@@ -52,15 +49,15 @@ public class HubCredentialsBean implements Serializable {
         hubPass = encryptedPassword;
     }
 
-    public String getDecryptedPassword() throws IOException, UnsupportedCallbackException {
-        ProgrammedEncryptedPasswordCallback passwordCallback = new ProgrammedEncryptedPasswordCallback();
-        passwordCallback.addUserNameAndPassword(hubUser, hubPass);
-        Callback[] callbacks = new Callback[1];
-        WSPasswordCallback callback = new WSPasswordCallback(hubUser, 2);
-        callbacks[0] = callback;
-        passwordCallback.handle(callbacks);
-
-        return callback.getPassword();
+    public String getDecryptedPassword() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        Method method = PasswordDecrypter.class.getDeclaredMethod("decrypt", String.class);
+        method.setAccessible(true);
+        Object result = method.invoke(null, hubPass);
+        if (result != null) {
+            return String.valueOf(result);
+        } else {
+            return null;
+        }
     }
 
     public boolean isEmpty() {

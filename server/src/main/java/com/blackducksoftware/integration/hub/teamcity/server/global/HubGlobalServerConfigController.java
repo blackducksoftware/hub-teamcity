@@ -1,6 +1,7 @@
 package com.blackducksoftware.integration.hub.teamcity.server.global;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -19,7 +20,6 @@ import java.util.regex.PatternSyntaxException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -362,7 +362,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
     private HubIntRestService getRestService(ServerHubConfigBean serverConfig, HubProxyInfo proxyInfo, boolean isTestConnection)
             throws HubIntegrationException, URISyntaxException,
-            IOException, UnsupportedCallbackException {
+            IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         if (serverConfig == null) {
             return null;
         }
