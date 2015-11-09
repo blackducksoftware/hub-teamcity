@@ -16,8 +16,13 @@
 
     <bean id="hubServerListener" class="com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener"/>
     
-    <bean id="serverHubConfigPersistenceManager" class="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager"/>
+    <bean id="hubConfigPersistenceManager" class="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager"/>
     
     <bean id="serverHubConfigTab" class="com.blackducksoftware.integration.hub.teamcity.server.global.HubGlobalServerConfigTab"/>
     
+     <bean id="hubRunnerRunType" class="com.blackducksoftware.integration.hub.teamcity.server.runner.scan.HubRunner"/>
+     
+     <bean id="hubParametersPreprocessor" class="com.blackducksoftware.integration.hub.teamcity.server.runner.HubParametersPreprocessor"
+          depends-on="hubServerListener"/>
+          
 </beans>

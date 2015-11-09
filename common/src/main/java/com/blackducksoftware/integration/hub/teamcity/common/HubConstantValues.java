@@ -4,21 +4,27 @@ public final class HubConstantValues {
 
     public static final String PLUGIN_PREFIX = "com.blackducksoftware.integration.hub.";
 
-    public static final String PLUGIN_ENABLED = PLUGIN_PREFIX + "enabled";
+    public static final String PLUGIN_MAVEN_ENABLED = PLUGIN_PREFIX + "mavenEnabled";
 
     public static final String PLUGIN_GRADLE_ENABLED = PLUGIN_PREFIX + "gradleEnabled";
 
-    public static final String HUB_APP_NAME = PLUGIN_PREFIX + "applicationName";
+    public static final String HUB_PROJECT_NAME = PLUGIN_PREFIX + "projectName";
 
-    public static final String HUB_APP_VERSION = PLUGIN_PREFIX + "applicationVersion";
+    public static final String HUB_PROJECT_VERSION = PLUGIN_PREFIX + "projectVersion";
+
+    public static final String HUB_VERSION_PHASE = PLUGIN_PREFIX + "phase";
+
+    public static final String HUB_VERSION_DISTRIBUTION = PLUGIN_PREFIX + "distribution";
+
+    public static final String HUB_SCAN_MEMORY = PLUGIN_PREFIX + "scanMemory";
+
+    public static final String HUB_SCAN_TARGETS = PLUGIN_PREFIX + "targets";
 
     public static final String HUB_URL = PLUGIN_PREFIX + "hubUrl";
 
     public static final String HUB_USERNAME = PLUGIN_PREFIX + "hubUser";
 
     public static final String HUB_PASSWORD = PLUGIN_PREFIX + "hubPass";
-
-    public static final String HUB_TIMEOUT = PLUGIN_PREFIX + "hubTimeout";
 
     public static final String HUB_PROXY_HOST = PLUGIN_PREFIX + "hubProxyServer";
 

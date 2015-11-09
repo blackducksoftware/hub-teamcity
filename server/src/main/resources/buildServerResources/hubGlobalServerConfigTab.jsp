@@ -1,7 +1,7 @@
 <%@ include file="/include.jsp" %>
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
-<jsp:useBean id="serverHubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager"
+<jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.hubConfigPersistenceManager"
              scope="request"/>
 
 
@@ -127,14 +127,14 @@
                 },
                 
                 load: function() {
-                	"${serverHubConfigPersistenceManager.loadSettings()}";
-                	${'hubUrl'}.value = "${serverHubConfigPersistenceManager.configuredServer.getHubUrl()}";
-                	${'hubUser'}.value = "${serverHubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
-                	${'hubProxyServer'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
-                	${'hubProxyPort'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
-                	${'hubNoProxyHost'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
-                	${'hubProxyUser'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
-                	${'hubProxyPass'}.value = "${serverHubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
+                	"${hubConfigPersistenceManager.loadSettings()}";
+                	${'hubUrl'}.value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
+                	${'hubUser'}.value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
+                	${'hubProxyServer'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
+                	${'hubProxyPort'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
+                	${'hubNoProxyHost'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
+                	${'hubProxyUser'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
+                	${'hubProxyPass'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
                 },
 
                 save: function() {
@@ -334,7 +334,7 @@
 
  <img id="saving" style="display: none; " class="progressRing progressRingDefault" src="/img/ajax-loader.gif" width="16" height="16" alt="Please wait..." title="Please wait..."/>
 <input type="hidden" id="publicKey" name="publicKey"
-                   value="<c:out value='${serverHubConfigPersistenceManager.hexEncodedPublicKey}'/>"/>
+                   value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>"/>
 </div>
 
 </form>

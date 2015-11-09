@@ -30,7 +30,7 @@ public class HubGlobalServerConfigTab extends SimpleCustomTab {
     @Override
     public void fillModel(@NotNull Map<String, Object> model, @NotNull HttpServletRequest request) {
         super.fillModel(model, request);
-        model.put("serverHubConfigPersistenceManager", configPersistenceManager);
+        model.put("hubConfigPersistenceManager", configPersistenceManager);
     }
 
 }
