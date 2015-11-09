@@ -6,7 +6,6 @@
   </globalCredentials>
   <proxyInfo>
     <host></host>
-    <port></port>
     <proxyUsername></proxyUsername>
     <proxyPassword></proxyPassword>
     <ignoredProxyHosts></ignoredProxyHosts>

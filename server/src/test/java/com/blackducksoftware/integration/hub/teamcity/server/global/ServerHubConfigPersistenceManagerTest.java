@@ -232,9 +232,9 @@ public class ServerHubConfigPersistenceManagerTest {
 
             persistenceManager.loadSettings();
 
-            assertTrue(persistenceManager.getConfiguredServer().getGlobalCredentials().equals(originalConfig.getGlobalCredentials()));
-            assertTrue(persistenceManager.getConfiguredServer().getProxyInfo().equals(originalConfig.getProxyInfo()));
-            assertTrue(persistenceManager.getConfiguredServer().getHubUrl().equals(originalConfig.getHubUrl()));
+            assertTrue(!persistenceManager.getConfiguredServer().getGlobalCredentials().equals(originalConfig.getGlobalCredentials()));
+            assertTrue(!persistenceManager.getConfiguredServer().getProxyInfo().equals(originalConfig.getProxyInfo()));
+            assertTrue(!persistenceManager.getConfiguredServer().getHubUrl().equals(originalConfig.getHubUrl()));
 
         } finally {
 
