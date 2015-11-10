@@ -23,7 +23,7 @@
 
 <!-- Have to do this because the textProperty doesnt accept a default value -->
 <c:set var="scanMemoryValue"
-       value="${not empty propertiesBean.properties['com.blackducksoftware.integration.hub.hubScanMemory'] ? propertiesBean.properties['com.blackducksoftware.integration.hub.hubScanMemory'] : 4096}"/>
+       value="${not empty propertiesBean.properties['com.blackducksoftware.integration.hub.scanMemory'] ? propertiesBean.properties['com.blackducksoftware.integration.hub.scanMemory'] : 4096}"/>
        
 
 			<l:settingsGroup title="Black Duck Hub">
@@ -53,33 +53,65 @@
 					</td>
 				</tr>
 				
-				<tr class="noBorder" id="blackDuckHubVersionPhase"
-					style="">
+				<tr class="noBorder" id="blackDuckHubVersionPhase" style="">
 					<th><label
 						for="com.blackducksoftware.integration.hub.phase">
 							Phase: <bs:helpIcon
 								iconTitle="Choose the Phase at which this Version is in its life cycle. This Phase will be used when creating the Version, changing this will NOT update the Version's Phase" />
 					</label></th>
-					<td><props:textProperty
+					<td><props:selectProperty
 							name="com.blackducksoftware.integration.hub.phase"
-							className="longField" /> 
-							<span class="smallNote"> Phase at which this Version is in. </span>
-					</td>
+							className="longField">
+							<c:forEach var="phase"
+								items="${hubConfigPersistenceManager.getPhaseOptions()}">
+								<c:set var="selected" value="false" />
+								
+								<props:option value="${phase}"
+									selected="${selected}">
+									<c:out
+										value="${phase}" />
+								</props:option>
+							</c:forEach>
+						</props:selectProperty> <span class="smallNote"> Phase at which this Version is in. </span></td>
 				</tr>
 				
-				<tr class="noBorder" id="blackDuckHubVersionDistribution"
-					style="">
+				<tr class="noBorder" id="blackDuckHubVersionDistribution" style="">
 					<th><label
 						for="com.blackducksoftware.integration.hub.distribution">
 							Distribution: <bs:helpIcon
 								iconTitle="Choose how this Version is planned to be distributed. This will be used when creating the Version, changing this will NOT update the Version's Distribution" />
 					</label></th>
-					<td><props:textProperty
+					<td><props:selectProperty
 							name="com.blackducksoftware.integration.hub.distribution"
-							className="longField" /> 
-							<span class="smallNote"> Distribution type for this Version. </span>
+							className="longField">
+							<c:forEach var="distribution"
+								items="${hubConfigPersistenceManager.getDistributionOptions()}">
+								<c:set var="selected" value="false" />
+								
+								<props:option value="${distribution}"
+									selected="${selected}">
+									<c:out
+										value="${distribution}" />
+								</props:option>
+							</c:forEach>
+						</props:selectProperty> <span class="smallNote"> Distribution type for this Version. </span></td>
+				</tr>
+				
+				
+				<tr class="noBorder" id="blackDuckHubCliPath" style="">
+					<th><label
+						for="com.blackducksoftware.integration.hub.cliPath">
+							CLI Path: <bs:helpIcon
+								iconTitle="" />
+					</label></th>
+					
+					<td> <props:textProperty
+							name="com.blackducksoftware.integration.hub.cliPath"
+							className="longField" />
+							<span class="smallNote"> Path to the Hub CLI home directory (parent of 'bin' directory). Overrides agent COMPONENT_SCAN_HOME environment variable </span>
 					</td>
 				</tr>
+				
 				
 				<tr class="noBorder" id="blackDuckHubScanMemory" style="">
 					<th><label
@@ -100,13 +132,13 @@
 					<th><label
 						for="com.blackducksoftware.integration.hub.targets">
 							Scan Targets: <bs:helpIcon
-								iconTitle="Provide the path to the target that you would like to scan within this workspace. If no target is provided then the entire workspace will be scanned." />
+								iconTitle="If no target is provided then the entire workspace will be scanned. Please only provide one target per line." />
 					</label></th>
 					
 					<td> <props:textProperty
 							name="com.blackducksoftware.integration.hub.targets"
-							className="longField" /> 
-							<span class="smallNote"> Path of the target, within the workspace, to be scanned. </span>
+							className="longField" expandable="true"/> 
+							<span class="smallNote"> Path of the target, within the workspace, to be scanned. One target per line. </span>
 					</td>
 				</tr>
 

@@ -35,9 +35,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
         log = build.getBuildLog();
 
         // This condition checks that the Protex Build step has been added to this Build
-        if ((runParameters.containsKey(HubConstantValues.HUB_PROJECT_NAME) && StringUtils.isNotBlank(runParameters.get(HubConstantValues.HUB_PROJECT_NAME)))
-                || (runParameters.containsKey(HubConstantValues.HUB_PROJECT_VERSION) && StringUtils.isNotBlank(runParameters
-                        .get(HubConstantValues.HUB_PROJECT_VERSION)))) {
+        if (isHubBuildStepConfigured(runParameters)) {
 
             handleLog("Hub Plugin enabled.", null);
 
@@ -54,21 +52,25 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
             if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD)) {
                 runParameters.put(HubConstantValues.HUB_PASSWORD, trimIfStringNotNull(credentials.getEncryptedPassword()));
             }
-            if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
-                runParameters.put(HubConstantValues.HUB_PROXY_HOST, trimIfStringNotNull(proxyInfo.getHost()));
-            }
-            if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
-                runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyInfo.getPort()));
-            }
-            if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS)) {
+            if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS) && StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
                 runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, trimIfStringNotNull(proxyInfo.getIgnoredProxyHosts()));
             }
-            if (StringUtils.isNotBlank(proxyInfo.getProxyUsername()) && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
-                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_USER)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_USER, trimIfStringNotNull(proxyInfo.getProxyUsername()));
+
+            if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != null) {
+                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
+                    runParameters.put(HubConstantValues.HUB_PROXY_HOST, trimIfStringNotNull(proxyInfo.getHost()));
                 }
-                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_PASS, trimIfStringNotNull(proxyInfo.getProxyPassword()));
+                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
+                    runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyInfo.getPort()));
+                }
+
+                if (StringUtils.isNotBlank(proxyInfo.getProxyUsername()) && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
+                    if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_USER)) {
+                        runParameters.put(HubConstantValues.HUB_PROXY_USER, trimIfStringNotNull(proxyInfo.getProxyUsername()));
+                    }
+                    if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
+                        runParameters.put(HubConstantValues.HUB_PROXY_PASS, trimIfStringNotNull(proxyInfo.getProxyPassword()));
+                    }
                 }
             }
         }
@@ -89,6 +91,16 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
             e.printStackTrace(new PrintWriter(sw));
             log.message(HubConstantValues.PLUGIN_LOG + sw.toString(), Status.NORMAL, new Date(), "", "", Collections.EMPTY_LIST);
         }
+    }
+
+    private boolean isHubBuildStepConfigured(@NotNull Map<String, String> runParameters) {
+
+        boolean hubVersionPhase = runParameters.containsKey(HubConstantValues.HUB_VERSION_PHASE)
+                && StringUtils.isNotBlank(runParameters.get(HubConstantValues.HUB_VERSION_PHASE));
+        boolean hubVersionDistribution = runParameters.containsKey(HubConstantValues.HUB_VERSION_DISTRIBUTION)
+                && StringUtils.isNotBlank(runParameters.get(HubConstantValues.HUB_VERSION_DISTRIBUTION));
+
+        return hubVersionPhase && hubVersionDistribution;
     }
 
 }

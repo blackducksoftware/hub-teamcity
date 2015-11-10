@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.ServerPaths;
@@ -13,6 +15,8 @@ import jetbrains.buildServer.serverSide.crypt.RSACipher;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.response.DistributionEnum;
+import com.blackducksoftware.integration.hub.response.PhaseEnum;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
@@ -125,6 +129,26 @@ public class ServerHubConfigPersistenceManager {
 
     public String getRandom() {
         return String.valueOf(Math.random());
+    }
+
+    public List<String> getPhaseOptions() {
+        List<String> phaseList = new ArrayList<String>();
+        for (PhaseEnum phase : PhaseEnum.values()) {
+            if (phase != PhaseEnum.UNKNOWNPHASE) {
+                phaseList.add(phase.name());
+            }
+        }
+        return phaseList;
+    }
+
+    public List<String> getDistributionOptions() {
+        List<String> distributionList = new ArrayList<String>();
+        for (DistributionEnum distribution : DistributionEnum.values()) {
+            if (distribution != DistributionEnum.UNKNOWNDISTRIBUTION) {
+                distributionList.add(distribution.name());
+            }
+        }
+        return distributionList;
     }
 
 }
