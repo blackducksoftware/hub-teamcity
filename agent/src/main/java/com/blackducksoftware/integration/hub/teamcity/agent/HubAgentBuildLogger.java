@@ -22,10 +22,12 @@ public class HubAgentBuildLogger implements IntLogger {
         return logger;
     }
 
+    @Override
     public void setLogLevel(LogLevel level) {
         loggerLevel = level;
     }
 
+    @Override
     public LogLevel getLogLevel() {
         return loggerLevel;
     }
@@ -40,73 +42,82 @@ public class HubAgentBuildLogger implements IntLogger {
 
     }
 
+    @Override
     public void info(String txt) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.INFO)) {
-            logger.progressMessage("[INFO] " + txt);
+            logger.progressMessage(txt);
         }
     }
 
+    @Override
     public void error(String txt, Throwable e) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
-            logger.error("[ERROR] " + txt);
+            logger.error(txt);
             if (e != null) {
                 StringWriter sw = new StringWriter();
                 e.printStackTrace(new PrintWriter(sw));
-                logger.error("[ERROR] " + sw.toString());
+                logger.error(sw.toString());
             }
         }
     }
 
+    @Override
     public void error(String txt) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
-            logger.error("[ERROR] " + txt);
+            logger.error(txt);
         }
     }
 
+    @Override
     public void warn(String txt) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.WARN)) {
-            logger.progressMessage("[WARN] " + txt);
+            logger.progressMessage(txt);
         }
     }
 
+    @Override
     public void trace(String txt) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.TRACE)) {
-            logger.progressMessage("[TRACE] " + txt);
+            logger.progressMessage(txt);
         }
     }
 
+    @Override
     public void debug(String txt) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.DEBUG)) {
-            logger.progressMessage("[DEBUG] " + txt);
+            logger.progressMessage(txt);
         }
     }
 
+    @Override
     public void debug(String txt, Throwable e) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.DEBUG)) {
-            logger.progressMessage("[DEBUG] " + txt);
+            logger.progressMessage(txt);
             if (e != null) {
                 StringWriter sw = new StringWriter();
                 e.printStackTrace(new PrintWriter(sw));
-                logger.progressMessage("[DEBUG] " + sw.toString());
+                logger.progressMessage(sw.toString());
             }
         }
     }
 
+    @Override
     public void error(Throwable e) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            logger.error("[ERROR] " + sw.toString());
+            logger.error(sw.toString());
         }
     }
 
+    @Override
     public void trace(String txt, Throwable e) {
         if (LogLevel.isLoggable(loggerLevel, LogLevel.TRACE)) {
-            logger.progressMessage("[TRACE] " + txt);
+            logger.progressMessage(txt);
             if (e != null) {
                 StringWriter sw = new StringWriter();
                 e.printStackTrace(new PrintWriter(sw));
-                logger.progressMessage("[TRACE] " + sw.toString());
+                logger.progressMessage(sw.toString());
             }
         }
     }

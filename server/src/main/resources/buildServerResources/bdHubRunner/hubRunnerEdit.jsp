@@ -14,7 +14,14 @@
 
 
 <style type="text/css">
-
+.bdLongTextArea{
+	min-width: 40em !important;
+	min-height: 8em !important;
+	overflow: scroll !important;
+	white-space: nowrap !important;
+	resize: vertical !important;
+	
+}
 </style>
 
 <script type="text/javascript">
@@ -137,7 +144,7 @@
 					
 					<td> <props:textProperty
 							name="com.blackducksoftware.integration.hub.targets"
-							className="longField" expandable="true"/> 
+							className="bdLongTextArea" expandable="true"/> 
 							<span class="smallNote"> Path of the target, within the workspace, to be scanned. One target per line. </span>
 					</td>
 				</tr>

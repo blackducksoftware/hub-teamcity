@@ -1,5 +1,10 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -9,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
+import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
@@ -43,7 +49,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         String serverUrl = getParameter(HubConstantValues.HUB_URL);
 
-        HubCredentialsBean credentials = new HubCredentialsBean(getParameter(HubConstantValues.HUB_USERNAME), getParameter(HubConstantValues.HUB_PASSWORD));
+        HubCredentialsBean credential = new HubCredentialsBean(getParameter(HubConstantValues.HUB_USERNAME), getParameter(HubConstantValues.HUB_PASSWORD));
 
         HubProxyInfo proxyInfo = new HubProxyInfo();
         proxyInfo.setHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
@@ -64,36 +70,74 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         String hubScanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
         String hubScanTargets = getParameter(HubConstantValues.HUB_SCAN_TARGETS);
 
-        logger.info("Hub Server Url : " + serverUrl);
-        logger.info("Hub User : " + credentials.getHubUser());
+        File workingDirectory = context.getWorkingDirectory();
+        String workingDirectoryPath = workingDirectory.getCanonicalPath();
+        logger.info("Working directory : " + workingDirectoryPath);
 
-        logger.info("Project : " + projectName);
-        logger.info("Version : " + version);
+        logger.info("--> Hub Server Url : " + serverUrl);
+        logger.info("--> Hub User : " + credential.getHubUser());
 
-        logger.info("Version Phase : " + phase);
-        logger.info("Version Distribution : " + distribution);
-        logger.info("CLI Path : " + hubCLIPath);
-        logger.info("Hub scan memory : " + hubScanMemory + " MB");
-        logger.info("Hub scan targets : " + hubScanTargets);
+        logger.info("--> Project : " + projectName);
+        logger.info("--> Version : " + version);
 
-        String[] scanTargets = hubScanTargets.split(System.getProperty("line.separator"));
-        int i = 0;
-        for (String target : scanTargets) {
-            i++;
-            logger.info("Target #" + i + " : " + target);
+        logger.info("--> Version Phase : " + phase);
+        logger.info("--> Version Distribution : " + distribution);
+
+        File cliHome = null;
+        if (StringUtils.isBlank(hubCLIPath)) {
+            String cliHomePath = getEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR);
+            if (StringUtils.isNotBlank(cliHomePath)) {
+                cliHome = new File(cliHomePath);
+                logger.info("--> CLI Path : " + cliHomePath);
+            }
+        } else {
+            cliHome = new File(hubCLIPath);
+            logger.info("--> CLI Path : " + cliHome.getAbsolutePath());
+        }
+
+        logger.info("--> Hub scan memory : " + hubScanMemory + " MB");
+
+        logger.info("--> Hub scan targets : ");
+
+        List<File> scanTargets = new ArrayList<File>();
+
+        if (StringUtils.isNotBlank(hubScanTargets)) {
+            if (hubScanTargets.contains(System.getProperty("line.separator"))) {
+                String[] scanTargetPaths = hubScanTargets.split(System.getProperty("line.separator"));
+                int i = 0;
+                for (String target : scanTargetPaths) {
+                    i++;
+                    File targetFile = new File(workingDirectory, target);
+                    logger.info("    --> Target #" + i + " : " + targetFile.getAbsolutePath());
+
+                    scanTargets.add(targetFile);
+                }
+            } else {
+                scanTargets.add(new File(workingDirectory, hubScanTargets));
+            }
+        } else {
+            scanTargets.add(workingDirectory);
+            logger.info("    --> " + workingDirectoryPath);
         }
 
         if (StringUtils.isNotBlank(proxyInfo.getHost())) {
-            logger.info("Proxy Host : " + proxyInfo.getHost());
+            logger.info("--> Proxy Host : " + proxyInfo.getHost());
         }
         if (proxyInfo.getPort() != null) {
-            logger.info("Proxy Port : " + proxyInfo.getPort());
+            logger.info("--> Proxy Port : " + proxyInfo.getPort());
         }
         if (StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
-            logger.info("No Proxy Hosts : " + proxyInfo.getIgnoredProxyHosts());
+            logger.info("--> No Proxy Hosts : " + proxyInfo.getIgnoredProxyHosts());
         }
         if (StringUtils.isNotBlank(proxyInfo.getProxyUsername())) {
-            logger.info("Proxy Username : " + proxyInfo.getProxyUsername());
+            logger.info("--> Proxy Username : " + proxyInfo.getProxyUsername());
+        }
+
+        if (isPluginEnabled(serverUrl, credential, scanTargets, workingDirectoryPath, hubScanMemory, cliHome)) {
+
+        } else {
+            logger.info("Skipping Hub Build Step");
+            result = BuildFinishedStatus.FINISHED_FAILED;
         }
 
         logger.targetFinished("Hub Build Step");
@@ -107,6 +151,41 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
         String result = value.trim();
         return result;
+    }
+
+    private String getEnvironmentVariable(@NotNull final String parameterName) {
+        final String value = context.getBuildParameters().getEnvironmentVariables().get(parameterName);
+        if (value == null || value.trim().length() == 0) {
+            return null;
+        }
+        String result = value.trim();
+        return result;
+
+    }
+
+    private boolean isPluginEnabled(final String serverUrl, final HubCredentialsBean credential, final List<File> scanTargets, final String workingDirectory,
+            final String memory, final File cliHomeDirectory)
+            throws IOException {
+
+        HubParameterValidator validator = new HubParameterValidator(logger);
+
+        boolean isUrlEmpty = validator.isServerUrlEmpty(serverUrl);
+        boolean credentialsConfigured = validator.isHubCredentialConfigured(credential);
+
+        boolean scanTargetsValid = true;
+
+        for (File target : scanTargets) {
+            if (!validator.validateTargetPath(target, workingDirectory)) {
+                scanTargetsValid = false;
+            }
+        }
+
+        boolean validScanMemory = validator.validateScanMemory(memory);
+
+        boolean validCliHome = false;
+        validCliHome = validator.validateCLIPath(cliHomeDirectory);
+
+        return !isUrlEmpty && credentialsConfigured && scanTargetsValid && validScanMemory && validCliHome;
     }
 
 }

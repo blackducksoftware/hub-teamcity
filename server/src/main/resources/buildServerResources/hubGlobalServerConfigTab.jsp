@@ -1,7 +1,7 @@
 <%@ include file="/include.jsp" %>
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
-<jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.hubConfigPersistenceManager"
+<jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager"
              scope="request"/>
 
 
