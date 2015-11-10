@@ -113,7 +113,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     scanTargets.add(targetFile);
                 }
             } else {
-                scanTargets.add(new File(workingDirectory, hubScanTargets));
+                File targetFile = new File(workingDirectory, hubScanTargets);
+                scanTargets.add(targetFile);
+                logger.info("    --> " + targetFile.getAbsolutePath());
             }
         } else {
             scanTargets.add(workingDirectory);
