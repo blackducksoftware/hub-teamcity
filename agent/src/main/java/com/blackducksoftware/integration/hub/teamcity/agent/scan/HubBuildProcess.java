@@ -2,6 +2,7 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,11 +14,16 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.exception.BDRestException;
+import com.blackducksoftware.integration.hub.response.ReleaseItem;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
+import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
+import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
 
@@ -42,6 +48,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     public BuildFinishedStatus call() throws Exception {
         final BuildProgressLogger buildLogger = build.getBuildLogger();
         setHubLogger(new HubAgentBuildLogger(buildLogger));
+
+        if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {
+            // If this property is not set the default is 20
+            // When not set the Authenticator redirects in a loop and results in an error for too many redirects
+            System.setProperty("http.maxRedirects", "3");
+        }
 
         BuildFinishedStatus result = BuildFinishedStatus.FINISHED_SUCCESS;
 
@@ -104,9 +116,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         if (isGlobalConfigValid(serverUrl, credential) && isJobConfigValid(scanTargets, workingDirectoryPath, hubScanMemory, cliHome)) {
 
-            // Ensure project/ version exist
-            // Run scan
-            // Do scan mapping
+            HubIntRestService restService = new HubIntRestService(serverUrl);
+            restService.setLogger(logger);
+            if (proxyInfo != null) {
+                Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
+                restService.setProxyProperties(proxyInfo.getHost(), port,
+                        proxyInfo.getNoProxyHostPatterns(), proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
+            }
+            restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
+
+            String projectId = ensureProjectExists(restService, logger, projectName);
+            String versionId = ensureVersionExists(restService, logger, version, projectId, phase, distribution);
+            doHubScan();
+            doHubScanMapping();
 
         } else {
             logger.info("Skipping Hub Build Step");
@@ -217,6 +239,76 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 logger.info("    --> " + target.getAbsolutePath());
             }
         }
+
+    }
+
+    private String ensureProjectExists(HubIntRestService service, IntLogger logger, String projectName) throws IOException, URISyntaxException,
+            TeamCityHubPluginException {
+        String projectId = null;
+        try {
+            projectId = service.getProjectByName(projectName).getId();
+
+        } catch (BDRestException e) {
+            if (e.getResource() != null) {
+                if (e.getResource().getResponse().getStatus().getCode() == 404) {
+                    // Project was not found, try to create it
+                    try {
+
+                        projectId = service.createHubProject(projectName);
+                        logger.debug("Project created!");
+
+                    } catch (BDRestException e1) {
+                        if (e1.getResource() != null) {
+                            logger.error("Status : " + e1.getResource().getStatus().getCode());
+                            logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
+                        }
+                        throw new TeamCityHubPluginException("Problem creating the Project. ", e1);
+                    }
+                } else {
+                    if (e.getResource() != null) {
+                        logger.error("Status : " + e.getResource().getStatus().getCode());
+                        logger.error("Response : " + e.getResource().getResponse().getEntityAsText());
+                    }
+                    throw new TeamCityHubPluginException("Problem getting the Project. ", e);
+                }
+            }
+        }
+
+        return projectId;
+    }
+
+    private String ensureVersionExists(HubIntRestService service, IntLogger logger, String projectVersion,
+            String projectId, String phase, String distribution) throws IOException, URISyntaxException, TeamCityHubPluginException {
+        String versionId = null;
+        try {
+
+            List<ReleaseItem> projectVersions = service.getVersionsForProject(projectId);
+            for (ReleaseItem release : projectVersions) {
+                if (projectVersion.equals(release.getVersion())) {
+                    versionId = release.getId();
+                    if (!release.getPhase().equals(phase)) {
+                        logger.warn("The selected Phase does not match the Phase of this Version. If you wish to update the Phase please do so in the Hub UI.");
+                    }
+                    if (!release.getDistribution().equals(distribution)) {
+                        logger.warn("The selected Distribution does not match the Distribution of this Version. If you wish to update the Distribution please do so in the Hub UI.");
+                    }
+                }
+            }
+            if (versionId == null) {
+                versionId = service.createHubVersion(projectVersion, projectId, phase, distribution);
+                logger.debug("Version created!");
+            }
+        } catch (BDRestException e) {
+            throw new TeamCityHubPluginException("Could not retrieve or create the specified version.", e);
+        }
+        return versionId;
+    }
+
+    public void doHubScan() {
+
+    }
+
+    public void doHubScanMapping() {
 
     }
 
