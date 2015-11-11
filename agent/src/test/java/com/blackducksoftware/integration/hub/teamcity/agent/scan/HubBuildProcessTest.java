@@ -451,6 +451,9 @@ public class HubBuildProcessTest {
         context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, "dist");
         context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
 
+        context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS, "directory/emptyFile.txt" + System.getProperty("line.separator")
+                + "directory/secondEmptyFile.txt");
+
         TestAgentRunningBuild build = new TestAgentRunningBuild();
         build.setLogger(testLogger);
 
@@ -505,6 +508,8 @@ public class HubBuildProcessTest {
         context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, "phase");
         context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, "dist");
         context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
+
+        context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS, "directory/emptyFile.txt");
 
         TestAgentRunningBuild build = new TestAgentRunningBuild();
         build.setLogger(testLogger);

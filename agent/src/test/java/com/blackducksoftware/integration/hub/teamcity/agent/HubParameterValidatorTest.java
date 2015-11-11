@@ -202,7 +202,7 @@ public class HubParameterValidatorTest {
 
         String cliPath = testWorkspace + "/directory/fake";
 
-        validator.validateTargetPath(new File(cliPath), testWorkspace);
+        validator.validateCLIPath(new File(cliPath));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -215,13 +215,13 @@ public class HubParameterValidatorTest {
         HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        String cliPath = testWorkspace + "/directory";
+        String cliPath = testWorkspace + "/emptyDirectory";
         File cliPathTarget = new File(cliPath);
         if (!cliPathTarget.exists()) {
             cliPathTarget.mkdirs();
         }
 
-        validator.validateTargetPath(new File(cliPath), testWorkspace);
+        validator.validateCLIPath(new File(cliPath));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -236,7 +236,7 @@ public class HubParameterValidatorTest {
 
         String cliPath = testWorkspace + "/scan.cli-2.1.2/bin";
 
-        validator.validateTargetPath(new File(cliPath), testWorkspace);
+        validator.validateCLIPath(new File(cliPath));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -251,7 +251,7 @@ public class HubParameterValidatorTest {
 
         String cliPath = testWorkspace + "/EmptyScan.cli-2.1.2";
 
-        validator.validateTargetPath(new File(cliPath), testWorkspace);
+        validator.validateCLIPath(new File(cliPath));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -266,7 +266,7 @@ public class HubParameterValidatorTest {
 
         String cliPath = testWorkspace + "/InvalidScan.cli-2.1.2";
 
-        validator.validateTargetPath(new File(cliPath), testWorkspace);
+        validator.validateCLIPath(new File(cliPath));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -281,7 +281,7 @@ public class HubParameterValidatorTest {
 
         String cliPath = testWorkspace + "/scan.cli-2.1.2";
 
-        boolean validCLIPath = validator.validateTargetPath(new File(cliPath), testWorkspace);
+        boolean validCLIPath = validator.validateCLIPath(new File(cliPath));
 
         if (!validCLIPath) {
             if (testLogger.getErrorMessages().size() != 0) {
