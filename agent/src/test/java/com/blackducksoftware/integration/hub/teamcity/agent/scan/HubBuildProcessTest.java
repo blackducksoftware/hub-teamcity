@@ -1,5 +1,6 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import jetbrains.buildServer.agent.BuildFinishedStatus;
+
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -19,6 +22,7 @@ import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestAgentRunningBuild;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildRunnerContext;
+import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 
@@ -312,5 +316,344 @@ public class HubBuildProcessTest {
         } else {
             assertTrue(testLogger.getErrorMessages().size() == 0);
         }
+    }
+
+    @Test
+    public void testCallNothingConfigured() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("There is no Server URL specified"));
+        assertTrue(output, output.contains("There is no Hub username specified"));
+        assertTrue(output, output.contains("There is no Hub password specified."));
+
+        assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
+    }
+
+    @Test
+    public void testCallGlobalPartiallyConfigured() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, output.contains("There is no Hub password specified."));
+
+        assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
+    }
+
+    @Test
+    public void testCallGlobalConfigured() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, !output.contains("There is no Hub password specified."));
+
+        assertTrue(output, output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
+    }
+
+    @Test
+    public void testCallJobPartiallyConfiguredCLIEnvVarSet() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, !output.contains("There is no Hub password specified."));
+
+        assertTrue(output, output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
+    }
+
+    @Test
+    public void testCallFullyConfigured() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
+
+        context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, "testProject");
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, "testVersion");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, "phase");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, "dist");
+        context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, !output.contains("There is no Hub password specified."));
+
+        assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("--> Hub Server Url : testUrl"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub User : testUser"));
+        assertTrue(progressOutput, !progressOutput.contains("--> Proxy Host :"));
+        assertTrue(progressOutput, !progressOutput.contains("--> Proxy Port :"));
+        assertTrue(progressOutput, !progressOutput.contains("--> No Proxy Hosts :"));
+        assertTrue(progressOutput, !progressOutput.contains("--> Proxy Username :"));
+
+        assertTrue(progressOutput, progressOutput.contains("Working directory : "));
+        assertTrue(progressOutput, progressOutput.contains("--> Project : testProject"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version : testVersion"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Phase : phase"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : dist"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
+        assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
+    }
+
+    @Test
+    public void testCallFullyConfiguredPassThroughProxyProxyIgnored() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
+
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST, "testProxyHost");
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_PORT, "3128");
+        context.addRunnerParameter(HubConstantValues.HUB_NO_PROXY_HOSTS, "ignoreHost, testProxyHost");
+
+        context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, "testProject");
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, "testVersion");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, "phase");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, "dist");
+        context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, !output.contains("There is no Hub password specified."));
+
+        assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("--> Hub Server Url : testUrl"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub User : testUser"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Host :"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Port :"));
+        assertTrue(progressOutput, progressOutput.contains("--> No Proxy Hosts :"));
+        assertTrue(progressOutput, !progressOutput.contains("--> Proxy Username :"));
+
+        assertTrue(progressOutput, progressOutput.contains("Working directory : "));
+        assertTrue(progressOutput, progressOutput.contains("--> Project : testProject"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version : testVersion"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Phase : phase"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : dist"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
+        assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
+    }
+
+    @Test
+    public void testCallFullyConfiguredPassThroughProxy() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
+
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST, "testProxyHost");
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_PORT, "3130");
+        context.addRunnerParameter(HubConstantValues.HUB_NO_PROXY_HOSTS, "ignoreHost, otherhost");
+
+        context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, "testProject");
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, "testVersion");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, "phase");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, "dist");
+        context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, !output.contains("There is no Hub password specified."));
+
+        assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("--> Hub Server Url : testUrl"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub User : testUser"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Host :"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Port :"));
+        assertTrue(progressOutput, progressOutput.contains("--> No Proxy Hosts :"));
+        assertTrue(progressOutput, !progressOutput.contains("--> Proxy Username :"));
+
+        assertTrue(progressOutput, progressOutput.contains("Working directory : "));
+        assertTrue(progressOutput, progressOutput.contains("--> Project : testProject"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version : testVersion"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Phase : phase"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : dist"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
+        assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
+    }
+
+    @Test
+    public void testCallFullyConfiguredAuthenticatedProxy() throws Exception {
+        TestBuildRunnerContext context = new TestBuildRunnerContext();
+        context.setWorkingDirectory(workingDirectory);
+
+        context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+
+        context.addRunnerParameter(HubConstantValues.HUB_URL, "testUrl");
+        context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
+
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST, "testProxyHost");
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_PORT, "3130");
+        context.addRunnerParameter(HubConstantValues.HUB_NO_PROXY_HOSTS, "ignoreHost, otherhost");
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_USER, "testProxyUser");
+        context.addRunnerParameter(HubConstantValues.HUB_PROXY_PASS, "testProxyPass");
+
+        context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, "testProject");
+        context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, "testVersion");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, "phase");
+        context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, "dist");
+        context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
+
+        TestAgentRunningBuild build = new TestAgentRunningBuild();
+        build.setLogger(testLogger);
+
+        HubBuildProcess process = new HubBuildProcess(build, context);
+
+        assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, !output.contains("There is no Server URL specified"));
+        assertTrue(output, !output.contains("There is no Hub username specified"));
+        assertTrue(output, !output.contains("There is no Hub password specified."));
+
+        assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
+        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+
+        String progressOutput = testLogger.getProgressMessagesString();
+
+        assertTrue(progressOutput, progressOutput.contains("--> Hub Server Url : testUrl"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub User : testUser"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Host :"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Port :"));
+        assertTrue(progressOutput, progressOutput.contains("--> No Proxy Hosts :"));
+        assertTrue(progressOutput, progressOutput.contains("--> Proxy Username :"));
+
+        assertTrue(progressOutput, progressOutput.contains("Working directory : "));
+        assertTrue(progressOutput, progressOutput.contains("--> Project : testProject"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version : testVersion"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Phase : phase"));
+        assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : dist"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
+        assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
+        assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
     }
 }

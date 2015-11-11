@@ -13,12 +13,25 @@ import jetbrains.buildServer.parameters.ValueResolver;
 
 public class TestBuildRunnerContext implements BuildRunnerContext {
 
-    private Map<String, String> runnerParameters = new HashMap<String, String>();
+    private Map<String, String> runnerParameters = null;
 
     private File workingDirectory;
 
+    private Map<String, String> environmentParameters = null;
+
+    private Map<String, String> configParameters = null;
+
+    private Map<String, String> systemParameters = null;
+
     public void setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
+    }
+
+    public TestBuildRunnerContext() {
+        runnerParameters = new HashMap<String, String>();
+        environmentParameters = new HashMap<String, String>();
+        configParameters = new HashMap<String, String>();
+        systemParameters = new HashMap<String, String>();
     }
 
     @Override
@@ -45,18 +58,18 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
     }
 
     @Override
-    public void addConfigParameter(String arg0, String arg1) {
-
+    public void addConfigParameter(String key, String value) {
+        configParameters.put(key, value);
     }
 
     @Override
-    public void addEnvironmentVariable(String arg0, String arg1) {
-
+    public void addEnvironmentVariable(String key, String value) {
+        environmentParameters.put(key, value);
     }
 
     @Override
-    public void addSystemProperty(String arg0, String arg1) {
-
+    public void addSystemProperty(String key, String value) {
+        systemParameters.put(key, value);
     }
 
     @Override
@@ -67,8 +80,27 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 
     @Override
     public BuildParametersMap getBuildParameters() {
+        BuildParametersMap buildParameterMap = new BuildParametersMap() {
 
-        return null;
+            @Override
+            public Map<String, String> getAllParameters() {
+                // TODO Auto-generated function stub
+                return null;
+            }
+
+            @Override
+            public Map<String, String> getEnvironmentVariables() {
+                return environmentParameters;
+            }
+
+            @Override
+            public Map<String, String> getSystemProperties() {
+                return systemParameters;
+            }
+
+        };
+
+        return buildParameterMap;
     }
 
     @Override
