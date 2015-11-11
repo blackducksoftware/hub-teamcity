@@ -34,14 +34,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         this.context = context;
     }
 
-    public void setProtexLogger(HubAgentBuildLogger logger) {
+    public void setHubLogger(HubAgentBuildLogger logger) {
         this.logger = logger;
     }
 
     @Override
     public BuildFinishedStatus call() throws Exception {
         final BuildProgressLogger buildLogger = build.getBuildLogger();
-        setProtexLogger(new HubAgentBuildLogger(buildLogger));
+        setHubLogger(new HubAgentBuildLogger(buildLogger));
 
         BuildFinishedStatus result = BuildFinishedStatus.FINISHED_SUCCESS;
 
@@ -72,70 +72,41 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         File workingDirectory = context.getWorkingDirectory();
         String workingDirectoryPath = workingDirectory.getCanonicalPath();
-        logger.info("Working directory : " + workingDirectoryPath);
-
-        logger.info("--> Hub Server Url : " + serverUrl);
-        logger.info("--> Hub User : " + credential.getHubUser());
-
-        logger.info("--> Project : " + projectName);
-        logger.info("--> Version : " + version);
-
-        logger.info("--> Version Phase : " + phase);
-        logger.info("--> Version Distribution : " + distribution);
 
         File cliHome = null;
         if (StringUtils.isBlank(hubCLIPath)) {
             String cliHomePath = getEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR);
             if (StringUtils.isNotBlank(cliHomePath)) {
                 cliHome = new File(cliHomePath);
-                logger.info("--> CLI Path : " + cliHomePath);
             }
         } else {
             cliHome = new File(hubCLIPath);
-            logger.info("--> CLI Path : " + cliHome.getAbsolutePath());
         }
-
-        logger.info("--> Hub scan memory : " + hubScanMemory + " MB");
-
-        logger.info("--> Hub scan targets : ");
 
         List<File> scanTargets = new ArrayList<File>();
 
         if (StringUtils.isNotBlank(hubScanTargets)) {
             if (hubScanTargets.contains(System.getProperty("line.separator"))) {
                 String[] scanTargetPaths = hubScanTargets.split(System.getProperty("line.separator"));
-                int i = 0;
                 for (String target : scanTargetPaths) {
-                    i++;
-                    File targetFile = new File(workingDirectory, target);
-                    logger.info("    --> Target #" + i + " : " + targetFile.getAbsolutePath());
-
-                    scanTargets.add(targetFile);
+                    scanTargets.add(new File(workingDirectory, target));
                 }
             } else {
-                File targetFile = new File(workingDirectory, hubScanTargets);
-                scanTargets.add(targetFile);
-                logger.info("    --> " + targetFile.getAbsolutePath());
+                scanTargets.add(new File(workingDirectory, hubScanTargets));
             }
         } else {
             scanTargets.add(workingDirectory);
-            logger.info("    --> " + workingDirectoryPath);
         }
 
-        if (StringUtils.isNotBlank(proxyInfo.getHost())) {
-            logger.info("--> Proxy Host : " + proxyInfo.getHost());
-        }
-        if (proxyInfo.getPort() != null) {
-            logger.info("--> Proxy Port : " + proxyInfo.getPort());
-        }
-        if (StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
-            logger.info("--> No Proxy Hosts : " + proxyInfo.getIgnoredProxyHosts());
-        }
-        if (StringUtils.isNotBlank(proxyInfo.getProxyUsername())) {
-            logger.info("--> Proxy Username : " + proxyInfo.getProxyUsername());
-        }
+        printGlobalConfguration(serverUrl, credential, proxyInfo);
+        printJobConfguration(projectName, version, phase, distribution,
+                scanTargets, workingDirectoryPath, hubScanMemory, cliHome);
 
-        if (isPluginEnabled(serverUrl, credential, scanTargets, workingDirectoryPath, hubScanMemory, cliHome)) {
+        if (isGlobalConfigValid(serverUrl, credential) && isJobConfigValid(scanTargets, workingDirectoryPath, hubScanMemory, cliHome)) {
+
+            // Ensure project/ version exist
+            // Run scan
+            // Do scan mapping
 
         } else {
             logger.info("Skipping Hub Build Step");
@@ -165,29 +136,88 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     }
 
-    private boolean isPluginEnabled(final String serverUrl, final HubCredentialsBean credential, final List<File> scanTargets, final String workingDirectory,
-            final String memory, final File cliHomeDirectory)
-            throws IOException {
+    public boolean isGlobalConfigValid(final String serverUrl, final HubCredentialsBean credential) throws IOException {
 
         HubParameterValidator validator = new HubParameterValidator(logger);
 
         boolean isUrlEmpty = validator.isServerUrlEmpty(serverUrl);
         boolean credentialsConfigured = validator.isHubCredentialConfigured(credential);
 
+        return !isUrlEmpty && credentialsConfigured;
+    }
+
+    public boolean isJobConfigValid(final List<File> scanTargets, final String workingDirectory, final String memory, final File cliHomeDirectory)
+            throws IOException {
+
+        HubParameterValidator validator = new HubParameterValidator(logger);
+
         boolean scanTargetsValid = true;
 
-        for (File target : scanTargets) {
-            if (!validator.validateTargetPath(target, workingDirectory)) {
-                scanTargetsValid = false;
+        if (scanTargets == null) {
+            logger.error("No scan targets configured.");
+            scanTargetsValid = false;
+        } else {
+            for (File target : scanTargets) {
+                if (!validator.validateTargetPath(target, workingDirectory)) {
+                    scanTargetsValid = false;
+                }
             }
         }
-
         boolean validScanMemory = validator.validateScanMemory(memory);
 
         boolean validCliHome = false;
         validCliHome = validator.validateCLIPath(cliHomeDirectory);
 
-        return !isUrlEmpty && credentialsConfigured && scanTargetsValid && validScanMemory && validCliHome;
+        return scanTargetsValid && validScanMemory && validCliHome;
+    }
+
+    public void printGlobalConfguration(final String serverUrl, final HubCredentialsBean credential, HubProxyInfo proxyInfo) {
+
+        logger.info("--> Hub Server Url : " + serverUrl);
+        if (credential != null) {
+            logger.info("--> Hub User : " + credential.getHubUser());
+        }
+
+        if (proxyInfo != null) {
+            if (StringUtils.isNotBlank(proxyInfo.getHost())) {
+                logger.info("--> Proxy Host : " + proxyInfo.getHost());
+            }
+            if (proxyInfo.getPort() != null) {
+                logger.info("--> Proxy Port : " + proxyInfo.getPort());
+            }
+            if (StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
+                logger.info("--> No Proxy Hosts : " + proxyInfo.getIgnoredProxyHosts());
+            }
+            if (StringUtils.isNotBlank(proxyInfo.getProxyUsername())) {
+                logger.info("--> Proxy Username : " + proxyInfo.getProxyUsername());
+            }
+        }
+    }
+
+    public void printJobConfguration(final String projectName, final String version, final String phase, final String distribution,
+            final List<File> scanTargets,
+            final String workingDirectoryPath, final String hubScanMemory, final File cliHomeDirectory) {
+        logger.info("Working directory : " + workingDirectoryPath);
+
+        logger.info("--> Project : " + projectName);
+        logger.info("--> Version : " + version);
+
+        logger.info("--> Version Phase : " + phase);
+        logger.info("--> Version Distribution : " + distribution);
+
+        if (cliHomeDirectory != null) {
+            logger.info("--> CLI Path : " + cliHomeDirectory.getAbsolutePath());
+        }
+
+        logger.info("--> Hub scan memory : " + hubScanMemory + " MB");
+
+        if (scanTargets != null && scanTargets.size() > 0) {
+            logger.info("--> Hub scan targets : ");
+            for (File target : scanTargets) {
+                logger.info("    --> " + target.getAbsolutePath());
+            }
+        }
+
     }
 
 }

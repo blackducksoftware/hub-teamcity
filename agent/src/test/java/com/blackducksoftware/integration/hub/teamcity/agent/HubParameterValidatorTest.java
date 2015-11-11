@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,11 +17,23 @@ public class HubParameterValidatorTest {
 
     private static String testWorkspace;
 
+    private static TestBuildProgressLogger testLogger;
+
+    private static HubAgentBuildLogger buildLogger;
+
     @BeforeClass
     public static void testStartup() {
         testWorkspace = HubParameterValidatorTest.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         testWorkspace = testWorkspace.substring(0, testWorkspace.indexOf("/target"));
         testWorkspace = testWorkspace + "/test-workspace";
+
+        testLogger = new TestBuildProgressLogger();
+        buildLogger = new HubAgentBuildLogger(testLogger);
+    }
+
+    @After
+    public void testCleanup() {
+        testLogger.clearAllOutput();
     }
 
     @Test
@@ -35,8 +48,6 @@ public class HubParameterValidatorTest {
 
     @Test
     public void testIsServerUrlEmptyNoUrl() {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         assertTrue(validator.isServerUrlEmpty(null));
@@ -48,8 +59,6 @@ public class HubParameterValidatorTest {
 
     @Test
     public void testIsServerUrlEmptyBlankUrl() {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         assertTrue(validator.isServerUrlEmpty(""));
@@ -61,8 +70,6 @@ public class HubParameterValidatorTest {
 
     @Test
     public void testIsServerUrlEmptyUrlNotEmpty() {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         assertTrue(!validator.isServerUrlEmpty("testUrl"));
@@ -71,8 +78,6 @@ public class HubParameterValidatorTest {
 
     @Test
     public void testIsHubCredentialConfiguredEmptyCredentials() {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
         assertTrue(!validator.isHubCredentialConfigured(new HubCredentialsBean("")));
 
@@ -84,8 +89,6 @@ public class HubParameterValidatorTest {
 
     @Test
     public void testIsHubCredentialConfiguredValidCredentials() {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
         HubCredentialsBean credential = new HubCredentialsBean("user", "password");
         assertTrue(validator.isHubCredentialConfigured(credential));
@@ -93,9 +96,7 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testValidateSourcePathOutsideWorkingDirectory() throws Exception {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+    public void testValidateTargetPathOutsideWorkingDirectory() throws Exception {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         assertTrue(!validator.validateTargetPath(new File(""), testWorkspace));
@@ -105,9 +106,7 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testValidateSourcePathTargetNonExistent() throws Exception {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+    public void testValidateTargetPathTargetNonExistent() throws Exception {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         String sourcePath = testWorkspace + "/fakeDirectory";
@@ -119,9 +118,7 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testValidateSourcePathValid() throws Exception {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+    public void testValidateTargetPathValid() throws Exception {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         String sourcePath = testWorkspace + "/directory";
@@ -131,8 +128,8 @@ public class HubParameterValidatorTest {
             sourceTarget.mkdirs();
         }
 
-        boolean validSourcePath = validator.validateTargetPath(new File(sourcePath), testWorkspace);
-        if (!validSourcePath) {
+        boolean validTargetPath = validator.validateTargetPath(new File(sourcePath), testWorkspace);
+        if (!validTargetPath) {
             if (testLogger.getErrorMessages().size() != 0) {
                 for (String error : testLogger.getErrorMessages()) {
                     System.out.print(error);
@@ -140,15 +137,13 @@ public class HubParameterValidatorTest {
             }
             fail();
         } else {
-            assertTrue(validSourcePath);
+            assertTrue(validTargetPath);
             assertTrue(testLogger.getErrorMessages().size() == 0);
         }
     }
 
     @Test
     public void testValidateScanMemory() throws Exception {
-        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
-        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         assertTrue(!validator.validateScanMemory(null));
@@ -185,4 +180,119 @@ public class HubParameterValidatorTest {
 
         assertTrue(validator.validateScanMemory("4096"));
     }
+
+    @Test
+    public void testValidateCLIPathNull() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        validator.validateCLIPath(null);
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("The Hub CLI path has not been set."));
+    }
+
+    @Test
+    public void testValidateCLIPathNonExistent() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        String cliPath = testWorkspace + "/directory/fake";
+
+        validator.validateTargetPath(new File(cliPath), testWorkspace);
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("The Hub CLI home directory does not exist at : "));
+    }
+
+    @Test
+    public void testValidateCLIPathEmptyDir() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        String cliPath = testWorkspace + "/directory";
+        File cliPathTarget = new File(cliPath);
+        if (!cliPathTarget.exists()) {
+            cliPathTarget.mkdirs();
+        }
+
+        validator.validateTargetPath(new File(cliPath), testWorkspace);
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("The Hub CLI home directory is empty!"));
+    }
+
+    @Test
+    public void testValidateCLIPathNoLib() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        String cliPath = testWorkspace + "/scan.cli-2.1.2/bin";
+
+        validator.validateTargetPath(new File(cliPath), testWorkspace);
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("Could not find the lib directory in the Hub CLI home directory."));
+    }
+
+    @Test
+    public void testValidateCLIPathEmptyLib() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        String cliPath = testWorkspace + "/EmptyScan.cli-2.1.2";
+
+        validator.validateTargetPath(new File(cliPath), testWorkspace);
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("The lib directory in the Hub CLI home is empty!"));
+    }
+
+    @Test
+    public void testValidateCLIPathInvalidLib() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        String cliPath = testWorkspace + "/InvalidScan.cli-2.1.2";
+
+        validator.validateTargetPath(new File(cliPath), testWorkspace);
+
+        String output = testLogger.getErrorMessagesString();
+
+        assertTrue(output, output.contains("Could not find the Hub CLI in the lib directory."));
+    }
+
+    @Test
+    public void testValidateCLIPathValid() throws Exception {
+        TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+        HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        String cliPath = testWorkspace + "/scan.cli-2.1.2";
+
+        boolean validCLIPath = validator.validateTargetPath(new File(cliPath), testWorkspace);
+
+        if (!validCLIPath) {
+            if (testLogger.getErrorMessages().size() != 0) {
+                for (String error : testLogger.getErrorMessages()) {
+                    System.out.print(error);
+                }
+            }
+            fail();
+        } else {
+            assertTrue(testLogger.getErrorMessages().size() == 0);
+        }
+    }
+
 }

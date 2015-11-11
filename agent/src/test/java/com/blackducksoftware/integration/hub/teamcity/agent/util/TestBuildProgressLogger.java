@@ -111,6 +111,14 @@ public class TestBuildProgressLogger implements BuildProgressLogger {
         finishedMessages = new ArrayList<String>();
     }
 
+    public void clearAllOutput() {
+        clearMessages();
+        clearProgressMessages();
+        clearErrorMessages();
+        clearStartedMessages();
+        clearFinishedMessages();
+    }
+
     public List<String> getMessages() {
         return messages;
     }

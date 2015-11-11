@@ -26,13 +26,18 @@ public class HubParameterValidator {
 
     public boolean isHubCredentialConfigured(final HubCredentialsBean credential) {
         boolean validCredential = true;
-        if (StringUtils.isBlank(credential.getHubUser())) {
-            logger.error("There is no Hub username specified");
+        if (credential == null) {
+            logger.error("There are no credentials configured.");
             validCredential = false;
-        }
-        if (StringUtils.isBlank(credential.getEncryptedPassword())) {
-            logger.error("There is no Hub password specified.");
-            validCredential = false;
+        } else {
+            if (StringUtils.isBlank(credential.getHubUser())) {
+                logger.error("There is no Hub username specified");
+                validCredential = false;
+            }
+            if (StringUtils.isBlank(credential.getEncryptedPassword())) {
+                logger.error("There is no Hub password specified.");
+                validCredential = false;
+            }
         }
         return validCredential;
     }
@@ -40,18 +45,20 @@ public class HubParameterValidator {
     public boolean validateTargetPath(final File target, final String workingDirectory) throws IOException {
         boolean validTargetPath = true;
 
-        String targetPath = target.getCanonicalPath();
-
-        if (!targetPath.startsWith(workingDirectory)) {
-            logger.error("Can not scan targets outside the working directory.");
+        if (target == null) {
+            logger.error("Can not scan null target.");
             validTargetPath = false;
-        }
+        } else {
+            String targetPath = target.getCanonicalPath();
 
-        if (!target.exists()) {
-            logger.error("The scan target '" + targetPath + "' does not exist.");
-            validTargetPath = false;
+            if (!targetPath.startsWith(workingDirectory)) {
+                logger.error("Can not scan targets outside the working directory.");
+                validTargetPath = false;
+            } else if (!target.exists()) {
+                logger.error("The scan target '" + targetPath + "' does not exist.");
+                validTargetPath = false;
+            }
         }
-
         return validTargetPath;
     }
 
