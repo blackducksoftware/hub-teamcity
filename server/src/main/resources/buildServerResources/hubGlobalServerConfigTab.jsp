@@ -130,6 +130,7 @@
                 	"${hubConfigPersistenceManager.loadSettings()}";
                 	${'hubUrl'}.value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
                 	${'hubUser'}.value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
+                	${'hubPass'}.value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
                 	${'hubProxyServer'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
                 	${'hubProxyPort'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
                 	${'hubNoProxyHost'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";

@@ -3,6 +3,7 @@ package com.blackducksoftware.integration.hub.teamcity.common.beans;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,6 +16,8 @@ public class HubCredentialsBean implements Serializable {
     private String hubUser;
 
     private String hubPass;
+
+    private Integer actualPasswordLength;
 
     public HubCredentialsBean(String hubUser) {
         this.hubUser = hubUser;
@@ -49,6 +52,28 @@ public class HubCredentialsBean implements Serializable {
         hubPass = encryptedPassword;
     }
 
+    public Integer getActualPasswordLength() {
+        return actualPasswordLength;
+    }
+
+    public void setActualPasswordLength(Integer actualPasswordLength) {
+        this.actualPasswordLength = actualPasswordLength;
+    }
+
+    public String getMaskedPassword() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        if (hubPass == null) {
+            return null;
+        }
+
+        if (actualPasswordLength == null) {
+            actualPasswordLength = getDecryptedPassword().length();
+        }
+
+        char[] array = new char[actualPasswordLength];
+        Arrays.fill(array, '*');
+        return new String(array);
+    }
+
     public String getDecryptedPassword() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Method method = PasswordDecrypter.class.getDeclaredMethod("decrypt", String.class);
         method.setAccessible(true);
@@ -75,6 +100,7 @@ public class HubCredentialsBean implements Serializable {
         int result = 1;
         result = prime * result + ((hubPass == null) ? 0 : hubPass.hashCode());
         result = prime * result + ((hubUser == null) ? 0 : hubUser.hashCode());
+        result = prime * result + ((actualPasswordLength == null) ? 0 : actualPasswordLength);
         return result;
     }
 
@@ -102,6 +128,13 @@ public class HubCredentialsBean implements Serializable {
                 return false;
             }
         } else if (!hubUser.equals(other.hubUser)) {
+            return false;
+        }
+        if (actualPasswordLength == null) {
+            if (other.actualPasswordLength != null) {
+                return false;
+            }
+        } else if (actualPasswordLength != other.actualPasswordLength) {
             return false;
         }
         return true;

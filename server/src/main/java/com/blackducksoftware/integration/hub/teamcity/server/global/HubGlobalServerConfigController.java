@@ -328,23 +328,40 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         String password = "";
         password = request.getParameter("encryptedHubPass");
 
-        if (StringUtils.isNotBlank(getRealEncryptedPassword(password))) {
+        if (StringUtils.isNotBlank(getDecryptedWebPassword(password))) {
             // Do not change the saved password unless the User has provided a new one
-            credentialsBean.setEncryptedPassword(getRealEncryptedPassword(password));
+            String decryptedWebPassword = getDecryptedWebPassword(password);
+
+            if (StringUtils.isNotBlank(decryptedWebPassword)) {
+                credentialsBean.setEncryptedPassword(PasswordEncrypter.publicEncrypt(decryptedWebPassword));
+                credentialsBean.setActualPasswordLength(decryptedWebPassword.length());
+            }
         } else {
             if (configPersistenceManager.getConfiguredServer().getGlobalCredentials() != null) {
                 credentialsBean.setEncryptedPassword(configPersistenceManager.getConfiguredServer().getGlobalCredentials().getEncryptedPassword());
+
+                credentialsBean.setActualPasswordLength(configPersistenceManager.getConfiguredServer().getGlobalCredentials().getActualPasswordLength());
             }
         }
+
         return credentialsBean;
     }
 
-    private String getRealEncryptedPassword(String webEncryptedPass) throws IllegalArgumentException, EncryptionException {
+    private String getDecryptedWebPassword(String webEncryptedPass) throws IllegalArgumentException, EncryptionException {
         if (StringUtils.isNotBlank(webEncryptedPass)) {
             String webDecryptedPass = RSACipher.decryptWebRequestData(webEncryptedPass);
 
             if (StringUtils.isNotBlank(webDecryptedPass)) {
-                return PasswordEncrypter.publicEncrypt(webDecryptedPass);
+
+                String maskedString = webDecryptedPass.replace("*", "");
+
+                if (StringUtils.isBlank(maskedString)) {
+                    // Then the string was just a masked version of the password
+                    // no new password to save
+                    return "";
+                } else {
+                    return webDecryptedPass;
+                }
             }
         }
         return "";

@@ -2,6 +2,7 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
+import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.response.ReleaseItem;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
@@ -45,7 +47,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     @Override
-    public BuildFinishedStatus call() throws Exception {
+    public BuildFinishedStatus call() throws IOException {
         final BuildProgressLogger buildLogger = build.getBuildLogger();
         setHubLogger(new HubAgentBuildLogger(buildLogger));
 
@@ -113,26 +115,53 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         printGlobalConfguration(serverUrl, credential, proxyInfo);
         printJobConfguration(projectName, version, phase, distribution,
                 scanTargets, workingDirectoryPath, hubScanMemory, cliHome);
+        try {
+            if (isGlobalConfigValid(serverUrl, credential) && isJobConfigValid(scanTargets, workingDirectoryPath, hubScanMemory, cliHome)) {
+                HubIntRestService restService = new HubIntRestService(serverUrl);
+                restService.setLogger(logger);
+                if (proxyInfo != null) {
+                    Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
 
-        if (isGlobalConfigValid(serverUrl, credential) && isJobConfigValid(scanTargets, workingDirectoryPath, hubScanMemory, cliHome)) {
+                    restService.setProxyProperties(proxyInfo.getHost(), port,
+                            proxyInfo.getNoProxyHostPatterns(), proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
+                }
+                restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
-            HubIntRestService restService = new HubIntRestService(serverUrl);
-            restService.setLogger(logger);
-            if (proxyInfo != null) {
-                Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
-                restService.setProxyProperties(proxyInfo.getHost(), port,
-                        proxyInfo.getNoProxyHostPatterns(), proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
+                String projectId = ensureProjectExists(restService, logger, projectName);
+                String versionId = ensureVersionExists(restService, logger, version, projectId, phase, distribution);
+                doHubScan();
+                doHubScanMapping();
+
+            } else {
+                logger.info("Skipping Hub Build Step");
+                result = BuildFinishedStatus.FINISHED_FAILED;
             }
-            restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
+        } catch (NoSuchMethodException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (HubIntegrationException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } catch (TeamCityHubPluginException e) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException(e);
+        } finally {
 
-            String projectId = ensureProjectExists(restService, logger, projectName);
-            String versionId = ensureVersionExists(restService, logger, version, projectId, phase, distribution);
-            doHubScan();
-            doHubScanMapping();
-
-        } else {
-            logger.info("Skipping Hub Build Step");
-            result = BuildFinishedStatus.FINISHED_FAILED;
         }
 
         logger.targetFinished("Hub Build Step");
@@ -247,13 +276,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         String projectId = null;
         try {
             projectId = service.getProjectByName(projectName).getId();
-
+            logger.info("Found project : " + projectName);
         } catch (BDRestException e) {
             if (e.getResource() != null) {
                 if (e.getResource().getResponse().getStatus().getCode() == 404) {
                     // Project was not found, try to create it
                     try {
-
+                        logger.info("Creating project : " + projectName);
                         projectId = service.createHubProject(projectName);
                         logger.debug("Project created!");
 
@@ -286,6 +315,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             for (ReleaseItem release : projectVersions) {
                 if (projectVersion.equals(release.getVersion())) {
                     versionId = release.getId();
+                    logger.info("Found version : " + projectVersion);
                     if (!release.getPhase().equals(phase)) {
                         logger.warn("The selected Phase does not match the Phase of this Version. If you wish to update the Phase please do so in the Hub UI.");
                     }
@@ -295,6 +325,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
             }
             if (versionId == null) {
+                logger.debug("Creating version : " + projectVersion);
                 versionId = service.createHubVersion(projectVersion, projectId, phase, distribution);
                 logger.debug("Version created!");
             }
