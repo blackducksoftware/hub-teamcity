@@ -2,7 +2,6 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
-import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.response.ReleaseItem;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
@@ -26,6 +24,7 @@ import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
+import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
 
@@ -49,7 +48,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     @Override
     public BuildFinishedStatus call() throws IOException {
         final BuildProgressLogger buildLogger = build.getBuildLogger();
-        setHubLogger(new HubAgentBuildLogger(buildLogger));
+        HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
+        hubLogger.setLogLevel(LogLevel.DEBUG);
+        setHubLogger(hubLogger);
 
         if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {
             // If this property is not set the default is 20
@@ -136,30 +137,34 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 logger.info("Skipping Hub Build Step");
                 result = BuildFinishedStatus.FINISHED_FAILED;
             }
-        } catch (NoSuchMethodException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (HubIntegrationException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
-        } catch (TeamCityHubPluginException e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            logger.error(e);
+            result = BuildFinishedStatus.FINISHED_FAILED;
+
+            // } catch (NoSuchMethodException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (IllegalAccessException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (IllegalArgumentException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (InvocationTargetException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (HubIntegrationException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (URISyntaxException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (IOException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
+            // } catch (TeamCityHubPluginException e) {
+            // // TODO Auto-generated catch block
+            // throw new RuntimeException(e);
         } finally {
 
         }
@@ -325,7 +330,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
             }
             if (versionId == null) {
-                logger.debug("Creating version : " + projectVersion);
+                logger.info("Creating version : " + projectVersion);
                 versionId = service.createHubVersion(projectVersion, projectId, phase, distribution);
                 logger.debug("Version created!");
             }
