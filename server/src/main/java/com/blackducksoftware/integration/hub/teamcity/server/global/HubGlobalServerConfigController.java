@@ -33,6 +33,7 @@ import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
@@ -379,7 +380,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
     private HubIntRestService getRestService(ServerHubConfigBean serverConfig, HubProxyInfo proxyInfo, boolean isTestConnection)
             throws HubIntegrationException, URISyntaxException,
-            IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+            IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, BDRestException {
         if (serverConfig == null) {
             return null;
         }
