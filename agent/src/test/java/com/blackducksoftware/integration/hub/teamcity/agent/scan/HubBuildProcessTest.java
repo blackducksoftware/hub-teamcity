@@ -635,7 +635,7 @@ public class HubBuildProcessTest {
     }
 
     @Test
-    public void testCallFullyConfiguredAuthenticatedProxy() throws Exception {
+    public void testCallFullyConfiguredBasicAuthProxy() throws Exception {
         try {
             TestBuildRunnerContext context = new TestBuildRunnerContext();
             context.setWorkingDirectory(workingDirectory);
