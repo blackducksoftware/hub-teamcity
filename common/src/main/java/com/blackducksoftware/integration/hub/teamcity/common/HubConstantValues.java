@@ -18,7 +18,7 @@ public final class HubConstantValues {
 
     public static final String HUB_CLI_PATH = PLUGIN_PREFIX + "cliPath";
 
-    public static final String HUB_CLI_ENV_VAR = "COMPONENT_SCAN";
+    public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
 
     public static final String HUB_SCAN_MEMORY = PLUGIN_PREFIX + "scanMemory";
 

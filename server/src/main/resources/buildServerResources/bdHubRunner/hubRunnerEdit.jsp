@@ -115,7 +115,7 @@
 					<td> <props:textProperty
 							name="com.blackducksoftware.integration.hub.cliPath"
 							className="longField" />
-							<span class="smallNote"> Path to the Hub CLI home directory (parent of 'bin' directory). Overrides agent COMPONENT_SCAN_HOME environment variable </span>
+							<span class="smallNote"> Path to the Hub CLI home directory (parent of 'bin' directory). Overrides agent BD_HUB_SCAN environment variable </span>
 					</td>
 				</tr>
 				
