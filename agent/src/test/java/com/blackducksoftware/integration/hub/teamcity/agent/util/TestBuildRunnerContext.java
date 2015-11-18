@@ -23,6 +23,8 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 
     private Map<String, String> systemParameters = null;
 
+    private AgentRunningBuild build;
+
     public void setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
     }
@@ -75,7 +77,11 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
     @Override
     public AgentRunningBuild getBuild() {
 
-        return null;
+        return build;
+    }
+
+    public void setBuild(AgentRunningBuild build) {
+        this.build = build;
     }
 
     @Override

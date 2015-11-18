@@ -216,7 +216,7 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
     @Override
     public String getBuildNumber() {
 
-        return null;
+        return "5678";
     }
 
     @Override

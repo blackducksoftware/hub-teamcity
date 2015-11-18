@@ -104,7 +104,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         File workingDirectory = context.getWorkingDirectory();
         String workingDirectoryPath = workingDirectory.getCanonicalPath();
-        jobConfig.setProjectName(workingDirectoryPath);
+        jobConfig.setWorkingDirectory(workingDirectoryPath);
 
         File cliHome = null;
         if (StringUtils.isBlank(hubCliParameter)) {
@@ -226,12 +226,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     public boolean isJobConfigValid(final HubScanJobConfig jobConfig)
             throws IOException {
+        if (jobConfig == null) {
+            return false;
+        }
 
         HubParameterValidator validator = new HubParameterValidator(logger);
 
         boolean scanTargetsValid = true;
 
-        if (jobConfig.getHubScanTargets() == null) {
+        if (jobConfig.getHubScanTargets() == null || jobConfig.getHubScanTargets().isEmpty()) {
             logger.error("No scan targets configured.");
             scanTargetsValid = false;
         } else {
@@ -250,9 +253,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {
+        if (globalConfig == null) {
+            return;
+        }
 
         logger.info("--> Hub Server Url : " + globalConfig.getHubUrl());
-        if (globalConfig.getGlobalCredentials() != null) {
+        if (globalConfig.getGlobalCredentials() != null && StringUtils.isNotBlank(globalConfig.getGlobalCredentials().getHubUser())) {
             logger.info("--> Hub User : " + globalConfig.getGlobalCredentials().getHubUser());
         }
 
@@ -273,6 +279,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public void printJobConfguration(final HubScanJobConfig jobConfig) {
+        if (jobConfig == null) {
+            return;
+        }
         logger.info("Working directory : " + jobConfig.getWorkingDirectory());
 
         logger.info("--> Project : " + jobConfig.getProjectName());
@@ -419,14 +428,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scan.setCliSupportsMapping(false);
         }
 
-        String separator = File.separator;
+        String operatingSystem = System.getProperty("os.name");
 
         // FIXME get the correct java
         String javaHome = getEnvironmentVariable("JAVA_HOME");
 
         File javaExec = new File(javaHome);
         javaExec = new File(javaExec, "bin");
-        if (separator.equals("/")) {
+        if (!operatingSystem.toLowerCase().contains("windows")) {
             javaExec = new File(javaExec, "java");
         } else {
             javaExec = new File(javaExec, "java.exe");

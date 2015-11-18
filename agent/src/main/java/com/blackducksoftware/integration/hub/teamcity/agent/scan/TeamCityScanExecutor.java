@@ -1,8 +1,12 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
-import java.io.ByteArrayOutputStream;
+import static java.lang.ProcessBuilder.Redirect.PIPE;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
@@ -72,86 +76,73 @@ public class TeamCityScanExecutor extends ScanExecutor {
     protected Result executeScan(List<String> cmd, String logDirectoryPath) throws HubIntegrationException, InterruptedException {
         try {
 
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ProcStarter ps = launcher.launch();
-            if (ps != null) {
-                // ////////////////////// Code to mask the password in the logs
-                int indexOfPassword = cmd.indexOf("--password");
-                int indexOfProxyPassword = -1;
-                for (int i = 0; i < cmd.size(); i++) {
-                    if (cmd.get(i).contains("-Dhttp.proxyPassword")) {
-                        indexOfProxyPassword = i;
-                        break;
-                    }
+            // ////////////////////// Code to mask the password in the logs
+            int indexOfPassword = cmd.indexOf("--password");
+            int indexOfProxyPassword = -1;
+            for (int i = 0; i < cmd.size(); i++) {
+                if (cmd.get(i).contains("-Dhttp.proxyPassword")) {
+                    indexOfProxyPassword = i;
+                    break;
                 }
-                boolean[] masks = new boolean[cmd.size()];
-                Arrays.fill(masks, false);
+            }
 
-                // The Users password should appear after --password
-                masks[indexOfPassword + 1] = true;
+            // The Users password should appear after --password
+            maskIndex(cmd, indexOfPassword + 1);
 
-                if (indexOfProxyPassword != -1) {
-                    masks[indexOfProxyPassword] = true;
+            if (indexOfProxyPassword != -1) {
+                maskIndex(cmd, indexOfProxyPassword);
+            }
+
+            // ///////////////////////
+
+            for (String current : cmd) {
+                System.out.println(current);
+            }
+
+            Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+            hubCliProcess.waitFor();
+
+            String outputString = readStream(hubCliProcess.getInputStream());
+            outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
+
+            // FIXME scan is not running
+
+            if (outputString.contains("Illegal character in path")
+                    && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
+                // This version of the CLI can not handle spaces in the log directory
+                // Not sure which version of the CLI this issue was fixed
+
+                int indexOfLogOption = cmd.indexOf("--logDir") + 1;
+
+                String logPath = cmd.get(indexOfLogOption);
+                logPath = logPath.replace(" ", "%20");
+                cmd.remove(indexOfLogOption);
+                cmd.add(indexOfLogOption, logPath);
+
+                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).start();
+                hubCliProcess.waitFor();
+
+                outputString = readStream(hubCliProcess.getInputStream());
+                outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
+            }
+
+            getLogger().info(outputString);
+
+            if (logDirectoryPath != null) {
+                File logDirectory = new File(logDirectoryPath);
+                if (logDirectory.exists() && doesHubSupportLogOption()) {
+
+                    getLogger().info("You can view the BlackDuck Scan CLI logs at : '"
+                            + logDirectory.getAbsolutePath() + "'");
+
+                    getLogger().info("");
                 }
+            }
 
-                ps.masks(masks);
-                // ///////////////////////
-
-                ps.envs(build.getEnvironment(listener));
-                ps.cmds(cmd);
-                ps.stdout(byteStream);
-                ps.join();
-
-                ByteArrayOutputStream byteStreamOutput = (ByteArrayOutputStream) ps.stdout();
-
-                // DO NOT close this PrintStream or Jenkins will not be able to log any more messages. Jenkins will
-                // handle
-                // closing it.
-                String outputString = new String(byteStreamOutput.toByteArray(), "UTF-8");
-
-                if (outputString.contains("Illegal character in path")
-                        && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
-                    // This version of the CLI can not handle spaces in the log directory
-                    // Not sure which version of the CLI this issue was fixed
-
-                    int indexOfLogOption = cmd.indexOf("--logDir") + 1;
-
-                    String logPath = cmd.get(indexOfLogOption);
-                    logPath = logPath.replace(" ", "%20");
-                    cmd.remove(indexOfLogOption);
-                    cmd.add(indexOfLogOption, logPath);
-
-                    byteStream = new ByteArrayOutputStream();
-
-                    ps.cmds(cmd);
-                    ps.stdout(byteStream);
-                    ps.join();
-
-                    byteStreamOutput = (ByteArrayOutputStream) ps.stdout();
-                    outputString = new String(byteStreamOutput.toByteArray(), "UTF-8");
-                }
-
-                getLogger().info(outputString);
-
-                if (logDirectoryPath != null) {
-                    File logDirectory = new File(logDirectoryPath);
-                    if (logDirectory.exists() && doesHubSupportLogOption()) {
-
-                        getLogger().info(
-                                "You can view the BlackDuck Scan CLI logs at : '" + logDirectory.getAbsolutePath()
-                                        + "'");
-                        getLogger().info("");
-                    }
-                }
-
-                if (outputString.contains("Finished in") && outputString.contains("with status SUCCESS")) {
-                    return Result.SUCCESS;
-                } else {
-                    return Result.FAILURE;
-                }
-
+            if (outputString.contains("Finished in") && outputString.contains("with status SUCCESS")) {
+                return Result.SUCCESS;
             } else {
-                getLogger().error("Could not find a ProcStarter to run the process!");
+                return Result.FAILURE;
             }
         } catch (MalformedURLException e) {
             throw new HubIntegrationException("The server URL provided was not a valid", e);
@@ -160,6 +151,30 @@ public class TeamCityScanExecutor extends ScanExecutor {
         } catch (InterruptedException e) {
             throw new HubIntegrationException(e.getMessage(), e);
         }
-        return Result.SUCCESS;
     }
+
+    private void maskIndex(List<String> cmd, int indexToMask) {
+        String cmdToMask = cmd.get(indexToMask);
+        String[] maskedArray = new String[cmdToMask.length()];
+        Arrays.fill(maskedArray, "*");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String current : maskedArray) {
+            stringBuilder.append(current);
+        }
+        String maskedCmd = stringBuilder.toString();
+
+        cmd.remove(indexToMask);
+        cmd.add(indexToMask, maskedCmd);
+    }
+
+    private String readStream(InputStream stream) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line + System.lineSeparator());
+        }
+        return stringBuilder.toString();
+    }
+
 }
