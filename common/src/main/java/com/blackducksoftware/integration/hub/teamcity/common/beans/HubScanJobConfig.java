@@ -77,6 +77,14 @@ public class HubScanJobConfig {
         return hubScanTargets;
     }
 
+    public List<String> getHubScanTargetPaths() {
+        List<String> scanTargets = new ArrayList<String>();
+        for (File currTarget : hubScanTargets) {
+            scanTargets.add(currTarget.getAbsolutePath());
+        }
+        return scanTargets;
+    }
+
     public void setHubScanTargets(List<File> hubScanTargets) {
         this.hubScanTargets = hubScanTargets;
     }

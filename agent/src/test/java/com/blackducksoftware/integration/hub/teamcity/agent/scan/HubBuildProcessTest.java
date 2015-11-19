@@ -605,6 +605,14 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
             assertTrue(progressOutput, progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
             assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
+
+            assertTrue(progressOutput, progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
+            assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
+            assertTrue(progressOutput, progressOutput.contains("MATCHED"));
+            assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
+            assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
+            assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
+            assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
         } finally {
             ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
             if (project != null && project.getId() != null) {
@@ -691,6 +699,14 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
             assertTrue(progressOutput, progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
             assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
+
+            assertTrue(progressOutput, progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
+            assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
+            assertTrue(progressOutput, progressOutput.contains("MATCHED"));
+            assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
+            assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
+            assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
+            assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
         } finally {
             ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
             if (project != null && project.getId() != null) {
@@ -775,6 +791,14 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
             assertTrue(progressOutput, progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
             assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
+
+            assertTrue(progressOutput, progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
+            assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
+            assertTrue(progressOutput, progressOutput.contains("MATCHED"));
+            assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
+            assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
+            assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
+            assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
         } finally {
             ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
             if (project != null && project.getId() != null) {

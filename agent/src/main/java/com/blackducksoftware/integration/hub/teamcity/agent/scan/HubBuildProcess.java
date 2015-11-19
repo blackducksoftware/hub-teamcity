@@ -3,11 +3,15 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
@@ -136,6 +140,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         jobConfig.setHubScanTargets(scanTargets);
 
+        String localHostName = InetAddress.getLocalHost().getHostName();
+        logger.info("Running on machine : " + localHostName);
+
         printGlobalConfguration(globalConfig);
         printJobConfguration(jobConfig);
         try {
@@ -156,8 +163,18 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 String projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName());
                 String versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
                         jobConfig.getDistribution());
-                doHubScan(restService, hubLogger, cliHome, globalConfig, jobConfig);
-                doHubScanMapping();
+                boolean mappingDone = doHubScan(restService, hubLogger, cliHome, globalConfig, jobConfig);
+
+                // Only map the scans to a Project Version if the Project name and Project Version have been
+                // configured
+                if (!mappingDone && result.equals(BuildFinishedStatus.FINISHED_SUCCESS) && StringUtils.isNotBlank(jobConfig.getProjectName())
+                        && StringUtils.isNotBlank(jobConfig.getVersion())) {
+                    // Wait 5 seconds for the scans to be recognized in the Hub server
+                    logger.info("Waiting a few seconds for the scans to be recognized by the Hub server.");
+                    Thread.sleep(5000);
+
+                    doHubScanMapping(restService, logger, jobConfig, localHostName, versionId);
+                }
 
             } else {
                 logger.info("Skipping Hub Build Step");
@@ -396,13 +413,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         File scanExec = getScanExecFile(cliHome);
 
-        List<String> scanTargets = new ArrayList<String>();
-        for (File currTarget : jobConfig.getHubScanTargets()) {
-            scanTargets.add(currTarget.getAbsolutePath());
-        }
-
         TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(), globalConfig.getGlobalCredentials().getHubUser(),
-                globalConfig.getGlobalCredentials().getDecryptedPassword(), scanTargets, Integer.valueOf(context.getBuild().getBuildNumber()));
+                globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getHubScanTargetPaths(), Integer.valueOf(context.getBuild()
+                        .getBuildNumber()));
         scan.setLogger(logger);
 
         if (globalConfig.getProxyInfo() != null) {
@@ -486,7 +499,20 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return scanExecFile;
     }
 
-    public void doHubScanMapping() {
+    public void doHubScanMapping(HubIntRestService service, IntLogger logger, HubScanJobConfig jobConfig, String localHostName, String versionId)
+            throws UnknownHostException,
+            InterruptedException, BDRestException, HubIntegrationException, URISyntaxException {
+        Map<String, Boolean> scanLocationIds = service.getScanLocationIds(localHostName, jobConfig.getHubScanTargetPaths(), versionId);
+        if (scanLocationIds != null && !scanLocationIds.isEmpty()) {
+            logger.debug("These scan Id's were found for the scan targets.");
+            for (Entry<String, Boolean> scanId : scanLocationIds.entrySet()) {
+                logger.debug(scanId.getKey());
+            }
+
+            service.mapScansToProjectVersion(scanLocationIds, versionId);
+        } else {
+            logger.debug("There was an issue getting the Scan Location Id's for the defined scan targets.");
+        }
 
     }
 
