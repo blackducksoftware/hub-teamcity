@@ -47,10 +47,10 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testIsServerUrlEmptyNoUrl() {
+    public void testIsServerUrlValidNoUrl() {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(validator.isServerUrlEmpty(null));
+        assertTrue(!validator.isServerUrlValid(null));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -58,10 +58,10 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testIsServerUrlEmptyBlankUrl() {
+    public void testIsServerUrlValidBlankUrl() {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(validator.isServerUrlEmpty(""));
+        assertTrue(!validator.isServerUrlValid(""));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -69,10 +69,19 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testIsServerUrlEmptyUrlNotEmpty() {
+    public void testIsServerUrlValidUrlInvalid() {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(!validator.isServerUrlEmpty("testUrl"));
+        assertTrue(!validator.isServerUrlValid("testUrl"));
+        String output = testLogger.getErrorMessagesString();
+        assertTrue(output, output.contains("The server URL specified is not a valid URL."));
+    }
+
+    @Test
+    public void testIsServerUrlValidUrlValid() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(validator.isServerUrlValid("http://testUrl"));
         assertTrue(testLogger.getErrorMessages().size() == 0);
     }
 

@@ -2,6 +2,8 @@ package com.blackducksoftware.integration.hub.teamcity.agent;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,13 +17,20 @@ public class HubParameterValidator {
         this.logger = logger;
     }
 
-    public boolean isServerUrlEmpty(final String url) {
-        boolean emptyUrl = false;
+    public boolean isServerUrlValid(final String url) {
+        boolean validUrl = true;
         if (StringUtils.isBlank(url)) {
             logger.error("There is no Server URL specified");
-            emptyUrl = true;
+            validUrl = false;
+        } else {
+            try {
+                new URL(url);
+            } catch (MalformedURLException e) {
+                logger.error("The server URL specified is not a valid URL.");
+                validUrl = false;
+            }
         }
-        return emptyUrl;
+        return validUrl;
     }
 
     public boolean isHubCredentialConfigured(final HubCredentialsBean credential) {

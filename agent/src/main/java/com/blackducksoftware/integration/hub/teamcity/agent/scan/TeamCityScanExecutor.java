@@ -96,18 +96,16 @@ public class TeamCityScanExecutor extends ScanExecutor {
             }
 
             // ///////////////////////
-
+            getLogger().info("Hub CLI command :");
             for (String current : cmdToOutput) {
-                System.out.println(current);
+                getLogger().info(current);
             }
 
             Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
-            hubCliProcess.waitFor();
+            int returnCode = hubCliProcess.waitFor();
 
             String outputString = readStream(hubCliProcess.getInputStream());
             outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
-
-            // FIXME scan is not running
 
             if (outputString.contains("Illegal character in path")
                     && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
@@ -122,12 +120,12 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 cmd.add(indexOfLogOption, logPath);
 
                 hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).start();
-                hubCliProcess.waitFor();
+                returnCode = hubCliProcess.waitFor();
 
                 outputString = readStream(hubCliProcess.getInputStream());
                 outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
             }
-
+            getLogger().info("Hub CLI return code : " + returnCode);
             getLogger().info(outputString);
 
             if (logDirectoryPath != null) {

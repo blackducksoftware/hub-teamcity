@@ -3,6 +3,7 @@ package com.blackducksoftware.integration.hub.teamcity.common.beans;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -113,7 +114,7 @@ public class HubProxyInfo implements Serializable {
                 if (ignoredProxyHosts.contains(",")) {
                     ignoreHosts = ignoredProxyHosts.split(",");
                     for (String ignoreHost : ignoreHosts) {
-                        Pattern pattern = Pattern.compile(ignoreHost);
+                        Pattern pattern = Pattern.compile(ignoreHost.trim());
                         noProxyHostsPatterns.add(pattern);
                     }
                 } else {
@@ -123,6 +124,37 @@ public class HubProxyInfo implements Serializable {
             }
         }
         return noProxyHostsPatterns;
+    }
+
+    /**
+     * Checks the list of user defined host names that should be connected to directly and not go through the proxy. If
+     * the hostToMatch matches any of these hose names then this method returns true.
+     *
+     * @param hostToMatch
+     *            String the hostName to check if it is in the list of hosts that should not go through the proxy.
+     *
+     * @return boolean
+     */
+    public static boolean checkMatchingNoProxyHostPatterns(String hostToMatch, List<Pattern> noProxyHosts) {
+        if (noProxyHosts == null || noProxyHosts.isEmpty()) {
+            // User did not specify any hosts to ignore the proxy
+            return false;
+        }
+        boolean match = false;
+        if (!StringUtils.isBlank(hostToMatch) && !noProxyHosts.isEmpty()) {
+
+            for (Pattern pattern : noProxyHosts) {
+                Matcher m = pattern.matcher(hostToMatch);
+                while (m.find()) {
+                    match = true;
+                    break;
+                }
+                if (match) {
+                    break;
+                }
+            }
+        }
+        return match;
     }
 
     @Override

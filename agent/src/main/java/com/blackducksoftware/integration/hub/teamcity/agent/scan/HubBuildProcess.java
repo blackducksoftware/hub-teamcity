@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -142,10 +143,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 HubIntRestService restService = new HubIntRestService(serverUrl);
                 restService.setLogger(logger);
                 if (proxyInfo != null) {
-                    Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
+                    URL hubUrl = new URL(globalConfig.getHubUrl());
+                    if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
+                        Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
 
-                    restService.setProxyProperties(proxyInfo.getHost(), port,
-                            proxyInfo.getNoProxyHostPatterns(), proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
+                        restService.setProxyProperties(proxyInfo.getHost(), port,
+                                proxyInfo.getNoProxyHostPatterns(), proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
+                    }
                 }
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
@@ -218,10 +222,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         HubParameterValidator validator = new HubParameterValidator(logger);
 
-        boolean isUrlEmpty = validator.isServerUrlEmpty(globalConfig.getHubUrl());
+        boolean isUrlValid = validator.isServerUrlValid(globalConfig.getHubUrl());
         boolean credentialsConfigured = validator.isHubCredentialConfigured(globalConfig.getGlobalCredentials());
 
-        return !isUrlEmpty && credentialsConfigured;
+        return isUrlValid && credentialsConfigured;
     }
 
     public boolean isJobConfigValid(final HubScanJobConfig jobConfig)
@@ -400,7 +404,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(), globalConfig.getGlobalCredentials().getHubUser(),
                 globalConfig.getGlobalCredentials().getDecryptedPassword(), scanTargets, Integer.valueOf(context.getBuild().getBuildNumber()));
         scan.setLogger(logger);
-        addProxySettingsToScanner(logger, scan, globalConfig.getProxyInfo());
+
+        if (globalConfig.getProxyInfo() != null) {
+
+            URL hubUrl = new URL(globalConfig.getHubUrl());
+            if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), globalConfig.getProxyInfo().getNoProxyHostPatterns())) {
+                addProxySettingsToScanner(logger, scan, globalConfig.getProxyInfo());
+            }
+        }
 
         if (logOptionComparison != null && logOptionComparison.getNumericResult() < 0) {
             // The logDir option wasnt added until Hub version 2.0.1
@@ -454,7 +465,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     private File getOneJarFile(File cliHome) {
         File oneJarFile = new File(cliHome, "lib");
 
-        oneJarFile = new File(cliHome, "cache");
+        oneJarFile = new File(oneJarFile, "cache");
 
         oneJarFile = new File(oneJarFile, "scan.cli.impl-standalone.jar");
         return oneJarFile;
