@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -77,25 +78,26 @@ public class TeamCityScanExecutor extends ScanExecutor {
         try {
 
             // ////////////////////// Code to mask the password in the logs
-            int indexOfPassword = cmd.indexOf("--password");
-            int indexOfProxyPassword = -1;
-            for (int i = 0; i < cmd.size(); i++) {
-                if (cmd.get(i).contains("-Dhttp.proxyPassword")) {
-                    indexOfProxyPassword = i;
-                    break;
+            List<String> cmdToOutput = new ArrayList<String>();
+            cmdToOutput.addAll(cmd);
+
+            ArrayList<Integer> indexToMask = new ArrayList<Integer>();
+            // The User's password will be at the next index
+            indexToMask.add(cmdToOutput.indexOf("--password") + 1);
+
+            for (int i = 0; i < cmdToOutput.size(); i++) {
+                if (cmdToOutput.get(i).contains("-Dhttp") && cmdToOutput.get(i).contains("proxyPassword")) {
+                    indexToMask.add(i);
                 }
             }
+            for (Integer index : indexToMask) {
+                maskIndex(cmdToOutput, index);
 
-            // The Users password should appear after --password
-            maskIndex(cmd, indexOfPassword + 1);
-
-            if (indexOfProxyPassword != -1) {
-                maskIndex(cmd, indexOfProxyPassword);
             }
 
             // ///////////////////////
 
-            for (String current : cmd) {
+            for (String current : cmdToOutput) {
                 System.out.println(current);
             }
 
