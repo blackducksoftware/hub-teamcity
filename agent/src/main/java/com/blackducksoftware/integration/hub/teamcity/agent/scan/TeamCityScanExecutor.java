@@ -107,7 +107,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
             String outputString = readStream(hubCliProcess.getInputStream());
             outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
 
-            if (outputString.contains("Illegal character in path")
+            if (outputString.contains("Illegal character in")
                     && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
                 // This version of the CLI can not handle spaces in the log directory
                 // Not sure which version of the CLI this issue was fixed
