@@ -12,6 +12,7 @@ import org.restlet.util.Series;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
+import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.response.ProjectItem;
 
 public class TeamCityHubIntTestHelper extends HubIntRestService {
@@ -55,7 +56,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
     }
 
     @Override
-    public ProjectItem getProjectByName(String projectName) throws IOException, BDRestException, URISyntaxException {
+    public ProjectItem getProjectByName(String projectName) throws IOException, BDRestException, URISyntaxException, ProjectDoesNotExistException {
         try {
             return super.getProjectByName(projectName);
         } catch (BDRestException e) {
