@@ -101,6 +101,8 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 getLogger().info(current);
             }
 
+            // Should use the split stream for the process
+
             Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
             int returnCode = hubCliProcess.waitFor();
 

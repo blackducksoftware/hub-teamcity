@@ -25,6 +25,7 @@ import org.restlet.data.Status;
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.response.ReleaseItem;
 import com.blackducksoftware.integration.hub.response.VersionComparison;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
@@ -50,9 +51,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     private BuildFinishedStatus result;
 
+    private Boolean verbose;
+
     public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context) {
         this.build = build;
         this.context = context;
+    }
+
+    public void setverbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
+    public boolean isVerbose() {
+        if (verbose == null) {
+            verbose = true;
+        }
+        return verbose;
     }
 
     public void setHubLogger(HubAgentBuildLogger logger) {
@@ -160,7 +174,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
-                String projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName());
+                String projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName(), jobConfig.getVersion(), jobConfig.getPhase(),
+                        jobConfig.getDistribution());
                 String versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
                         jobConfig.getDistribution());
                 boolean mappingDone = doHubScan(restService, hubLogger, cliHome, globalConfig, jobConfig);
@@ -326,35 +341,35 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     }
 
-    private String ensureProjectExists(HubIntRestService service, IntLogger logger, String projectName) throws IOException, URISyntaxException,
+    private String ensureProjectExists(HubIntRestService service, IntLogger logger, String projectName,
+            String projectVersion, String phase, String distribution) throws IOException, URISyntaxException,
             TeamCityHubPluginException {
+
         String projectId = null;
         try {
             projectId = service.getProjectByName(projectName).getId();
-            logger.info("Found project : " + projectName);
+
+        } catch (ProjectDoesNotExistException e) {
+            // Project was not found, try to create it
+            try {
+                logger.info("Creating project : " + projectName + " and version : " + projectVersion);
+                projectId = service.createHubProjectAndVersion(projectName, projectVersion, phase, distribution);
+                logger.debug("Project and Version created!");
+
+            } catch (BDRestException e1) {
+                if (e1.getResource() != null) {
+                    logger.error("Status : " + e1.getResource().getStatus().getCode());
+                    logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
+                }
+                throw new TeamCityHubPluginException("Problem creating the Project. ", e1);
+            }
         } catch (BDRestException e) {
             if (e.getResource() != null) {
-                if (e.getResource().getResponse().getStatus().getCode() == 404) {
-                    // Project was not found, try to create it
-                    try {
-                        logger.info("Creating project : " + projectName);
-                        projectId = service.createHubProject(projectName);
-                        logger.debug("Project created!");
-
-                    } catch (BDRestException e1) {
-                        if (e1.getResource() != null) {
-                            logger.error("Status : " + e1.getResource().getStatus().getCode());
-                            logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
-                        }
-                        throw new TeamCityHubPluginException("Problem creating the Project. ", e1);
-                    }
-                } else {
-                    if (e.getResource() != null) {
-                        logger.error("Status : " + e.getResource().getStatus().getCode());
-                        logger.error("Response : " + e.getResource().getResponse().getEntityAsText());
-                    }
-                    throw new TeamCityHubPluginException("Problem getting the Project. ", e);
+                if (e.getResource() != null) {
+                    logger.error("Status : " + e.getResource().getStatus().getCode());
+                    logger.error("Response : " + e.getResource().getResponse().getEntityAsText());
                 }
+                throw new TeamCityHubPluginException("Problem getting the Project. ", e);
             }
         }
 
