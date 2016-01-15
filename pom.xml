@@ -49,6 +49,11 @@
 
 	<repositories>
 		<repository>
+			<id>repo01</id>
+			<name>repo01-releases</name>
+			<url>http://artifactory.blackducksoftware.com:8081/artifactory/jcenter</url>
+		</repository>
+		<repository>
 			<id>integrationRelease</id>
 			<name>bds-artifactory</name>
 			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration</url>
@@ -85,18 +90,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<cxf.version>2.7.8</cxf.version>
-		<bds.cxf.utilities.version>1.1.1</bds.cxf.utilities.version>
 		<teamcity.version>7.1.0</teamcity.version>
 		<plugin.version>${project.version}</plugin.version>
-		<spring.version>3.0.6.RELEASE</spring.version>
 	</properties>
-
-	<dependencies>
-	</dependencies>
-
-
-
 
 	<dependencyManagement>
 		<dependencies>
