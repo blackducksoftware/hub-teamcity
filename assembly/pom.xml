@@ -21,26 +21,6 @@
 		</license>
 	</licenses>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.blackducksoftware.integration</groupId>
-			<artifactId>hub-teamcity-server</artifactId>
-			<version>${plugin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.blackducksoftware.integration</groupId>
-			<artifactId>hub-teamcity-agent</artifactId>
-			<version>${plugin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.blackducksoftware.integration</groupId>
-			<artifactId>hub-teamcity-common</artifactId>
-			<version>${plugin.version}</version>
-		</dependency>
-
-	</dependencies>
-
-
 	<build>
 		<plugins>
 			<plugin>
