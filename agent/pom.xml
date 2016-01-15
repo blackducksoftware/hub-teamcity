@@ -28,7 +28,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.restlet.jee</groupId>
+			<groupId>org.restlet.jse</groupId>
 			<artifactId>org.restlet</artifactId>
 			<version>2.2.3</version>
 		</dependency>
