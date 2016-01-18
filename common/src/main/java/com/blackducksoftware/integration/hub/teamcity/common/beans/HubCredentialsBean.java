@@ -61,7 +61,7 @@ public class HubCredentialsBean implements Serializable {
     }
 
     public String getMaskedPassword() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        if (hubPass == null) {
+        if (StringUtils.isBlank(hubPass)) {
             return null;
         }
 
