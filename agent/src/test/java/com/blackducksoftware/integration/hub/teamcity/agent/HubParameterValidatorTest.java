@@ -258,6 +258,20 @@ public class HubParameterValidatorTest {
         HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
+        String workingDirPath = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+        workingDirPath = workingDirPath.substring(0, workingDirPath.indexOf("/target"));
+        workingDirPath = workingDirPath + "/test-workspace";
+
+        String testEmptyPath = workingDirPath + "/EmptyScan.cli-2.1.2";
+        File testEmptyDirectory = new File(testEmptyPath);
+        if (!testEmptyDirectory.exists()) {
+            testEmptyDirectory.mkdirs();
+        }
+        testEmptyDirectory = new File(testEmptyPath, "lib");
+        if (!testEmptyDirectory.exists()) {
+            testEmptyDirectory.mkdirs();
+        }
+
         String cliPath = testWorkspace + "/EmptyScan.cli-2.1.2";
 
         validator.validateCLIPath(new File(cliPath));

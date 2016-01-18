@@ -3,7 +3,6 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -38,6 +37,7 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.HubScanJobCon
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
+import com.blackducksoftware.integration.util.HostnameHelper;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
 
@@ -154,7 +154,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         jobConfig.setHubScanTargets(scanTargets);
 
-        String localHostName = InetAddress.getLocalHost().getHostName();
+        String localHostName = HostnameHelper.getMyHostname();
         logger.info("Running on machine : " + localHostName);
 
         printGlobalConfguration(globalConfig);
