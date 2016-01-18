@@ -67,7 +67,7 @@ public class HubCredentialsBean implements Serializable {
 
         if (actualPasswordLength == null) {
             String password = getDecryptedPassword();
-            if (password != null) {
+            if (StringUtils.isNotBlank(password)) {
                 actualPasswordLength = password.length();
             }
         }
@@ -76,14 +76,15 @@ public class HubCredentialsBean implements Serializable {
             Arrays.fill(array, '*');
             return new String(array);
         } else {
-            return "";
+            return null;
         }
     }
 
     public String getDecryptedPassword() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
         String encryptedPassword = hubPass;
-
+        if (StringUtils.isBlank(encryptedPassword)) {
+            return null;
+        }
         ClassLoader originalClassLoader = Thread.currentThread()
                 .getContextClassLoader();
         boolean changed = false;
