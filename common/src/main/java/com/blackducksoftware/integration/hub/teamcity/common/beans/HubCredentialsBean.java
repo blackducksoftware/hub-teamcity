@@ -66,28 +66,37 @@ public class HubCredentialsBean implements Serializable {
         }
 
         if (actualPasswordLength == null) {
-            actualPasswordLength = getDecryptedPassword().length();
+            String password = getDecryptedPassword();
+            if (password != null) {
+                actualPasswordLength = password.length();
+            }
         }
-
-        char[] array = new char[actualPasswordLength];
-        Arrays.fill(array, '*');
-        return new String(array);
+        if (actualPasswordLength != null) {
+            char[] array = new char[actualPasswordLength];
+            Arrays.fill(array, '*');
+            return new String(array);
+        } else {
+            return "";
+        }
     }
 
     public String getDecryptedPassword() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+        String encryptedPassword = hubPass;
+
         ClassLoader originalClassLoader = Thread.currentThread()
                 .getContextClassLoader();
         boolean changed = false;
         try {
 
-            if (HubCredentialsBean.class.getClassLoader() != originalClassLoader) {
+            if (PasswordDecrypter.class.getClassLoader() != originalClassLoader) {
                 changed = true;
-                Thread.currentThread().setContextClassLoader(HubCredentialsBean.class.getClassLoader());
+                Thread.currentThread().setContextClassLoader(PasswordDecrypter.class.getClassLoader());
             }
 
             Method method = PasswordDecrypter.class.getDeclaredMethod("decrypt", String.class);
             method.setAccessible(true);
-            Object result = method.invoke(null, hubPass);
+            Object result = method.invoke(null, encryptedPassword);
             if (result != null) {
                 return String.valueOf(result);
             } else {
