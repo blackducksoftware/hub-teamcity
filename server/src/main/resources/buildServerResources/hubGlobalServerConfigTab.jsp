@@ -203,7 +203,8 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="2">
+            	<td/>
+                <td>
                     <span class="error" id="errorUrl" style="margin-left: 0;"></span>
                 </td>
             </tr>
@@ -220,7 +221,8 @@
                 </td>
             </tr>
              <tr>
-                <td colspan="2">
+             	<td/>
+                <td>
                     <span class="error" id="errorUserName" style="margin-left: 0;"></span>
                 </td>
             </tr>
@@ -244,7 +246,8 @@
             	</td>
             </tr>
             <tr>
-                <td colspan="2">
+            	<td/>
+                <td>
                     <span class="error" id="errorPassword" style="margin-left: 0;"></span>
                 </td>
             </tr>
@@ -263,7 +266,8 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="2">
+            	<td/>
+                <td>
                     <span class="error" id="errorHubProxyServer" style="margin-left: 0;"></span>
                 </td>
             </tr>
@@ -279,7 +283,8 @@
                 </td>
             </tr>
              <tr>
-                <td colspan="2">
+             	<td/>
+                <td>
                     <span class="error" id="errorHubProxyPort" style="margin-left: 0;"></span>
                 </td>
             </tr>
@@ -295,7 +300,8 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="2">
+            	<td/>
+                <td>
                     <span class="error" id="errorHubNoProxyHost" style="margin-left: 0;"></span>
                 </td>
             </tr>
@@ -308,8 +314,10 @@
 							name="hubProxyUser" id="hubProxyUser" value="" /></td>
 				</tr>
 				<tr>
-					<td colspan="2"><span class="error"
-						id="errorHubProxyUser" style="margin-left: 0;"></span></td>
+					<td/>
+					<td>
+						<span class="error"
+							id="errorHubProxyUser" style="margin-left: 0;"></span></td>
 				</tr>
 				
 				<tr>
@@ -320,8 +328,10 @@
 					<td><forms:passwordField className="textFieldLong" name="hubProxyPass" id="hubProxyPass" /></td>
 				</tr>
 				<tr>
-					<td colspan="2"><span class="error"
-						id="errorHubProxyPass" style="margin-left: 0;"></span></td>
+					<td/>
+					<td>
+						<span class="error"
+							id="errorHubProxyPass" style="margin-left: 0;"></span></td>
 				</tr>
             
         </table>
