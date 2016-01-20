@@ -6,7 +6,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <files>
     	<file>
-            <source>target/hub-teamcity-agent-${project.version}.zip</source>
+            <source>target/agent/hub-teamcity-agent-${project.version}.zip</source>
             <outputDirectory>agent</outputDirectory>
         </file>
         <file>

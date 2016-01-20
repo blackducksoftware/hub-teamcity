@@ -35,6 +35,7 @@
 						</goals>
 						<configuration>
 							<finalName>hub-teamcity-agent-${plugin.version}</finalName>
+							<outputDirectory>target/agent</outputDirectory>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
 								<descriptor>src/assemble/agent-assembly.xml</descriptor>
