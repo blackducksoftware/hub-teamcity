@@ -125,9 +125,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         String workingDirectoryPath = workingDirectory.getCanonicalPath();
         jobConfig.setWorkingDirectory(workingDirectoryPath);
 
+        logger.info("CLI path provided : " + hubCliParameter);
+
         File cliHome = null;
         if (StringUtils.isBlank(hubCliParameter)) {
+
+            Map<String, String> envVars = context.getBuildParameters().getEnvironmentVariables();
+            for (Entry<String, String> envVar : envVars.entrySet()) {
+                logger.info("Environment variable name : " + envVar.getKey() + " value: " + envVar.getValue());
+            }
+
+            logger.info("Checking the environment variables for the BD_HUB_SCAN");
             String cliHomePath = getEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR);
+            logger.info("CLI path for BD_HUB_SCAN : " + cliHomePath);
             if (StringUtils.isNotBlank(cliHomePath)) {
                 cliHome = new File(cliHomePath);
             }
