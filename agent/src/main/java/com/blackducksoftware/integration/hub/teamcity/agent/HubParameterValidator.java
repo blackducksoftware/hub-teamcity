@@ -79,7 +79,7 @@ public class HubParameterValidator {
             validCLIPath = false;
         } else {
             if (cliHomeDirectory.exists()) {
-                if (cliHomeDirectory.listFiles() == null || cliHomeDirectory.listFiles().length == 0) {
+                if (cliHomeDirectory.listFiles() != null && cliHomeDirectory.listFiles().length != 0) {
                     File libFolder = new File(cliHomeDirectory, "lib");
 
                     if (libFolder.exists()) {
