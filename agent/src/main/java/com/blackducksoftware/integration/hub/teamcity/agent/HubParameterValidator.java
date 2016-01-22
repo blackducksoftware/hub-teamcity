@@ -79,16 +79,10 @@ public class HubParameterValidator {
             validCLIPath = false;
         } else {
             if (cliHomeDirectory.exists()) {
-                File[] files = cliHomeDirectory.listFiles();
-                if (files != null && files.length != 0) {
-                    File libFolder = null;
-                    for (File subDirectory : files) {
-                        if ("lib".equalsIgnoreCase(subDirectory.getName())) {
-                            libFolder = subDirectory;
-                            break;
-                        }
-                    }
-                    if (libFolder != null) {
+                if (cliHomeDirectory.listFiles() == null || cliHomeDirectory.listFiles().length == 0) {
+                    File libFolder = new File(cliHomeDirectory, "lib");
+
+                    if (libFolder.exists()) {
                         File[] cliFiles = libFolder.listFiles();
 
                         if (cliFiles == null || cliFiles.length == 0) {
