@@ -268,6 +268,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         HubParameterValidator validator = new HubParameterValidator(logger);
 
+        boolean projectConfig = true;
+
+        projectConfig = validator.validateProjectNameAndVersion(jobConfig.getProjectName(), jobConfig.getVersion());
+
         boolean scanTargetsValid = true;
 
         if (jobConfig.getHubScanTargets() == null || jobConfig.getHubScanTargets().isEmpty()) {
@@ -285,7 +289,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         boolean validCliHome = false;
         validCliHome = validator.validateCLIPath(jobConfig.getHubCLIPath());
 
-        return scanTargetsValid && validScanMemory && validCliHome;
+        return projectConfig && scanTargetsValid && validScanMemory && validCliHome;
     }
 
     public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {

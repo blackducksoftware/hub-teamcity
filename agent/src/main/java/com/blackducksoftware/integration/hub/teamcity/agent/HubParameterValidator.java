@@ -79,16 +79,10 @@ public class HubParameterValidator {
             validCLIPath = false;
         } else {
             if (cliHomeDirectory.exists()) {
-                File[] files = cliHomeDirectory.listFiles();
-                if (files != null && files.length != 0) {
-                    File libFolder = null;
-                    for (File subDirectory : files) {
-                        if ("lib".equalsIgnoreCase(subDirectory.getName())) {
-                            libFolder = subDirectory;
-                            break;
-                        }
-                    }
-                    if (libFolder != null) {
+                if (cliHomeDirectory.listFiles() != null && cliHomeDirectory.listFiles().length != 0) {
+                    File libFolder = new File(cliHomeDirectory, "lib");
+
+                    if (libFolder.exists()) {
                         File[] cliFiles = libFolder.listFiles();
 
                         if (cliFiles == null || cliFiles.length == 0) {
@@ -139,6 +133,23 @@ public class HubParameterValidator {
         }
 
         return validMemory;
+    }
+
+    public boolean validateProjectNameAndVersion(final String projectName, final String version) {
+        boolean validProjectConfig = true;
+
+        if (StringUtils.isBlank(projectName) && StringUtils.isBlank(version)) {
+            logger.warn("No Project Name or Version were found. Any scans run will not be mapped to a Version.");
+            validProjectConfig = true;
+        } else if (StringUtils.isBlank(projectName)) {
+            logger.error("No Project Name was found.");
+            validProjectConfig = false;
+        } else if (StringUtils.isBlank(version)) {
+            logger.error("No Project Version were found.");
+            validProjectConfig = false;
+        }
+
+        return validProjectConfig;
     }
 
 }
