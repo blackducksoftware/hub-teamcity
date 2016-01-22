@@ -318,4 +318,40 @@ public class HubParameterValidatorTest {
         }
     }
 
+    @Test
+    public void testValidateProjectNameAndVersionEmpty() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(validator.validateProjectNameAndVersion("", ""));
+        assertTrue(testLogger.getErrorMessages().size() == 0);
+
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersionEmptyProjectName() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(!validator.validateProjectNameAndVersion("", "TestVersion"));
+        assertTrue(testLogger.getErrorMessages().size() == 1);
+
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersionEmptyVersion() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(!validator.validateProjectNameAndVersion("TestProject", ""));
+        assertTrue(testLogger.getErrorMessages().size() == 1);
+
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersion() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(validator.validateProjectNameAndVersion("TestProject", "TestVersion"));
+        assertTrue(testLogger.getErrorMessages().size() == 0);
+
+    }
+
 }

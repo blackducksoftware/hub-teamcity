@@ -141,4 +141,21 @@ public class HubParameterValidator {
         return validMemory;
     }
 
+    public boolean validateProjectNameAndVersion(final String projectName, final String version) {
+        boolean validProjectConfig = true;
+
+        if (StringUtils.isBlank(projectName) && StringUtils.isBlank(version)) {
+            logger.warn("No Project Name or Version were found. Any scans run will not be mapped to a Version.");
+            validProjectConfig = true;
+        } else if (StringUtils.isBlank(projectName)) {
+            logger.error("No Project Name was found.");
+            validProjectConfig = false;
+        } else if (StringUtils.isBlank(version)) {
+            logger.error("No Project Version were found.");
+            validProjectConfig = false;
+        }
+
+        return validProjectConfig;
+    }
+
 }
