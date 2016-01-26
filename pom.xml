@@ -1,8 +1,6 @@
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>com.blackducksoftware.integration</groupId>
 	<artifactId>hub-teamcity</artifactId>
 	<!-- !!! Also update the url below on release !!! -->
@@ -45,7 +43,6 @@
 		<module>agent</module>
 		<module>assembly</module>
 	</modules>
-
 
 	<repositories>
 		<repository>
@@ -102,7 +99,6 @@
 				<artifactId>int-hub-ci</artifactId>
 				<version>1.1.3-SNAPSHOT</version>
 			</dependency>
-
 			<dependency>
 				<groupId>com.blackducksoftware.integration</groupId>
 				<artifactId>int-suite-sdk-encryption</artifactId>
@@ -113,7 +109,6 @@
 				<artifactId>int-suite-sdk-shared</artifactId>
 				<version>1.0.2</version>
 			</dependency>
-
 			<!-- Black Duck dependencies End -->
 
 			<dependency>
@@ -238,8 +233,6 @@
 			</dependency>
 			<!-- END TeamCity dependencies -->
 
-
-
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
@@ -252,7 +245,6 @@
 				<version>1.8.4</version>
 				<scope>test</scope>
 			</dependency>
-
 		</dependencies>
 	</dependencyManagement>
 
@@ -264,11 +256,18 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.18.1</version>
 					<configuration>
-						<!-- Sets the VM argument line used when unit tests are run. -->
-						<argLine>${surefireArgLine}</argLine>
+						<argLine>${argLine}</argLine>
 					</configuration>
 				</plugin>
-				<plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-report-plugin</artifactId>
+                    <version>2.19.1</version>
+                    <configuration>
+                        <aggregate>true</aggregate>
+                    </configuration>
+                </plugin>
+   				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-eclipse-plugin</artifactId>
 					<version>2.10</version>
@@ -299,44 +298,36 @@
 						<target>1.7</target>
 					</configuration>
 				</plugin>
-				<plugin>
-					<groupId>org.jacoco</groupId>
-					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.7.5.201505241946</version>
-					<executions>
-						<execution>
-							<id>pre-unit-test</id>
-							<goals>
-								<goal>prepare-agent</goal>
-							</goals>
-							<configuration>
-								<!-- Sets the path to the file which contains the execution data. -->
-								<destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
-								<!-- Sets the name of the property containing the settings for JaCoCo 
-									runtime agent. -->
-								<propertyName>surefireArgLine</propertyName>
-							</configuration>
-						</execution>
-						<!-- Ensures that the code coverage report for unit tests is created 
-							after unit tests have been run. -->
-						<execution>
-							<id>post-unit-test</id>
-							<phase>test</phase>
-							<goals>
-								<goal>report</goal>
-							</goals>
-							<configuration>
-								<!-- Sets the path to the file which contains the execution data. -->
-								<dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
-								<!-- Sets the output directory for the code coverage report. -->
-								<outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
+	            <plugin>
+	                <groupId>org.jacoco</groupId>
+	                <artifactId>jacoco-maven-plugin</artifactId>
+	                <version>0.7.4.201502262128</version>
+	                <executions>
+	                    <execution>
+	                        <id>default-prepare-agent</id>
+	                        <goals>
+	                            <goal>prepare-agent</goal>
+	                        </goals>
+	                    </execution>
+	                    <execution>
+	                        <id>default-report</id>
+	                        <phase>prepare-package</phase>
+	                        <goals>
+	                            <goal>report</goal>
+	                        </goals>
+	                    </execution>
+	                </executions>
+	            </plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+		</plugins>
 	</build>
+
 	<profiles>
 		<profile>
 			<id>Sonargraph</id>
@@ -351,4 +342,5 @@
 			</pluginRepositories>
 		</profile>
 	</profiles>
+
 </project>
