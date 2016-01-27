@@ -140,13 +140,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         List<File> scanTargets = new ArrayList<File>();
 
         if (StringUtils.isNotBlank(scanTargetParameter)) {
-            if (scanTargetParameter.contains(System.getProperty("line.separator"))) {
-                String[] scanTargetPaths = scanTargetParameter.split(System.getProperty("line.separator"));
-                for (String target : scanTargetPaths) {
+
+            String[] scanTargetPaths = scanTargetParameter.split("\\r?\\n");
+            for (String target : scanTargetPaths) {
+                if (!StringUtils.isBlank(target)) {
                     scanTargets.add(new File(workingDirectory, target));
                 }
-            } else {
-                scanTargets.add(new File(workingDirectory, scanTargetParameter));
             }
         } else {
             scanTargets.add(workingDirectory);

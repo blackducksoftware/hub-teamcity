@@ -58,13 +58,15 @@ public class HubParameterValidator {
             logger.error("Can not scan null target.");
             validTargetPath = false;
         } else {
+            if (!target.exists()) {
+                logger.error("The scan target '" + target.getAbsolutePath() + "' does not exist.");
+                validTargetPath = false;
+            }
+
             String targetPath = target.getCanonicalPath();
 
             if (!targetPath.startsWith(workingDirectory)) {
                 logger.error("Can not scan targets outside the working directory.");
-                validTargetPath = false;
-            } else if (!target.exists()) {
-                logger.error("The scan target '" + targetPath + "' does not exist.");
                 validTargetPath = false;
             }
         }
