@@ -472,10 +472,16 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         String operatingSystem = System.getProperty("os.name");
 
-        // FIXME get the correct java
         String javaHome = getEnvironmentVariable("JAVA_HOME");
-
+        if (StringUtils.isBlank(javaHome)) {
+            // We couldn't get the JAVA_HOME variable so lets try to get the home
+            // of the java that is running this process
+            javaHome = System.getProperty("java.home");
+        }
         File javaExec = new File(javaHome);
+        if (StringUtils.isBlank(javaHome) || javaExec == null || !javaExec.exists()) {
+            throw new HubIntegrationException("The JAVA_HOME could not be determined, the Hub CLI can not be executed.");
+        }
         javaExec = new File(javaExec, "bin");
         if (!operatingSystem.toLowerCase().contains("windows")) {
             javaExec = new File(javaExec, "java");
