@@ -174,11 +174,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     }
                 }
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
-
-                String projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName(), jobConfig.getVersion(), jobConfig.getPhase(),
-                        jobConfig.getDistribution());
-                String versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
-                        jobConfig.getDistribution());
+                String projectId = null;
+                String versionId = null;
+                if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
+                    projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName(), jobConfig.getVersion(), jobConfig.getPhase(),
+                            jobConfig.getDistribution());
+                    versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
+                            jobConfig.getDistribution());
+                }
                 boolean mappingDone = doHubScan(restService, hubLogger, cliHome, globalConfig, jobConfig);
 
                 // Only map the scans to a Project Version if the Project name and Project Version have been
