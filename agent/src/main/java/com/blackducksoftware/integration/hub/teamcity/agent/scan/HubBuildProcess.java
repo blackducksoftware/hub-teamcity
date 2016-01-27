@@ -25,6 +25,8 @@ import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.response.DistributionEnum;
+import com.blackducksoftware.integration.hub.response.PhaseEnum;
 import com.blackducksoftware.integration.hub.response.ReleaseItem;
 import com.blackducksoftware.integration.hub.response.VersionComparison;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
@@ -198,30 +200,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             logger.error(e);
             result = BuildFinishedStatus.FINISHED_FAILED;
 
-            // } catch (NoSuchMethodException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (IllegalAccessException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (IllegalArgumentException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (InvocationTargetException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (HubIntegrationException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (URISyntaxException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (IOException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
-            // } catch (TeamCityHubPluginException e) {
-            // // TODO Auto-generated catch block
-            // throw new RuntimeException(e);
         } finally {
 
         }
@@ -345,7 +323,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private String ensureProjectExists(HubIntRestService service, IntLogger logger, String projectName,
-            String projectVersion, String phase, String distribution) throws IOException, URISyntaxException,
+            String projectVersion, String phaseDisplayValue, String distributionDisplayValue) throws IOException, URISyntaxException,
             TeamCityHubPluginException {
 
         String projectId = null;
@@ -354,9 +332,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         } catch (ProjectDoesNotExistException e) {
             // Project was not found, try to create it
+
+            PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseDisplayValue);
+            DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionDisplayValue);
+
             try {
                 logger.info("Creating project : " + projectName + " and version : " + projectVersion);
-                projectId = service.createHubProjectAndVersion(projectName, projectVersion, phase, distribution);
+                projectId = service.createHubProjectAndVersion(projectName, projectVersion, phase.name(), distribution.name());
                 logger.debug("Project and Version created!");
 
             } catch (BDRestException e1) {
@@ -380,26 +362,29 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private String ensureVersionExists(HubIntRestService service, IntLogger logger, String projectVersion,
-            String projectId, String phase, String distribution) throws IOException, URISyntaxException, TeamCityHubPluginException {
+            String projectId, String phaseDisplayValue, String distributionDisplayValue) throws IOException, URISyntaxException, TeamCityHubPluginException {
         String versionId = null;
         try {
+
+            PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseDisplayValue);
+            DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionDisplayValue);
 
             List<ReleaseItem> projectVersions = service.getVersionsForProject(projectId);
             for (ReleaseItem release : projectVersions) {
                 if (projectVersion.equals(release.getVersion())) {
                     versionId = release.getId();
                     logger.info("Found version : " + projectVersion);
-                    if (!release.getPhase().equals(phase)) {
+                    if (!release.getPhase().equals(phase.name())) {
                         logger.warn("The selected Phase does not match the Phase of this Version. If you wish to update the Phase please do so in the Hub UI.");
                     }
-                    if (!release.getDistribution().equals(distribution)) {
+                    if (!release.getDistribution().equals(distribution.name())) {
                         logger.warn("The selected Distribution does not match the Distribution of this Version. If you wish to update the Distribution please do so in the Hub UI.");
                     }
                 }
             }
             if (versionId == null) {
                 logger.info("Creating version : " + projectVersion);
-                versionId = service.createHubVersion(projectVersion, projectId, phase, distribution);
+                versionId = service.createHubVersion(projectVersion, projectId, phase.name(), distribution.name());
                 logger.debug("Version created!");
             }
         } catch (BDRestException e) {

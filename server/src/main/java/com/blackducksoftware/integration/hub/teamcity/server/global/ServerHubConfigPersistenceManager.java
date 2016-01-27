@@ -135,7 +135,7 @@ public class ServerHubConfigPersistenceManager {
         List<String> phaseList = new ArrayList<String>();
         for (PhaseEnum phase : PhaseEnum.values()) {
             if (phase != PhaseEnum.UNKNOWNPHASE) {
-                phaseList.add(phase.name());
+                phaseList.add(phase.getDisplayValue());
             }
         }
         return phaseList;
@@ -145,7 +145,7 @@ public class ServerHubConfigPersistenceManager {
         List<String> distributionList = new ArrayList<String>();
         for (DistributionEnum distribution : DistributionEnum.values()) {
             if (distribution != DistributionEnum.UNKNOWNDISTRIBUTION) {
-                distributionList.add(distribution.name());
+                distributionList.add(distribution.getDisplayValue());
             }
         }
         return distributionList;
