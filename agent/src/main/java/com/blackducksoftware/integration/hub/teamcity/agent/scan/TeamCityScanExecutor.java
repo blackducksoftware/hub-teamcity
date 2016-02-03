@@ -130,7 +130,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
             if (splitOutputStream.hasOutput()) {
                 outputString = splitOutputStream.getOutput();
             }
-            outputString = outputString + " \n" + readStream(hubCliProcess.getInputStream());
+            getLogger().info(readStream(hubCliProcess.getInputStream()));
 
             if (outputString.contains("Illegal character in path")
                     && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
@@ -163,7 +163,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 if (splitOutputStream.hasOutput()) {
                     outputString = splitOutputStream.getOutput();
                 }
-                outputString = outputString + " \n" + readStream(hubCliProcess.getInputStream());
+                getLogger().info(readStream(hubCliProcess.getInputStream()));
             } else if (outputString.contains("Illegal character in opaque")
                     && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
                 standardOutFile.delete();
@@ -195,7 +195,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 if (splitOutputStream.hasOutput()) {
                     outputString = splitOutputStream.getOutput();
                 }
-                outputString = outputString + " \n" + readStream(hubCliProcess.getInputStream());
+                getLogger().info(readStream(hubCliProcess.getInputStream()));
             }
 
             getLogger().info("Hub CLI return code : " + returnCode);
