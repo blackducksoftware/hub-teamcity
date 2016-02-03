@@ -441,7 +441,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
         scan.setScanMemory(Integer.valueOf(jobConfig.getHubScanMemory()));
         scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
-        // scan.setVerboseRun(isVerbose());
+        scan.setVerboseRun(isVerbose());
         if (mappingComparison != null && mappingComparison.getNumericResult() <= 0 &&
                 StringUtils.isNotBlank(jobConfig.getProjectName())
                 && StringUtils.isNotBlank(jobConfig.getVersion())) {
