@@ -4,7 +4,7 @@
 	<groupId>com.blackducksoftware.integration</groupId>
 	<artifactId>hub-teamcity</artifactId>
 	<!-- !!! Also update the url below on release !!! -->
-	<version>1.3.X-SNAPSHOT</version>
+	<version>1.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Black Duck Hub Plugin for TeamCity</name>
 	<description>Open Source Governance with Black Duck Hub (TM).</description>
