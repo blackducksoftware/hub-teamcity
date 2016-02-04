@@ -25,6 +25,9 @@ public class StreamRedirectThread extends Thread {
         try {
             int i;
             while ((i = in.read()) >= 0) {
+                if (i == -1) {
+                    break;
+                }
                 out.write(i);
             }
         } catch (IOException e) {

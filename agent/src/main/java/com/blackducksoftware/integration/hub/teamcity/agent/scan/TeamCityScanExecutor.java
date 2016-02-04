@@ -122,6 +122,9 @@ public class TeamCityScanExecutor extends ScanExecutor {
             redirectThread.start();
 
             int returnCode = hubCliProcess.waitFor();
+
+            // the join method on the redirect thread will wait until the thread is dead
+            // the thread will die when it reaches the end of stream and the run method is finished
             redirectThread.join();
 
             splitOutputStream.flush();
@@ -155,6 +158,9 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 redirectThread.start();
 
                 returnCode = hubCliProcess.waitFor();
+
+                // the join method on the redirect thread will wait until the thread is dead
+                // the thread will die when it reaches the end of stream and the run method is finished
                 redirectThread.join();
 
                 splitOutputStream.flush();
@@ -187,6 +193,9 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 redirectThread.start();
 
                 returnCode = hubCliProcess.waitFor();
+
+                // the join method on the redirect thread will wait until the thread is dead
+                // the thread will die when it reaches the end of stream and the run method is finished
                 redirectThread.join();
 
                 splitOutputStream.flush();
