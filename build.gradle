@@ -1,0 +1,49 @@
+buildscript{
+	repositories{
+		maven{ url "http://artifactory.blackducksoftware.com/artifactory/blackduck-builder-repos"}
+	}
+	dependencies{
+		classpath "com.blackducksoftware.gradle.plugins:gradle-management-plugins:1.0"
+		classpath("com.blackducksoftware.gradle.plugins:gradle-plugins:1.59"){ exclude module: 'xercesImpl' }
+	}
+}
+
+if (!version || version == 'unspecified'){
+    version = getVersionFromPom()
+}
+group = getGroupFromPom()
+description = getNameFromPom()
+
+apply plugin: 'release'
+
+persistVersion{
+    versionPropertiesFile = 'pom.xml' as File
+}
+
+bumpVersionNumber{
+    versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3]]]
+}
+
+commitPropertiesFiles{
+    propertyFilesList = ['int-hub-teamcity': ['pom.xml']]
+}
+
+def getVersionFromPom(){
+  File pom = new File('pom.xml')
+  def project = new XmlSlurper().parse(pom)
+  project.version
+}
+def getGroupFromPom(){
+  File pom = new File('pom.xml')
+  def project = new XmlSlurper().parse(pom)
+  project.groupId
+}
+def getNameFromPom(){
+  File pom = new File('pom.xml')
+  def project = new XmlSlurper().parse(pom)
+  project.name
+}
+
+task('wrapper', type: Wrapper){
+  gradleVersion='2.4'
+}

@@ -107,4 +107,6 @@ target/
 # STS (Spring Tool Suite)
 .springBeans
 
-
+# Gradle
+.gradle
+build/
