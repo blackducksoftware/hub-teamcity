@@ -4,6 +4,7 @@ import static java.lang.ProcessBuilder.Redirect.PIPE;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.blackducksoftware.integration.hub.ScanExecutor;
+import com.blackducksoftware.integration.hub.ScannerSplitStream;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 
 public class TeamCityScanExecutor extends ScanExecutor {
@@ -77,6 +79,11 @@ public class TeamCityScanExecutor extends ScanExecutor {
     protected Result executeScan(List<String> cmd, String logDirectoryPath) throws HubIntegrationException, InterruptedException {
         try {
 
+            File logBaseDirectory = new File(getLogDirectoryPath());
+            logBaseDirectory.mkdirs();
+            File standardOutFile = new File(logBaseDirectory, "CLI_Output.txt");
+            standardOutFile.createNewFile();
+
             // ////////////////////// Code to mask the password in the logs
             List<String> cmdToOutput = new ArrayList<String>();
             cmdToOutput.addAll(cmd);
@@ -103,14 +110,38 @@ public class TeamCityScanExecutor extends ScanExecutor {
 
             // Should use the split stream for the process
 
+            FileOutputStream outputFileStream = new FileOutputStream(standardOutFile);
+
+            String outputString = "";
+            ScannerSplitStream splitOutputStream = new ScannerSplitStream(getLogger(), outputFileStream);
+
             Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+
+            // The Cli logs go the error stream for some reason
+            StreamRedirectThread redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
+            redirectThread.start();
+
             int returnCode = hubCliProcess.waitFor();
 
-            String outputString = readStream(hubCliProcess.getInputStream());
-            outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
+            // the join method on the redirect thread will wait until the thread is dead
+            // the thread will die when it reaches the end of stream and the run method is finished
+            redirectThread.join();
+
+            splitOutputStream.flush();
+            splitOutputStream.close();
+
+            if (splitOutputStream.hasOutput()) {
+                outputString = splitOutputStream.getOutput();
+            }
+            getLogger().info(readStream(hubCliProcess.getInputStream()));
 
             if (outputString.contains("Illegal character in path")
                     && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
+                standardOutFile.delete();
+                standardOutFile.createNewFile();
+
+                splitOutputStream = new ScannerSplitStream(getLogger(), outputFileStream);
+
                 // This version of the CLI can not handle spaces in the log directory
                 // Not sure which version of the CLI this issue was fixed
 
@@ -121,13 +152,30 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 cmd.remove(indexOfLogOption);
                 cmd.add(indexOfLogOption, logPath);
 
-                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).start();
+                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+                // The Cli logs go the error stream for some reason
+                redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
+                redirectThread.start();
+
                 returnCode = hubCliProcess.waitFor();
 
-                outputString = readStream(hubCliProcess.getInputStream());
-                outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
+                // the join method on the redirect thread will wait until the thread is dead
+                // the thread will die when it reaches the end of stream and the run method is finished
+                redirectThread.join();
+
+                splitOutputStream.flush();
+                splitOutputStream.close();
+
+                if (splitOutputStream.hasOutput()) {
+                    outputString = splitOutputStream.getOutput();
+                }
+                getLogger().info(readStream(hubCliProcess.getInputStream()));
             } else if (outputString.contains("Illegal character in opaque")
                     && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
+                standardOutFile.delete();
+                standardOutFile.createNewFile();
+
+                splitOutputStream = new ScannerSplitStream(getLogger(), outputFileStream);
 
                 int indexOfLogOption = cmd.indexOf("--logDir") + 1;
 
@@ -139,15 +187,27 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 cmd.remove(indexOfLogOption);
                 cmd.add(indexOfLogOption, logPath);
 
-                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).start();
+                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+                // The Cli logs go the error stream for some reason
+                redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
+                redirectThread.start();
+
                 returnCode = hubCliProcess.waitFor();
 
-                outputString = readStream(hubCliProcess.getInputStream());
-                outputString = outputString + System.getProperty("line.separator") + readStream(hubCliProcess.getErrorStream());
+                // the join method on the redirect thread will wait until the thread is dead
+                // the thread will die when it reaches the end of stream and the run method is finished
+                redirectThread.join();
+
+                splitOutputStream.flush();
+                splitOutputStream.close();
+
+                if (splitOutputStream.hasOutput()) {
+                    outputString = splitOutputStream.getOutput();
+                }
+                getLogger().info(readStream(hubCliProcess.getInputStream()));
             }
 
             getLogger().info("Hub CLI return code : " + returnCode);
-            getLogger().info(outputString);
 
             if (logDirectoryPath != null) {
                 File logDirectory = new File(logDirectoryPath);

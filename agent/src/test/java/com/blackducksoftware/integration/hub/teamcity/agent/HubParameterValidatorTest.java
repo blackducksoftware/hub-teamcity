@@ -8,7 +8,9 @@ import java.io.File;
 
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
@@ -20,6 +22,9 @@ public class HubParameterValidatorTest {
     private static TestBuildProgressLogger testLogger;
 
     private static HubAgentBuildLogger buildLogger;
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @BeforeClass
     public static void testStartup() {
@@ -224,7 +229,7 @@ public class HubParameterValidatorTest {
         HubAgentBuildLogger buildLogger = new HubAgentBuildLogger(testLogger);
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        String cliPath = testWorkspace + "/emptyDirectory";
+        String cliPath = folder.newFolder("emptyDirectory").getAbsolutePath();
         File cliPathTarget = new File(cliPath);
         if (!cliPathTarget.exists()) {
             cliPathTarget.mkdirs();
@@ -262,19 +267,12 @@ public class HubParameterValidatorTest {
         workingDirPath = workingDirPath.substring(0, workingDirPath.indexOf("/target"));
         workingDirPath = workingDirPath + "/test-workspace";
 
-        String testEmptyPath = workingDirPath + "/EmptyScan.cli-2.1.2";
-        File testEmptyDirectory = new File(testEmptyPath);
-        if (!testEmptyDirectory.exists()) {
-            testEmptyDirectory.mkdirs();
-        }
-        testEmptyDirectory = new File(testEmptyPath, "lib");
-        if (!testEmptyDirectory.exists()) {
-            testEmptyDirectory.mkdirs();
-        }
+        File cliDirectory = folder.newFolder("emptyDirectory");
 
-        String cliPath = testWorkspace + "/EmptyScan.cli-2.1.2";
+        File testEmptyDirectory = new File(cliDirectory, "lib");
+        testEmptyDirectory.createNewFile();
 
-        validator.validateCLIPath(new File(cliPath));
+        validator.validateCLIPath(cliDirectory);
 
         String output = testLogger.getErrorMessagesString();
 
@@ -316,6 +314,42 @@ public class HubParameterValidatorTest {
         } else {
             assertTrue(testLogger.getErrorMessages().size() == 0);
         }
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersionEmpty() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(validator.validateProjectNameAndVersion("", ""));
+        assertTrue(testLogger.getErrorMessages().size() == 0);
+
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersionEmptyProjectName() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(!validator.validateProjectNameAndVersion("", "TestVersion"));
+        assertTrue(testLogger.getErrorMessages().size() == 1);
+
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersionEmptyVersion() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(!validator.validateProjectNameAndVersion("TestProject", ""));
+        assertTrue(testLogger.getErrorMessages().size() == 1);
+
+    }
+
+    @Test
+    public void testValidateProjectNameAndVersion() {
+        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+
+        assertTrue(validator.validateProjectNameAndVersion("TestProject", "TestVersion"));
+        assertTrue(testLogger.getErrorMessages().size() == 0);
+
     }
 
 }

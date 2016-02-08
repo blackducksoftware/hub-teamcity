@@ -548,8 +548,8 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, testProperties.getProperty("TEST_VERSION"));
-            context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.name());
-            context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, DistributionEnum.INTERNAL.name());
+            context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.getDisplayValue());
+            context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, DistributionEnum.INTERNAL.getDisplayValue());
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
 
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS, "directory/emptyFile.txt" + System.getProperty("line.separator")
@@ -586,8 +586,8 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Working directory : "));
             assertTrue(progressOutput, progressOutput.contains("--> Project : " + testProperties.getProperty("TEST_PROJECT")));
             assertTrue(progressOutput, progressOutput.contains("--> Version : " + testProperties.getProperty("TEST_VERSION")));
-            assertTrue(progressOutput, progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.name()));
-            assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.name()));
+            assertTrue(progressOutput, progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.getDisplayValue()));
+            assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
             assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
@@ -646,8 +646,8 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, testProperties.getProperty("TEST_VERSION"));
-            context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.name());
-            context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, DistributionEnum.INTERNAL.name());
+            context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.getDisplayValue());
+            context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, DistributionEnum.INTERNAL.getDisplayValue());
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
 
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS, "directory/emptyFile.txt");
@@ -683,8 +683,8 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Working directory : "));
             assertTrue(progressOutput, progressOutput.contains("--> Project : " + testProperties.getProperty("TEST_PROJECT")));
             assertTrue(progressOutput, progressOutput.contains("--> Version : " + testProperties.getProperty("TEST_VERSION")));
-            assertTrue(progressOutput, progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.name()));
-            assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.name()));
+            assertTrue(progressOutput, progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.getDisplayValue()));
+            assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
             assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
@@ -746,8 +746,8 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, testProperties.getProperty("TEST_VERSION"));
-            context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.name());
-            context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, DistributionEnum.INTERNAL.name());
+            context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.getDisplayValue());
+            context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION, DistributionEnum.INTERNAL.getDisplayValue());
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
 
             context.addEnvironmentVariable("JAVA_HOME", System.getProperty("java.home"));
@@ -781,8 +781,8 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Working directory : "));
             assertTrue(progressOutput, progressOutput.contains("--> Project : " + testProperties.getProperty("TEST_PROJECT")));
             assertTrue(progressOutput, progressOutput.contains("--> Version : " + testProperties.getProperty("TEST_VERSION")));
-            assertTrue(progressOutput, progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.name()));
-            assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.name()));
+            assertTrue(progressOutput, progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.getDisplayValue()));
+            assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
             assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
