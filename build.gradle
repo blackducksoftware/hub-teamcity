@@ -3,7 +3,7 @@ buildscript{
 		maven{ url "http://artifactory.blackducksoftware.com/artifactory/blackduck-builder-repos"}
 	}
 	dependencies{
-		classpath "com.blackducksoftware.gradle.plugins:gradle-management-plugins:1.0"
+		classpath "com.blackducksoftware.gradle.plugins:gradle-management-plugins:1.2.1"
 		classpath("com.blackducksoftware.gradle.plugins:gradle-plugins:1.59"){ exclude module: 'xercesImpl' }
 	}
 }
@@ -20,12 +20,18 @@ persistVersion{
     versionPropertiesFile = 'pom.xml' as File
 }
 
+task persistServerVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
+    version = project.version
+    versionPropertiesFile = 'server/pom.xml' as File
+    nestedParent = 'parent'
+}
+
 bumpVersionNumber{
-    versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3]]]
+    versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3], 'server/pom.xml': ['version': 3]]]
 }
 
 commitPropertiesFiles{
-    propertyFilesList = ['int-hub-teamcity': ['pom.xml']]
+    propertyFilesList = ['int-hub-teamcity': ['pom.xml', 'server/pom.xml']]
 }
 
 def getVersionFromPom(){
