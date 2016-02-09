@@ -20,6 +20,21 @@ persistVersion{
     versionPropertiesFile = 'pom.xml' as File
 }
 
+task persistAssemblyVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
+    version = project.version
+    versionPropertiesFile = 'assembly/pom.xml' as File
+    nestedParent = 'parent'
+}
+task persistCommonVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
+    version = project.version
+    versionPropertiesFile = 'common/pom.xml' as File
+    nestedParent = 'parent'
+}
+task persistAgentVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
+    version = project.version
+    versionPropertiesFile = 'agent/pom.xml' as File
+    nestedParent = 'parent'
+}
 task persistServerVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
     version = project.version
     versionPropertiesFile = 'server/pom.xml' as File
@@ -27,11 +42,15 @@ task persistServerVersion(type: com.blackducksoftware.gradle.tasks.PersistVersio
 }
 
 bumpVersionNumber{
-    versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3], 'server/pom.xml': ['version': 3]]]
+    versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3], 
+        'server/pom.xml': ['version': 3],
+        'assembly/pom.xml': ['version': 3],
+        'agent/pom.xml': ['version': 3],
+        'common/pom.xml': ['version': 3]]]
 }
 
 commitPropertiesFiles{
-    propertyFilesList = ['int-hub-teamcity': ['pom.xml', 'server/pom.xml']]
+    propertyFilesList = ['int-hub-teamcity': ['pom.xml', 'server/pom.xml', 'assembly/pom.xml', 'agent/pom.xml', 'common/pom.xml']]
 }
 
 def getVersionFromPom(){
