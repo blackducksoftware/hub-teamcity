@@ -330,7 +330,25 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<configuration>
+					<artifacts>
+						<artifact>
+							<file>${WORKSPACE}/assmebly/target/hub-teamcity-${plugin.version}.zip</file>
+							<type>zip</type>
+						</artifact>
+					</artifacts>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>attach-artifact</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<profiles>
