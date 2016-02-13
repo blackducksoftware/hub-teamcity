@@ -312,6 +312,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
+				<inherited>false</inherited>
 				<goals>
 					<goal>deploy-file</goal>
 				</goals>
@@ -333,6 +334,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
+				<inherited>false</inherited>
 				<configuration>
 					<artifacts>
 						<artifact>
