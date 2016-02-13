@@ -309,48 +309,6 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<inherited>false</inherited>
-				<goals>
-					<goal>deploy-file</goal>
-				</goals>
-				<configuration>
-					<repositoryId>integrationRelease</repositoryId>
-					<packaging>zip</packaging>
-					<generatePom>false</generatePom>
-					<artifactId>${project.artifactId}</artifactId>
-					<groupId>${project.groupId}</groupId>
-					<version>${project.version}</version>
-					<file>${basedir}/assembly/target/hub-teamcity-${plugin.version}.zip</file>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>deploy</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<inherited>false</inherited>
-				<configuration>
-					<artifacts>
-						<artifact>
-							<file>${basedir}/assembly/target/hub-teamcity-${plugin.version}.zip</file>
-							<type>zip</type>
-						</artifact>
-					</artifacts>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>attach-artifact</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
 	<profiles>
