@@ -64,10 +64,10 @@
 					<goal>deploy-file</goal>
 				</goals>
 				<configuration>
-					<repositoryId>artifactory</repositoryId>
+					<repositoryId>integrationRelease</repositoryId>
 					<packaging>zip</packaging>
 					<generatePom>false</generatePom>
-					<!-- url>${project.distributionManagement.snapshotRepository.url}</url -->
+					<!-- url>${project.distributionManagement.repository.url}</url -->
 					<artifactId>${project.artifactId}</artifactId>
 					<groupId>${project.groupId}</groupId>
 					<version>${project.version}</version>
