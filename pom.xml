@@ -322,7 +322,7 @@
 					<artifactId>${project.artifactId}</artifactId>
 					<groupId>${project.groupId}</groupId>
 					<version>${project.version}</version>
-					<file>${WORKSPACE}/assembly/target/hub-teamcity-${plugin.version}.zip</file>
+					<file>${basedir}/assembly/target/hub-teamcity-${plugin.version}.zip</file>
 				</configuration>
 				<executions>
 					<execution>
@@ -336,7 +336,7 @@
 				<configuration>
 					<artifacts>
 						<artifact>
-							<file>${WORKSPACE}/assembly/target/hub-teamcity-${plugin.version}.zip</file>
+							<file>${basedir}/assembly/target/hub-teamcity-${plugin.version}.zip</file>
 							<type>zip</type>
 						</artifact>
 					</artifacts>
