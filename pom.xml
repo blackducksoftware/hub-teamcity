@@ -336,7 +336,7 @@
 				<configuration>
 					<artifacts>
 						<artifact>
-							<file>assmebly/target/hub-teamcity-${plugin.version}.zip</file>
+							<file>assembly/target/hub-teamcity-${plugin.version}.zip</file>
 							<type>zip</type>
 						</artifact>
 					</artifacts>
