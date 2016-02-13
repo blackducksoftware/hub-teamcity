@@ -60,9 +60,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<goals>
-					<goal>deploy-file</goal>
-				</goals>
 				<configuration>
 					<repositoryId>integrationRelease</repositoryId>
 					<packaging>zip</packaging>
@@ -74,10 +71,15 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>deploy-distro</id>
 						<phase>deploy</phase>
+						<goals>
+							<goal>deploy-file</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
+<!-- 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
@@ -91,12 +93,14 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>attach-distro</id>
 						<goals>
 							<goal>attach-artifact</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
-		</plugins>
+ -->
+ 		</plugins>
 	</build>
 </project>
