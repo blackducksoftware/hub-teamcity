@@ -58,28 +58,34 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<!-- attache zip file as artifact so it gets deployed -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.10</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<goals>
+					<goal>deploy-file</goal>
+				</goals>
+				<configuration>
+					<repositoryId>artifactory</repositoryId>
+					<packaging>zip</packaging>
+					<generatePom>false</generatePom>
+					<!-- url>${project.distributionManagement.snapshotRepository.url}</url -->
+					<artifactId>${project.artifactId}</artifactId>
+					<groupId>${project.groupId}</groupId>
+					<version>${project.version}</version>
+					<file>${WORKSPACE}/target/hub-teamcity-${plugin.version}.zip</file>
+				</configuration>
 				<executions>
 					<execution>
-						<id>attach-artifacts</id>
-						<phase>package</phase>
-						<goals>
-							<goal>attach-artifact</goal>
-						</goals>
-						<configuration>
-							<artifacts>
-								<artifact>
-									<file>target/hub-teamcity-${plugin.version}.zip</file>
-									<type>zip</type>
-								</artifact>
-							</artifacts>
-						</configuration>
+						<phase>deploy</phase>
 					</execution>
 				</executions>
 			</plugin>
+			<!-- <plugin> -->				<!-- attach zip file as artifact so it gets deployed -->
+			<!-- <groupId>org.codehaus.mojo</groupId> <artifactId>build-helper-maven-plugin</artifactId> 
+				<version>1.10</version> <executions> <execution> <id>attach-artifacts</id> 
+				<phase>package</phase> <goals> <goal>attach-artifact</goal> </goals> <configuration> 
+				<artifacts> <artifact> <file>target/hub-teamcity-${plugin.version}.zip</file> 
+				<type>zip</type> </artifact> </artifacts> </configuration> </execution> </executions> 
+				</plugin> -->
 			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-deploy-plugin</artifactId> 
 				</plugin> -->
 		</plugins>
