@@ -19,7 +19,7 @@
        <useAllReactorProjects>true</useAllReactorProjects>
        <includes>
            <include>com.blackducksoftware.integration:hub-teamcity-server</include>
-           <include>com.blackducksoftware.integration:hub-teamcity-common</include>
+           <!-- <include>com.blackducksoftware.integration:hub-teamcity-common</include> -->
        </includes> 
        <binaries>
            <outputDirectory>server</outputDirectory>

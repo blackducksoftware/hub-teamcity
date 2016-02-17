@@ -24,7 +24,6 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>make-agent-assembly</id>
@@ -36,6 +35,7 @@
 							<finalName>hub-teamcity-agent-${plugin.version}</finalName>
 							<outputDirectory>target/agent</outputDirectory>
 							<appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach> <!-- don't deploy -->
 							<descriptors>
 								<descriptor>src/assemble/agent-assembly.xml</descriptor>
 							</descriptors>
@@ -50,6 +50,7 @@
 						<configuration>
 							<finalName>hub-teamcity-${plugin.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach> <!-- don't deploy -->
 							<descriptors>
 								<descriptor>src/assemble/assembly.xml</descriptor>
 							</descriptors>
@@ -61,13 +62,14 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
-					<repositoryId>bds-artifactory</repositoryId>
+					<repositoryId>${project.distributionManagement.repository.id}</repositoryId>
 					<packaging>zip</packaging>
 					<generatePom>false</generatePom>
 					<groupId>${project.groupId}</groupId>
-					<artifactId>${parent.artifactId}</artifactId>
+					<artifactId>${project.parent.artifactId}</artifactId>
 					<version>${project.version}</version>
 					<file>${basedir}/target/hub-teamcity-${plugin.version}.zip</file>
+					<url>${project.distributionManagement.repository.url}</url>
 				</configuration>
 				<executions>
 					<execution>

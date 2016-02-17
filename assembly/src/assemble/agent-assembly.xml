@@ -15,7 +15,7 @@
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
                 <include>com.blackducksoftware.integration:hub-teamcity-agent</include>
-                <include>com.blackducksoftware.integration:hub-teamcity-common</include>
+                <!-- <include>com.blackducksoftware.integration:hub-teamcity-common</include>  -->
             </includes>
             <binaries>
                 <outputDirectory>lib</outputDirectory>
