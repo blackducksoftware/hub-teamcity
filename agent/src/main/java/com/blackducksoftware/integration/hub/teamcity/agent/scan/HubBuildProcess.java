@@ -20,6 +20,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.restlet.data.Status;
+import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
@@ -409,10 +410,16 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
             mappingComparison = service.compareWithHubVersion("2.2.0");
         } catch (BDRestException e) {
-            if (e.getResourceException().getStatus().equals(Status.CLIENT_ERROR_NOT_FOUND)) {
+            ResourceException resEx = null;
+            if (e.getCause() != null && e.getCause() instanceof ResourceException) {
+                resEx = (ResourceException) e.getCause();
+            }
+            if (resEx != null && resEx.getStatus().equals(Status.CLIENT_ERROR_NOT_FOUND)) {
                 // The Hub server is version 2.0.0 and the version endpoint does not exist
+            } else if (resEx != null) {
+                logger.error(resEx.getMessage());
             } else {
-                logger.error(e.getResourceException().getMessage());
+                logger.error(e.getMessage());
             }
         }
         File oneJarFile = getOneJarFile(cliHome);
