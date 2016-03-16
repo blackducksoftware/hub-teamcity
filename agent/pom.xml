@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.blackducksoftware.integration</groupId>
     <artifactId>hub-teamcity</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
   </parent>
   <artifactId>hub-teamcity-agent</artifactId>
   <packaging>jar</packaging>
