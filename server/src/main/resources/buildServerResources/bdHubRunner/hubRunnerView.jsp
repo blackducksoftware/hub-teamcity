@@ -27,10 +27,6 @@
                 name="com.blackducksoftware.integration.hub.distribution" />
         </div>
         <div class="parameter">
-            CLI Path: <props:displayValue
-                name="com.blackducksoftware.integration.hub.cliPath" />
-        </div>
-        <div class="parameter">
             Hub Scan Memory (in MB's): <props:displayValue
                 name="com.blackducksoftware.integration.hub.scanMemory"
                 emptyValue="4096"/>

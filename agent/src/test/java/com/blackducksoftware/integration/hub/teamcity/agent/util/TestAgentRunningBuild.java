@@ -25,6 +25,8 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
 
     private TestBuildProgressLogger testLogger;
 
+    private BuildAgentConfiguration config;
+
     public void setLogger(TestBuildProgressLogger testLogger) {
         this.testLogger = testLogger;
 
@@ -62,8 +64,11 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
 
     @Override
     public BuildAgentConfiguration getAgentConfiguration() {
+        return config;
+    }
 
-        return null;
+    public void setAgentConfiguration(BuildAgentConfiguration config) {
+        this.config = config;
     }
 
     @Override

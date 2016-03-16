@@ -15,6 +15,7 @@ import java.util.Properties;
 
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,6 +27,7 @@ import com.blackducksoftware.integration.hub.response.ProjectItem;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TeamCityHubIntTestHelper;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestAgentRunningBuild;
+import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildAgentConfiguration;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildRunnerContext;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
@@ -222,7 +224,6 @@ public class HubBuildProcessTest {
         jobConfig.setHubScanTargets(scanTargets);
         jobConfig.setWorkingDirectory("workingDirPath");
         jobConfig.setHubScanMemory("scan Memory");
-        jobConfig.setHubCLIPath(testTarget);
 
         process.printJobConfguration(jobConfig);
 
@@ -236,7 +237,6 @@ public class HubBuildProcessTest {
 
         assertTrue(output, output.contains("--> Hub scan targets : "));
         assertTrue(output, output.contains("--> " + testTarget.getAbsolutePath()));
-        assertTrue(output, output.contains("--> CLI Path : " + testTarget.getAbsolutePath()));
     }
 
     @Test
@@ -322,7 +322,6 @@ public class HubBuildProcessTest {
         String output = testLogger.getErrorMessagesString();
 
         assertTrue(output, !output.contains("There is no memory specified for the Hub scan."));
-        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
         assertTrue(output, !output.contains("No scan targets configured."));
     }
 
@@ -338,7 +337,6 @@ public class HubBuildProcessTest {
         String output = testLogger.getErrorMessagesString();
 
         assertTrue(output, output.contains("There is no memory specified for the Hub scan."));
-        assertTrue(output, output.contains("The Hub CLI path has not been set."));
         assertTrue(output, output.contains("No scan targets configured."));
     }
 
@@ -356,14 +354,12 @@ public class HubBuildProcessTest {
         jobConfig.setHubScanTargets(scanTargets);
         jobConfig.setWorkingDirectory(workingDirectory.getAbsolutePath());
         jobConfig.setHubScanMemory("23");
-        jobConfig.setHubCLIPath(new File(""));
 
         assertTrue(!process.isJobConfigValid(jobConfig));
 
         String output = testLogger.getErrorMessagesString();
         assertTrue(output, output.contains("Can not scan targets outside the working directory."));
         assertTrue(output, output.contains("The Hub scan requires at least 4096 MB of memory."));
-        assertTrue(output, output.contains("The Hub CLI home directory does not exist at"));
     }
 
     @Test
@@ -379,7 +375,6 @@ public class HubBuildProcessTest {
         jobConfig.setHubScanTargets(scanTargets);
         jobConfig.setWorkingDirectory(workingDirectory.getAbsolutePath());
         jobConfig.setHubScanMemory("4096");
-        jobConfig.setHubCLIPath(new File(workingDirectory, "scan.cli-2.1.2"));
 
         assertTrue(!process.isJobConfigValid(jobConfig));
 
@@ -401,7 +396,6 @@ public class HubBuildProcessTest {
         jobConfig.setHubScanTargets(scanTargets);
         jobConfig.setWorkingDirectory(workingDirectory.getAbsolutePath());
         jobConfig.setHubScanMemory("4096");
-        jobConfig.setHubCLIPath(new File(workingDirectory, "scan.cli-2.1.2"));
 
         boolean validJobConfig = process
                 .isJobConfigValid(jobConfig);
@@ -466,7 +460,6 @@ public class HubBuildProcessTest {
         assertTrue(output, output.contains("There is no Hub password specified."));
 
         assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-        assertTrue(output, !output.contains("The Hub CLI path has not been set."));
 
         String progressOutput = testLogger.getProgressMessagesString();
 
@@ -496,7 +489,6 @@ public class HubBuildProcessTest {
         assertTrue(output, !output.contains("There is no Hub password specified."));
 
         assertTrue(output, output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-        assertTrue(output, output.contains("The Hub CLI path has not been set."));
 
         String progressOutput = testLogger.getProgressMessagesString();
 
@@ -545,7 +537,6 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
             context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, PasswordEncrypter.publicEncrypt(testProperties.getProperty("TEST_PASSWORD")));
 
-            context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, testProperties.getProperty("TEST_VERSION"));
             context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.getDisplayValue());
@@ -557,13 +548,17 @@ public class HubBuildProcessTest {
 
             context.addEnvironmentVariable("JAVA_HOME", System.getProperty("java.home"));
 
+            TestBuildAgentConfiguration agentConfig = new TestBuildAgentConfiguration();
+            agentConfig.setAgentToolsDirectory(new File(workingDirectory, "tools"));
+
             TestAgentRunningBuild build = new TestAgentRunningBuild();
             context.setBuild(build);
+            build.setAgentConfiguration(agentConfig);
             build.setLogger(testLogger);
 
             HubBuildProcess process = new HubBuildProcess(build, context);
 
-            assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+            BuildFinishedStatus result = process.call();
 
             String output = testLogger.getErrorMessagesString();
 
@@ -572,7 +567,7 @@ public class HubBuildProcessTest {
             assertTrue(output, !output.contains("There is no Hub password specified."));
 
             assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-            assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+            assertTrue(output, StringUtils.isBlank(output));
 
             String progressOutput = testLogger.getProgressMessagesString();
 
@@ -590,7 +585,6 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
-            assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
 
             assertTrue(progressOutput, progressOutput.contains("Hub CLI command"));
             assertTrue(progressOutput, progressOutput.contains("-Done-jar.silent"));
@@ -607,6 +601,7 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
             assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
+            assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
             // assertTrue(progressOutput,
             // progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
             // assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
@@ -643,7 +638,6 @@ public class HubBuildProcessTest {
             URL hubUrl = new URL(serverUrl);
             context.addRunnerParameter(HubConstantValues.HUB_NO_PROXY_HOSTS, "fake host ," + hubUrl.getHost() + ",testHost");
 
-            context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, testProperties.getProperty("TEST_VERSION"));
             context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.getDisplayValue());
@@ -653,14 +647,15 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS, "directory/emptyFile.txt");
 
             context.addEnvironmentVariable("JAVA_HOME", System.getProperty("java.home"));
-
+            TestBuildAgentConfiguration agentConfig = new TestBuildAgentConfiguration();
+            agentConfig.setAgentToolsDirectory(new File(workingDirectory, "tools"));
             TestAgentRunningBuild build = new TestAgentRunningBuild();
+            build.setAgentConfiguration(agentConfig);
             context.setBuild(build);
             build.setLogger(testLogger);
 
             HubBuildProcess process = new HubBuildProcess(build, context);
-
-            assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+            BuildFinishedStatus result = process.call();
 
             String output = testLogger.getErrorMessagesString();
 
@@ -669,7 +664,7 @@ public class HubBuildProcessTest {
             assertTrue(output, !output.contains("There is no Hub password specified."));
 
             assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-            assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+            assertTrue(output, StringUtils.isBlank(output));
 
             String progressOutput = testLogger.getProgressMessagesString();
 
@@ -687,7 +682,6 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
-            assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
 
             assertTrue(progressOutput, progressOutput.contains("Hub CLI command"));
             assertTrue(progressOutput, progressOutput.contains("-Done-jar.silent"));
@@ -706,6 +700,7 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
             assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
+            assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
             // assertTrue(progressOutput,
             // progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
             // assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
@@ -743,7 +738,6 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_PROXY_PORT, testProperties.getProperty("TEST_PROXY_PORT_PASSTHROUGH"));
             context.addRunnerParameter(HubConstantValues.HUB_NO_PROXY_HOSTS, "ignoreHost, otherhost");
 
-            context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
             context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION, testProperties.getProperty("TEST_VERSION"));
             context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE, PhaseEnum.DEVELOPMENT.getDisplayValue());
@@ -751,14 +745,15 @@ public class HubBuildProcessTest {
             context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
 
             context.addEnvironmentVariable("JAVA_HOME", System.getProperty("java.home"));
-
+            TestBuildAgentConfiguration agentConfig = new TestBuildAgentConfiguration();
+            agentConfig.setAgentToolsDirectory(new File(workingDirectory, "tools"));
             TestAgentRunningBuild build = new TestAgentRunningBuild();
+            build.setAgentConfiguration(agentConfig);
             context.setBuild(build);
             build.setLogger(testLogger);
 
             HubBuildProcess process = new HubBuildProcess(build, context);
-
-            assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
+            BuildFinishedStatus result = process.call();
 
             String output = testLogger.getErrorMessagesString();
 
@@ -767,7 +762,7 @@ public class HubBuildProcessTest {
             assertTrue(output, !output.contains("There is no Hub password specified."));
 
             assertTrue(output, !output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-            assertTrue(output, !output.contains("The Hub CLI path has not been set."));
+            assertTrue(output, StringUtils.isBlank(output));
 
             String progressOutput = testLogger.getProgressMessagesString();
 
@@ -785,7 +780,6 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
             assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
-            assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
 
             assertTrue(progressOutput, progressOutput.contains("Hub CLI command"));
             assertTrue(progressOutput, progressOutput.contains("-Done-jar.silent"));
@@ -804,6 +798,7 @@ public class HubBuildProcessTest {
             assertTrue(progressOutput, progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
             assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
+            assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
             // assertTrue(progressOutput,
             // progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
             // assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
