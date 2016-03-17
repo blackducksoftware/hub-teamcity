@@ -14,8 +14,6 @@ public class HubScanJobConfig {
 
     private String distribution = "";
 
-    private File hubCLIPath = null;
-
     private String hubScanMemory = "";
 
     private List<File> hubScanTargets = new ArrayList<File>();
@@ -55,14 +53,6 @@ public class HubScanJobConfig {
 
     public void setDistribution(String distribution) {
         this.distribution = distribution;
-    }
-
-    public File getHubCLIPath() {
-        return hubCLIPath;
-    }
-
-    public void setHubCLIPath(File hubCLIPath) {
-        this.hubCLIPath = hubCLIPath;
     }
 
     public String getHubScanMemory() {
@@ -108,8 +98,6 @@ public class HubScanJobConfig {
         builder.append(phase);
         builder.append(", distribution=");
         builder.append(distribution);
-        builder.append(", hubCLIPath=");
-        builder.append(hubCLIPath);
         builder.append(", hubScanMemory=");
         builder.append(hubScanMemory);
         builder.append(", hubScanTargets=");
@@ -125,7 +113,6 @@ public class HubScanJobConfig {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((distribution == null) ? 0 : distribution.hashCode());
-        result = prime * result + ((hubCLIPath == null) ? 0 : hubCLIPath.hashCode());
         result = prime * result + ((hubScanMemory == null) ? 0 : hubScanMemory.hashCode());
         result = prime * result + ((hubScanTargets == null) ? 0 : hubScanTargets.hashCode());
         result = prime * result + ((phase == null) ? 0 : phase.hashCode());
@@ -152,13 +139,6 @@ public class HubScanJobConfig {
                 return false;
             }
         } else if (!distribution.equals(other.distribution)) {
-            return false;
-        }
-        if (hubCLIPath == null) {
-            if (other.hubCLIPath != null) {
-                return false;
-            }
-        } else if (!hubCLIPath.equals(other.hubCLIPath)) {
             return false;
         }
         if (hubScanMemory == null) {
