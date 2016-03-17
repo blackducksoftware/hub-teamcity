@@ -23,9 +23,11 @@ import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.response.DistributionEnum;
 import com.blackducksoftware.integration.hub.response.PhaseEnum;
 import com.blackducksoftware.integration.hub.response.ReleaseItem;
@@ -199,6 +201,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     doHubScanMapping(restService, logger, jobConfig, localHostName, versionId);
                 }
 
+                if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.shouldGenerateRiskReport()) {
+
+                    HubReportGenerationInfo reportGenInfo = new HubReportGenerationInfo();
+                    reportGenInfo.setService(service);
+                    reportGenInfo.setHostname(localHostName);
+                    reportGenInfo.setProjectId(projectId);
+                    reportGenInfo.setVersionId(versionId);
+                    reportGenInfo.setScanTargets(scanTargets);
+
+                    reportGenInfo.setMaximumWaitTime(getConvertedReportMaxiumWaitTime());
+
+                    reportGenInfo.setBeforeScanTime(beforeScanTime);
+                    reportGenInfo.setAfterScanTime(afterScanTime);
+
+                    generateHubReport(build, logger, reportGenInfo);
+                }
             } else {
                 logger.info("Skipping Hub Build Step");
                 result = BuildFinishedStatus.FINISHED_FAILED;
@@ -437,7 +455,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         scan.setLogger(logger);
 
         if (globalConfig.getProxyInfo() != null) {
-
             URL hubUrl = new URL(globalConfig.getHubUrl());
             if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), globalConfig.getProxyInfo().getNoProxyHostPatterns())) {
                 addProxySettingsToScanner(logger, scan, globalConfig.getProxyInfo());
@@ -489,9 +506,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             javaExec = new File(javaExec, "java.exe");
         }
 
-        com.blackducksoftware.integration.hub.ScanExecutor.Result sanResult = scan.setupAndRunScan(scanExec.getAbsolutePath(),
-                oneJarFile.getAbsolutePath(), javaExec.getAbsolutePath());
-        if (sanResult != com.blackducksoftware.integration.hub.ScanExecutor.Result.SUCCESS) {
+        Result scanResult = scan.setupAndRunScan(scanExec.getAbsolutePath(), oneJarFile.getAbsolutePath(), javaExec.getAbsolutePath());
+        if (scanResult != Result.SUCCESS) {
             result = BuildFinishedStatus.FINISHED_FAILED;
         }
 

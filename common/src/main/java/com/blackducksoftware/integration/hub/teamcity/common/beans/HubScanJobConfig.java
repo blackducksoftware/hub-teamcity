@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 public class HubScanJobConfig {
     private String projectName = "";
 
@@ -69,6 +71,10 @@ public class HubScanJobConfig {
         return hubScanMemory;
     }
 
+    public int getHubScanMemoryAsInt(int defaultValue) {
+        return NumberUtils.toInt(hubScanMemory, defaultValue);
+    }
+
     public void setHubScanMemory(String hubScanMemory) {
         this.hubScanMemory = hubScanMemory;
     }
@@ -101,12 +107,20 @@ public class HubScanJobConfig {
         return generateRiskReport;
     }
 
+    public boolean shouldGenerateRiskReport() {
+        return Boolean.valueOf(generateRiskReport);
+    }
+
     public void setGenerateRiskReport(String generateRiskReport) {
         this.generateRiskReport = generateRiskReport;
     }
 
     public String getMaxWaitTimeForRiskReport() {
         return maxWaitTimeForRiskReport;
+    }
+
+    public int getMaxWaitTimeForRiskReportAsInt(int defaultValue) {
+        return NumberUtils.toInt(maxWaitTimeForRiskReport);
     }
 
     public void setMaxWaitTimeForRiskReport(String maxWaitTimeForRiskReport) {
