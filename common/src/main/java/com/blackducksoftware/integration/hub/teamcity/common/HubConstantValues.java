@@ -15,7 +15,7 @@ public final class HubConstantValues {
 
     public static final String HUB_VERSION_DISTRIBUTION = PLUGIN_PREFIX + "distribution";
 
-    public static final String HUB_CLI_PATH = PLUGIN_PREFIX + "cliPath";
+    // public static final String HUB_CLI_PATH = PLUGIN_PREFIX + "cliPath"; // TODO delete this
 
     public static final String HUB_GENERATE_RISK_REPORT = PLUGIN_PREFIX + "generateRiskReport";
 

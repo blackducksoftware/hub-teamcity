@@ -102,21 +102,6 @@
 							</c:forEach>
 						</props:selectProperty> <span class="smallNote"> Distribution type for this Version. </span></td>
 				</tr>
-				
-				
-				<tr class="noBorder" id="blackDuckHubCliPath" style="">
-					<th><label
-						for="com.blackducksoftware.integration.hub.cliPath">
-							CLI Path: <bs:helpIcon
-								iconTitle="" />
-					</label></th>
-					
-					<td> <props:textProperty
-							name="com.blackducksoftware.integration.hub.cliPath"
-							className="longField" />
-							<span class="smallNote"> Path to the Hub CLI home directory (parent of 'bin' directory). Overrides agent BD_HUB_SCAN environment variable </span>
-					</td>
-				</tr>
 
 				<tr class="noBorder" id="blackDuckHubGenerateRiskReport" style="">
 					<th>

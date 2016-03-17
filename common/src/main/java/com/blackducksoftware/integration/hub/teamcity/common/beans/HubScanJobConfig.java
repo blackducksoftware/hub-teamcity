@@ -15,8 +15,6 @@ public class HubScanJobConfig {
 
     private String distribution = "";
 
-    private File hubCLIPath = null;
-
     private String generateRiskReport = "";
 
     private String maxWaitTimeForRiskReport = "";
@@ -57,14 +55,6 @@ public class HubScanJobConfig {
 
     public void setDistribution(String distribution) {
         this.distribution = distribution;
-    }
-
-    public File getHubCLIPath() {
-        return hubCLIPath;
-    }
-
-    public void setHubCLIPath(File hubCLIPath) {
-        this.hubCLIPath = hubCLIPath;
     }
 
     public String getHubScanMemory() {
@@ -130,8 +120,8 @@ public class HubScanJobConfig {
     @Override
     public String toString() {
         return "HubScanJobConfig [projectName=" + projectName + ", version=" + version + ", phase=" + phase + ", distribution=" + distribution
-                + ", hubCLIPath=" + hubCLIPath + ", generateRiskReport=" + generateRiskReport + ", maxWaitTimeForRiskReport=" + maxWaitTimeForRiskReport
-                + ", hubScanMemory=" + hubScanMemory + ", hubScanTargets=" + hubScanTargets + ", workingDirectory=" + workingDirectory + "]";
+                + ", generateRiskReport=" + generateRiskReport + ", maxWaitTimeForRiskReport=" + maxWaitTimeForRiskReport + ", hubScanMemory=" + hubScanMemory
+                + ", hubScanTargets=" + hubScanTargets + ", workingDirectory=" + workingDirectory + "]";
     }
 
     @Override
@@ -140,7 +130,6 @@ public class HubScanJobConfig {
         int result = 1;
         result = prime * result + ((distribution == null) ? 0 : distribution.hashCode());
         result = prime * result + ((generateRiskReport == null) ? 0 : generateRiskReport.hashCode());
-        result = prime * result + ((hubCLIPath == null) ? 0 : hubCLIPath.hashCode());
         result = prime * result + ((hubScanMemory == null) ? 0 : hubScanMemory.hashCode());
         result = prime * result + ((hubScanTargets == null) ? 0 : hubScanTargets.hashCode());
         result = prime * result + ((maxWaitTimeForRiskReport == null) ? 0 : maxWaitTimeForRiskReport.hashCode());
@@ -175,13 +164,6 @@ public class HubScanJobConfig {
                 return false;
             }
         } else if (!generateRiskReport.equals(other.generateRiskReport)) {
-            return false;
-        }
-        if (hubCLIPath == null) {
-            if (other.hubCLIPath != null) {
-                return false;
-            }
-        } else if (!hubCLIPath.equals(other.hubCLIPath)) {
             return false;
         }
         if (hubScanMemory == null) {

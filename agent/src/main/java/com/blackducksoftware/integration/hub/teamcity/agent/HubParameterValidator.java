@@ -72,49 +72,6 @@ public class HubParameterValidator {
         return validTargetPath;
     }
 
-    public boolean validateCLIPath(final File cliHomeDirectory) throws IOException {
-        boolean validCLIPath = false;
-
-        if (cliHomeDirectory == null) {
-            logger.error("The Hub CLI path has not been set.");
-            validCLIPath = false;
-        } else {
-            if (cliHomeDirectory.exists()) {
-                if (cliHomeDirectory.listFiles() != null && cliHomeDirectory.listFiles().length != 0) {
-                    File libFolder = new File(cliHomeDirectory, "lib");
-
-                    if (libFolder.exists()) {
-                        File[] cliFiles = libFolder.listFiles();
-
-                        if (cliFiles == null || cliFiles.length == 0) {
-                            logger.error("The lib directory in the Hub CLI home is empty!");
-                            validCLIPath = false;
-                        } else {
-                            for (File file : cliFiles) {
-                                if (file.getName().contains("scan.cli")) {
-                                    validCLIPath = true;
-                                    break;
-                                }
-                            }
-                            if (!validCLIPath) {
-                                logger.error("Could not find the Hub CLI in the lib directory.");
-                            }
-                        }
-                    } else {
-                        logger.error("Could not find the lib directory in the Hub CLI home directory.");
-                    }
-                } else {
-                    logger.error("The Hub CLI home directory is empty!");
-                }
-
-            } else {
-                logger.error("The Hub CLI home directory does not exist at : " + cliHomeDirectory.getCanonicalPath());
-                validCLIPath = false;
-            }
-        }
-        return validCLIPath;
-    }
-
     public boolean validateScanMemory(final String memory) {
         boolean validMemory = true;
         if (StringUtils.isBlank(memory)) {

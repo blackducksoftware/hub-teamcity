@@ -80,6 +80,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     @Override
     public BuildFinishedStatus call() throws IOException {
+
         final BuildProgressLogger buildLogger = build.getBuildLogger();
         HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
         hubLogger.setLogLevel(LogLevel.DEBUG);
@@ -121,7 +122,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         jobConfig.setPhase(getParameter(HubConstantValues.HUB_VERSION_PHASE));
         jobConfig.setDistribution(getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION));
-        String hubCliParameter = getParameter(HubConstantValues.HUB_CLI_PATH);
 
         jobConfig.setHubScanMemory(getParameter(HubConstantValues.HUB_SCAN_MEMORY));
         String scanTargetParameter = getParameter(HubConstantValues.HUB_SCAN_TARGETS);
@@ -129,18 +129,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         File workingDirectory = context.getWorkingDirectory();
         String workingDirectoryPath = workingDirectory.getCanonicalPath();
         jobConfig.setWorkingDirectory(workingDirectoryPath);
-
-        File cliHome = null;
-        if (StringUtils.isBlank(hubCliParameter)) {
-            String cliHomePath = getEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR);
-            if (StringUtils.isNotBlank(cliHomePath)) {
-                cliHome = new File(cliHomePath);
-            }
-        } else {
-            cliHome = new File(hubCliParameter);
-        }
-
-        jobConfig.setHubCLIPath(cliHome);
 
         List<File> scanTargets = new ArrayList<File>();
 
@@ -166,12 +154,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         printGlobalConfguration(globalConfig);
         printJobConfguration(jobConfig);
+        URL hubUrl = new URL(globalConfig.getHubUrl());
         try {
             if (isGlobalConfigValid(globalConfig) && isJobConfigValid(jobConfig)) {
                 HubIntRestService restService = new HubIntRestService(serverUrl);
                 restService.setLogger(logger);
                 if (proxyInfo != null) {
-                    URL hubUrl = new URL(globalConfig.getHubUrl());
                     if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
                         Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
 
@@ -180,6 +168,28 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     }
                 }
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
+
+                File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
+                CLIInstaller installer = new CLIInstaller(hubToolDir, localHostName);
+                if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
+                    Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
+                    installer.setProxyHost(proxyInfo.getHost());
+                    installer.setProxyPort(port);
+                    installer.setProxyUserName(proxyInfo.getProxyUsername());
+                    installer.setProxyPassword(proxyInfo.getProxyPassword());
+                }
+                installer.performInstallation(logger, restService);
+
+                File hubCLI = null;
+                if (installer.getCLIExists(hubLogger)) {
+                    hubCLI = installer.getCLI();
+                } else {
+                    hubLogger.error("Could not find the Hub scan CLI.");
+                    result = BuildFinishedStatus.FINISHED_FAILED;
+                    return result;
+                }
+                File oneJarFile = installer.getOneJarFile();
+
                 String projectId = null;
                 String versionId = null;
                 if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
@@ -188,7 +198,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
                             jobConfig.getDistribution());
                 }
-                boolean mappingDone = doHubScan(restService, hubLogger, cliHome, globalConfig, jobConfig);
+                boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, globalConfig, jobConfig);
 
                 // Only map the scans to a Project Version if the Project name and Project Version have been
                 // configured
@@ -288,12 +298,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
         boolean validScanMemory = validator.validateScanMemory(jobConfig.getHubScanMemory());
 
-        boolean validCliHome = false;
-        validCliHome = validator.validateCLIPath(jobConfig.getHubCLIPath());
-
         boolean validRiskReportProperties = validator.validateRiskReportProperties(jobConfig.getGenerateRiskReport(), jobConfig.getMaxWaitTimeForRiskReport());
 
-        return projectConfig && scanTargetsValid && validScanMemory && validCliHome && validRiskReportProperties;
+        return projectConfig && scanTargetsValid && validScanMemory && validRiskReportProperties;
     }
 
     public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {
@@ -333,10 +340,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         logger.info("--> Version Phase : " + jobConfig.getPhase());
         logger.info("--> Version Distribution : " + jobConfig.getDistribution());
-
-        if (jobConfig.getHubCLIPath() != null) {
-            logger.info("--> CLI Path : " + jobConfig.getHubCLIPath().getAbsolutePath());
-        }
 
         logger.info("--> Hub scan memory : " + jobConfig.getHubScanMemory() + " MB");
 
@@ -421,7 +424,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public Boolean doHubScan(HubIntRestService service, HubAgentBuildLogger logger,
-            File cliHome, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig) throws HubIntegrationException, IOException, URISyntaxException,
+            File oneJarFile, File scanExec, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig) throws HubIntegrationException, IOException,
+            URISyntaxException,
             NumberFormatException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
         VersionComparison logOptionComparison = null;
@@ -445,9 +449,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 logger.error(e.getMessage());
             }
         }
-        File oneJarFile = getOneJarFile(cliHome);
-
-        File scanExec = getScanExecFile(cliHome);
 
         TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(), globalConfig.getGlobalCredentials().getHubUser(),
                 globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getHubScanTargetPaths(), Integer.valueOf(context.getBuild()
@@ -513,30 +514,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         return mappingDone;
 
-    }
-
-    private File getOneJarFile(File cliHome) {
-        File oneJarFile = new File(cliHome, "lib");
-
-        oneJarFile = new File(oneJarFile, "cache");
-
-        oneJarFile = new File(oneJarFile, "scan.cli.impl-standalone.jar");
-        return oneJarFile;
-    }
-
-    private File getScanExecFile(File cliHome) {
-        File scanExecFile = new File(cliHome, "lib");
-
-        File[] cliFiles = scanExecFile.listFiles();
-
-        for (File file : cliFiles) {
-            if (file.getName().contains("scan.cli")) {
-                scanExecFile = file;
-                break;
-            }
-        }
-
-        return scanExecFile;
     }
 
     public void doHubScanMapping(HubIntRestService service, IntLogger logger, HubScanJobConfig jobConfig, String localHostName, String versionId)
