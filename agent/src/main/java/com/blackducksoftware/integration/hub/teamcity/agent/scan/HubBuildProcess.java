@@ -156,6 +156,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         jobConfig.setHubScanTargets(scanTargets);
 
+        jobConfig.setGenerateRiskReport(getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT));
+        jobConfig.setMaxWaitTimeForRiskReport(getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT));
+
         String localHostName = HostnameHelper.getMyHostname();
         logger.info("Running on machine : " + localHostName);
 
@@ -270,7 +273,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         boolean validCliHome = false;
         validCliHome = validator.validateCLIPath(jobConfig.getHubCLIPath());
 
-        return projectConfig && scanTargetsValid && validScanMemory && validCliHome;
+        boolean validRiskReportProperties = validator.validateRiskReportProperties(jobConfig.getGenerateRiskReport(), jobConfig.getMaxWaitTimeForRiskReport());
+
+        return projectConfig && scanTargetsValid && validScanMemory && validCliHome && validRiskReportProperties;
     }
 
     public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {

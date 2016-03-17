@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HubScanJobConfig {
-
     private String projectName = "";
 
     private String version = "";
@@ -16,14 +15,15 @@ public class HubScanJobConfig {
 
     private File hubCLIPath = null;
 
+    private String generateRiskReport = "";
+
+    private String maxWaitTimeForRiskReport = "";
+
     private String hubScanMemory = "";
 
     private List<File> hubScanTargets = new ArrayList<File>();
 
     private String workingDirectory = "";
-
-    public HubScanJobConfig() {
-    }
 
     public String getProjectName() {
         return projectName;
@@ -97,27 +97,27 @@ public class HubScanJobConfig {
         this.workingDirectory = workingDirectory;
     }
 
+    public String getGenerateRiskReport() {
+        return generateRiskReport;
+    }
+
+    public void setGenerateRiskReport(String generateRiskReport) {
+        this.generateRiskReport = generateRiskReport;
+    }
+
+    public String getMaxWaitTimeForRiskReport() {
+        return maxWaitTimeForRiskReport;
+    }
+
+    public void setMaxWaitTimeForRiskReport(String maxWaitTimeForRiskReport) {
+        this.maxWaitTimeForRiskReport = maxWaitTimeForRiskReport;
+    }
+
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("HubScanJobConfig [projectName=");
-        builder.append(projectName);
-        builder.append(", version=");
-        builder.append(version);
-        builder.append(", phase=");
-        builder.append(phase);
-        builder.append(", distribution=");
-        builder.append(distribution);
-        builder.append(", hubCLIPath=");
-        builder.append(hubCLIPath);
-        builder.append(", hubScanMemory=");
-        builder.append(hubScanMemory);
-        builder.append(", hubScanTargets=");
-        builder.append(hubScanTargets);
-        builder.append(", workingDirectory=");
-        builder.append(workingDirectory);
-        builder.append("]");
-        return builder.toString();
+        return "HubScanJobConfig [projectName=" + projectName + ", version=" + version + ", phase=" + phase + ", distribution=" + distribution
+                + ", hubCLIPath=" + hubCLIPath + ", generateRiskReport=" + generateRiskReport + ", maxWaitTimeForRiskReport=" + maxWaitTimeForRiskReport
+                + ", hubScanMemory=" + hubScanMemory + ", hubScanTargets=" + hubScanTargets + ", workingDirectory=" + workingDirectory + "]";
     }
 
     @Override
@@ -125,9 +125,11 @@ public class HubScanJobConfig {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((distribution == null) ? 0 : distribution.hashCode());
+        result = prime * result + ((generateRiskReport == null) ? 0 : generateRiskReport.hashCode());
         result = prime * result + ((hubCLIPath == null) ? 0 : hubCLIPath.hashCode());
         result = prime * result + ((hubScanMemory == null) ? 0 : hubScanMemory.hashCode());
         result = prime * result + ((hubScanTargets == null) ? 0 : hubScanTargets.hashCode());
+        result = prime * result + ((maxWaitTimeForRiskReport == null) ? 0 : maxWaitTimeForRiskReport.hashCode());
         result = prime * result + ((phase == null) ? 0 : phase.hashCode());
         result = prime * result + ((projectName == null) ? 0 : projectName.hashCode());
         result = prime * result + ((version == null) ? 0 : version.hashCode());
@@ -154,6 +156,13 @@ public class HubScanJobConfig {
         } else if (!distribution.equals(other.distribution)) {
             return false;
         }
+        if (generateRiskReport == null) {
+            if (other.generateRiskReport != null) {
+                return false;
+            }
+        } else if (!generateRiskReport.equals(other.generateRiskReport)) {
+            return false;
+        }
         if (hubCLIPath == null) {
             if (other.hubCLIPath != null) {
                 return false;
@@ -173,6 +182,13 @@ public class HubScanJobConfig {
                 return false;
             }
         } else if (!hubScanTargets.equals(other.hubScanTargets)) {
+            return false;
+        }
+        if (maxWaitTimeForRiskReport == null) {
+            if (other.maxWaitTimeForRiskReport != null) {
+                return false;
+            }
+        } else if (!maxWaitTimeForRiskReport.equals(other.maxWaitTimeForRiskReport)) {
             return false;
         }
         if (phase == null) {

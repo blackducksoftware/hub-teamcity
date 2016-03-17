@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 
 public class HubParameterValidator {
-
     private final HubAgentBuildLogger logger;
 
     public HubParameterValidator(HubAgentBuildLogger logger) {
@@ -135,6 +134,30 @@ public class HubParameterValidator {
         }
 
         return validMemory;
+    }
+
+    public boolean validateRiskReportProperties(final String generateRiskReport, final String maxWaitTimeForRiskReport) {
+        boolean reportPropertiesValid = true;
+
+        boolean shouldGenerateRiskReport = Boolean.valueOf(generateRiskReport);
+        if (shouldGenerateRiskReport) {
+            reportPropertiesValid = false;
+            if (StringUtils.isNumeric(maxWaitTimeForRiskReport)) {
+                try {
+                    int waitTime = Integer.parseInt(maxWaitTimeForRiskReport);
+                    if (waitTime > 0) {
+                        reportPropertiesValid = true;
+                    }
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+
+        if (!reportPropertiesValid) {
+            logger.error("If the Black Duck Risk Report is requested, the Maximum time to wait for report must also be set to a numeric value greater than zero.");
+        }
+
+        return reportPropertiesValid;
     }
 
     public boolean validateProjectNameAndVersion(final String projectName, final String version) {
