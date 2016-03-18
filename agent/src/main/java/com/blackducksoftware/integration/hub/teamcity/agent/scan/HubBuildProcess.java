@@ -23,7 +23,9 @@ import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
+import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
@@ -38,14 +40,12 @@ import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityH
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
 import com.blackducksoftware.integration.util.HostnameHelper;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
-
     @NotNull
     private final AgentRunningBuild build;
 
@@ -80,7 +80,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     @Override
     public BuildFinishedStatus call() throws IOException {
-
         final BuildProgressLogger buildLogger = build.getBuildLogger();
         HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
         hubLogger.setLogLevel(LogLevel.DEBUG);
@@ -115,39 +114,36 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         globalConfig.setProxyInfo(proxyInfo);
 
-        HubScanJobConfig jobConfig = new HubScanJobConfig();
+        String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
+        String version = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
 
-        jobConfig.setProjectName(getParameter(HubConstantValues.HUB_PROJECT_NAME));
-        jobConfig.setVersion(getParameter(HubConstantValues.HUB_PROJECT_VERSION));
+        String phase = getParameter(HubConstantValues.HUB_VERSION_PHASE);
+        String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
 
-        jobConfig.setPhase(getParameter(HubConstantValues.HUB_VERSION_PHASE));
-        jobConfig.setDistribution(getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION));
-
-        jobConfig.setHubScanMemory(getParameter(HubConstantValues.HUB_SCAN_MEMORY));
-        String scanTargetParameter = getParameter(HubConstantValues.HUB_SCAN_TARGETS);
+        String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
 
         File workingDirectory = context.getWorkingDirectory();
         String workingDirectoryPath = workingDirectory.getCanonicalPath();
-        jobConfig.setWorkingDirectory(workingDirectoryPath);
 
-        List<File> scanTargets = new ArrayList<File>();
-
+        List<String> scanTargetPaths = new ArrayList<String>();
+        String scanTargetParameter = getParameter(HubConstantValues.HUB_SCAN_TARGETS);
         if (StringUtils.isNotBlank(scanTargetParameter)) {
-
-            String[] scanTargetPaths = scanTargetParameter.split("\\r?\\n");
-            for (String target : scanTargetPaths) {
+            String[] scanTargetPathsArray = scanTargetParameter.split("\\r?\\n");
+            for (String target : scanTargetPathsArray) {
                 if (!StringUtils.isBlank(target)) {
-                    scanTargets.add(new File(workingDirectory, target));
+                    scanTargetPaths.add(new File(workingDirectory, target).getAbsolutePath());
                 }
             }
         } else {
-            scanTargets.add(workingDirectory);
+            scanTargetPaths.add(workingDirectory.getAbsolutePath());
         }
 
-        jobConfig.setHubScanTargets(scanTargets);
+        String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
+        String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
 
-        jobConfig.setGenerateRiskReport(getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT));
-        jobConfig.setMaxWaitTimeForRiskReport(getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT));
+        HubScanJobConfig jobConfig = new HubScanJobConfig(projectName, version, phase, distribution, scanMemory, shouldGenerateRiskReport,
+                maxWaitTimeForRiskReport, workingDirectoryPath);
+        jobConfig.addAllScanTargetPaths(scanTargetPaths);
 
         String localHostName = HostnameHelper.getMyHostname();
         logger.info("Running on machine : " + localHostName);
@@ -211,21 +207,21 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     doHubScanMapping(restService, logger, jobConfig, localHostName, versionId);
                 }
 
-                if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.shouldGenerateRiskReport()) {
+                if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
 
                     HubReportGenerationInfo reportGenInfo = new HubReportGenerationInfo();
-                    reportGenInfo.setService(service);
+                    reportGenInfo.setService(null);
                     reportGenInfo.setHostname(localHostName);
                     reportGenInfo.setProjectId(projectId);
                     reportGenInfo.setVersionId(versionId);
-                    reportGenInfo.setScanTargets(scanTargets);
+                    reportGenInfo.setScanTargets(jobConfig.getScanTargetPaths());
 
-                    reportGenInfo.setMaximumWaitTime(getConvertedReportMaxiumWaitTime());
+                    reportGenInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
 
-                    reportGenInfo.setBeforeScanTime(beforeScanTime);
-                    reportGenInfo.setAfterScanTime(afterScanTime);
+                    reportGenInfo.setBeforeScanTime(null);
+                    reportGenInfo.setAfterScanTime(null);
 
-                    generateHubReport(build, logger, reportGenInfo);
+                    // generateHubReport(build, logger, reportGenInfo);
                 }
             } else {
                 logger.info("Skipping Hub Build Step");
@@ -286,21 +282,18 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         boolean scanTargetsValid = true;
 
-        if (jobConfig.getHubScanTargets() == null || jobConfig.getHubScanTargets().isEmpty()) {
+        if (jobConfig.getScanTargetPaths().isEmpty()) {
             logger.error("No scan targets configured.");
             scanTargetsValid = false;
         } else {
-            for (File target : jobConfig.getHubScanTargets()) {
-                if (!validator.validateTargetPath(target, jobConfig.getWorkingDirectory())) {
+            for (String absolutePath : jobConfig.getScanTargetPaths()) {
+                if (!validator.validateTargetPath(absolutePath, jobConfig.getWorkingDirectory())) {
                     scanTargetsValid = false;
                 }
             }
         }
-        boolean validScanMemory = validator.validateScanMemory(jobConfig.getHubScanMemory());
 
-        boolean validRiskReportProperties = validator.validateRiskReportProperties(jobConfig.getGenerateRiskReport(), jobConfig.getMaxWaitTimeForRiskReport());
-
-        return projectConfig && scanTargetsValid && validScanMemory && validRiskReportProperties;
+        return projectConfig && scanTargetsValid;
     }
 
     public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {
@@ -341,15 +334,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         logger.info("--> Version Phase : " + jobConfig.getPhase());
         logger.info("--> Version Distribution : " + jobConfig.getDistribution());
 
-        logger.info("--> Hub scan memory : " + jobConfig.getHubScanMemory() + " MB");
+        logger.info("--> Hub scan memory : " + jobConfig.getScanMemory() + " MB");
 
-        if (jobConfig.getHubScanTargets() != null && jobConfig.getHubScanTargets().size() > 0) {
+        if (jobConfig.getScanTargetPaths().size() > 0) {
             logger.info("--> Hub scan targets : ");
-            for (File target : jobConfig.getHubScanTargets()) {
-                logger.info("    --> " + target.getAbsolutePath());
+            for (String absolutePath : jobConfig.getScanTargetPaths()) {
+                logger.info("    --> " + absolutePath);
             }
         }
-
     }
 
     private String ensureProjectExists(HubIntRestService service, IntLogger logger, String projectName,
@@ -451,7 +443,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
 
         TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(), globalConfig.getGlobalCredentials().getHubUser(),
-                globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getHubScanTargetPaths(), Integer.valueOf(context.getBuild()
+                globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(), Integer.valueOf(context.getBuild()
                         .getBuildNumber()));
         scan.setLogger(logger);
 
@@ -469,7 +461,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         } else {
             scan.setHubSupportLogOption(false);
         }
-        scan.setScanMemory(Integer.valueOf(jobConfig.getHubScanMemory()));
+        scan.setScanMemory(jobConfig.getScanMemory());
         scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
         scan.setVerboseRun(isVerbose());
         if (mappingComparison != null && mappingComparison.getNumericResult() <= 0 &&
@@ -519,7 +511,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     public void doHubScanMapping(HubIntRestService service, IntLogger logger, HubScanJobConfig jobConfig, String localHostName, String versionId)
             throws UnknownHostException,
             InterruptedException, BDRestException, HubIntegrationException, URISyntaxException {
-        Map<String, Boolean> scanLocationIds = service.getScanLocationIds(localHostName, jobConfig.getHubScanTargetPaths(), versionId);
+        Map<String, Boolean> scanLocationIds = service.getScanLocationIds(localHostName, jobConfig.getScanTargetPaths(), versionId);
         if (scanLocationIds != null && !scanLocationIds.isEmpty()) {
             logger.debug("These scan Id's were found for the scan targets.");
             for (Entry<String, Boolean> scanId : scanLocationIds.entrySet()) {
