@@ -29,9 +29,8 @@
 </script>
 
 <!-- Have to do this because the textProperty doesnt accept a default value -->
-<c:set var="scanMemoryValue"
-       value="${not empty propertiesBean.properties['com.blackducksoftware.integration.hub.scanMemory'] ? propertiesBean.properties['com.blackducksoftware.integration.hub.scanMemory'] : 4096}"/>
-       
+<c:set var="scanMemoryValue" value="${not empty propertiesBean.properties['com.blackducksoftware.integration.hub.scanMemory'] ? propertiesBean.properties['com.blackducksoftware.integration.hub.scanMemory'] : 4096}"/>
+<c:set var="maxWaitTimeForRiskReportValue" value="${not empty propertiesBean.properties['com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport'] ? propertiesBean.properties['com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport'] : 5}"/>
 
 			<l:settingsGroup title="Black Duck Hub">
 				<tr class="noBorder" id="blackDuckHubProjectName" style="">
@@ -103,10 +102,30 @@
 							</c:forEach>
 						</props:selectProperty> <span class="smallNote"> Distribution type for this Version. </span></td>
 				</tr>
-				
-				
-				
-				
+
+				<tr class="noBorder" id="blackDuckHubGenerateRiskReport" style="">
+					<th>
+						<label for="com.blackducksoftware.integration.hub.generateRiskReport">
+							Generate Black Duck Risk Report:
+						</label>
+					</th>
+					<td>
+						<props:checkboxProperty name="com.blackducksoftware.integration.hub.generateRiskReport" className="longField" />
+					</td>
+				</tr>
+
+				<tr class="noBorder" id="blackDuckHubMaxWaitTimeForRiskReport">
+					<th>
+						<label for="com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport">
+							Maximum time to wait for report (in minutes):
+							<bs:helpIcon iconTitle="Maximum time to wait (in minutes) for the BOM to be updated with the scan results. This also gets used as the maximum time to wait for the Report to be generated. Default: 5 minutes" />
+						</label>
+					</th>
+					<td>
+						<props:textProperty name="com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport" className="longField" value="${maxWaitTimeForRiskReportValue}" />
+					</td>
+				</tr>
+
 				<tr class="noBorder" id="blackDuckHubScanMemory" style="">
 					<th><label
 						for="com.blackducksoftware.integration.hub.scanMemory">

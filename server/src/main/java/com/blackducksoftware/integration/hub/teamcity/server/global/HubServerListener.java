@@ -10,7 +10,6 @@ import jetbrains.buildServer.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 public class HubServerListener extends BuildServerAdapter {
-
     private final SBuildServer server;
 
     private final ServerHubConfigPersistenceManager configPersistenceManager;
@@ -30,11 +29,6 @@ public class HubServerListener extends BuildServerAdapter {
                 server.getFullServerVersion()
                 + "'.");
     }
-
-    // @Override
-    // public void buildFinished(SRunningBuild build) {
-    // super.buildFinished(build);
-    // }
 
     public ServerHubConfigPersistenceManager getConfigManager() {
         return configPersistenceManager;

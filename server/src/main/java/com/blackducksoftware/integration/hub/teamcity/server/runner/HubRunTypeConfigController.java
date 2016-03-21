@@ -12,7 +12,6 @@ import org.springframework.web.servlet.ModelAndView;
 import com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager;
 
 public class HubRunTypeConfigController extends BaseFormXmlController {
-
     private final ServerHubConfigPersistenceManager serverPeristanceManager;
 
     private final String actualUrl;
