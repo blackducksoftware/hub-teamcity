@@ -25,6 +25,7 @@ import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubScanJobConfig;
+import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
@@ -222,7 +223,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
                     hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
 
-                    BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo);
+                    HubSupportHelper hubSupport = new HubSupportHelper();
+                    hubSupport.checkHubSupport(restService, hubLogger);
+
+                    BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo, hubSupport);
                     HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
                 }
             } else {
