@@ -19,6 +19,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.joda.time.DateTime;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 
@@ -29,6 +30,8 @@ import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.report.api.BomReportGenerator;
+import com.blackducksoftware.integration.hub.report.api.HubBomReportData;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.response.DistributionEnum;
 import com.blackducksoftware.integration.hub.response.PhaseEnum;
@@ -141,8 +144,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
         String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
 
-        HubScanJobConfig jobConfig = new HubScanJobConfig(projectName, version, phase, distribution, scanMemory, shouldGenerateRiskReport,
-                maxWaitTimeForRiskReport, workingDirectoryPath);
+        HubScanJobConfig jobConfig = new HubScanJobConfig(projectName, version, phase, distribution, workingDirectoryPath, scanMemory,
+                shouldGenerateRiskReport, maxWaitTimeForRiskReport);
         jobConfig.addAllScanTargetPaths(scanTargetPaths);
 
         String localHostName = HostnameHelper.getMyHostname();
@@ -194,7 +197,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
                             jobConfig.getDistribution());
                 }
+
+                DateTime beforeScanTime = new DateTime();
                 boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, globalConfig, jobConfig);
+                DateTime afterScanTime = new DateTime();
 
                 // Only map the scans to a Project Version if the Project name and Project Version have been
                 // configured
@@ -208,20 +214,18 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
 
                 if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
+                    HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
+                    hubReportGenerationInfo.setService(restService);
+                    hubReportGenerationInfo.setHostname(localHostName);
+                    hubReportGenerationInfo.setProjectId(projectId);
+                    hubReportGenerationInfo.setVersionId(versionId);
+                    hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
+                    hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
+                    hubReportGenerationInfo.setBeforeScanTime(beforeScanTime);
+                    hubReportGenerationInfo.setAfterScanTime(afterScanTime);
 
-                    HubReportGenerationInfo reportGenInfo = new HubReportGenerationInfo();
-                    reportGenInfo.setService(null);
-                    reportGenInfo.setHostname(localHostName);
-                    reportGenInfo.setProjectId(projectId);
-                    reportGenInfo.setVersionId(versionId);
-                    reportGenInfo.setScanTargets(jobConfig.getScanTargetPaths());
-
-                    reportGenInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
-
-                    reportGenInfo.setBeforeScanTime(null);
-                    reportGenInfo.setAfterScanTime(null);
-
-                    // generateHubReport(build, logger, reportGenInfo);
+                    BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo);
+                    HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
                 }
             } else {
                 logger.info("Skipping Hub Build Step");
