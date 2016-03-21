@@ -167,7 +167,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
                 File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
-                CLIInstaller installer = new CLIInstaller(hubToolDir, localHostName);
+                CLIInstaller installer = new CLIInstaller(hubToolDir);
                 if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
                     Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
                     installer.setProxyHost(proxyInfo.getHost());
@@ -175,7 +175,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     installer.setProxyUserName(proxyInfo.getProxyUsername());
                     installer.setProxyPassword(proxyInfo.getProxyPassword());
                 }
-                installer.performInstallation(logger, restService);
+                installer.performInstallation(logger, restService, localHostName);
 
                 File hubCLI = null;
                 if (installer.getCLIExists(hubLogger)) {
