@@ -18,8 +18,8 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
-import org.joda.time.DateTime;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 
@@ -169,7 +169,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
                 File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
-                CLIInstaller installer = new CLIInstaller(hubToolDir, localHostName);
+                CLIInstaller installer = new CLIInstaller(hubToolDir);
                 if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
                     Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
                     installer.setProxyHost(proxyInfo.getHost());
@@ -177,7 +177,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     installer.setProxyUserName(proxyInfo.getProxyUsername());
                     installer.setProxyPassword(proxyInfo.getProxyPassword());
                 }
-                installer.performInstallation(logger, restService);
+                installer.performInstallation(logger, restService, localHostName);
 
                 File hubCLI = null;
                 if (installer.getCLIExists(hubLogger)) {
@@ -189,6 +189,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
                 File oneJarFile = installer.getOneJarFile();
 
+                File javaExec = installer.getProvidedJavaExec();
+
                 String projectId = null;
                 String versionId = null;
                 if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
@@ -198,9 +200,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                             jobConfig.getDistribution());
                 }
 
-                DateTime beforeScanTime = new DateTime();
-                boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, globalConfig, jobConfig);
-                DateTime afterScanTime = new DateTime();
+                boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec, globalConfig, jobConfig);
 
                 // Only map the scans to a Project Version if the Project name and Project Version have been
                 // configured
@@ -221,8 +221,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     hubReportGenerationInfo.setVersionId(versionId);
                     hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
                     hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
-                    hubReportGenerationInfo.setBeforeScanTime(beforeScanTime);
-                    hubReportGenerationInfo.setAfterScanTime(afterScanTime);
 
                     BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo);
                     HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
@@ -420,7 +418,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public Boolean doHubScan(HubIntRestService service, HubAgentBuildLogger logger,
-            File oneJarFile, File scanExec, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig) throws HubIntegrationException, IOException,
+            File oneJarFile, File scanExec, File javaExec, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig) throws HubIntegrationException,
+            IOException,
             URISyntaxException,
             NumberFormatException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
@@ -484,23 +483,23 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scan.setCliSupportsMapping(false);
         }
 
-        String operatingSystem = System.getProperty("os.name");
-
-        String javaHome = getEnvironmentVariable("JAVA_HOME");
-        if (StringUtils.isBlank(javaHome)) {
-            // We couldn't get the JAVA_HOME variable so lets try to get the home
-            // of the java that is running this process
-            javaHome = System.getProperty("java.home");
-        }
-        File javaExec = new File(javaHome);
-        if (StringUtils.isBlank(javaHome) || javaExec == null || !javaExec.exists()) {
-            throw new HubIntegrationException("The JAVA_HOME could not be determined, the Hub CLI can not be executed.");
-        }
-        javaExec = new File(javaExec, "bin");
-        if (!operatingSystem.toLowerCase().contains("windows")) {
-            javaExec = new File(javaExec, "java");
-        } else {
-            javaExec = new File(javaExec, "java.exe");
+        if (javaExec == null) {
+            String javaHome = getEnvironmentVariable("JAVA_HOME");
+            if (StringUtils.isBlank(javaHome)) {
+                // We couldn't get the JAVA_HOME variable so lets try to get the home
+                // of the java that is running this process
+                javaHome = System.getProperty("java.home");
+            }
+            javaExec = new File(javaHome);
+            if (StringUtils.isBlank(javaHome) || javaExec == null || !javaExec.exists()) {
+                throw new HubIntegrationException("The JAVA_HOME could not be determined, the Hub CLI can not be executed.");
+            }
+            javaExec = new File(javaExec, "bin");
+            if (SystemUtils.IS_OS_WINDOWS) {
+                javaExec = new File(javaExec, "java");
+            } else {
+                javaExec = new File(javaExec, "java.exe");
+            }
         }
 
         Result scanResult = scan.setupAndRunScan(scanExec.getAbsolutePath(), oneJarFile.getAbsolutePath(), javaExec.getAbsolutePath());
