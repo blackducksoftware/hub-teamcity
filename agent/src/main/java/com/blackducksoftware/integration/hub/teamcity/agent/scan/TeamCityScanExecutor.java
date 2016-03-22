@@ -24,48 +24,6 @@ public class TeamCityScanExecutor extends ScanExecutor {
     }
 
     @Override
-    protected boolean isConfiguredCorrectly(String scanExec, String oneJarPath, String javaExec) {
-        if (getLogger() == null) {
-            System.out.println("Could not find a logger");
-            return false;
-        }
-        if (scanExec == null) {
-            getLogger().error("Please provide the Hub scan CLI.");
-            return false;
-        }
-        else {
-            File scanExecRemote = new File(scanExec);
-            if (!scanExecRemote.exists()) {
-                getLogger().error("The Hub scan CLI provided does not exist.");
-                return false;
-            }
-        }
-
-        if (oneJarPath == null) {
-            getLogger().error("Please provide the path for the CLI cache.");
-            return false;
-        }
-
-        if (javaExec == null) {
-            getLogger().error("Please provide the java home directory.");
-            return false;
-        }
-        else {
-            File javaExecRemote = new File(javaExec);
-            if (!javaExecRemote.exists()) {
-                getLogger().error("The Java home provided does not exist.");
-                return false;
-            }
-        }
-
-        if (getScanMemory() <= 0) {
-            getLogger().error("No memory set for the HUB CLI. Will use the default memory, " + DEFAULT_MEMORY);
-            setScanMemory(DEFAULT_MEMORY);
-        }
-        return true;
-    }
-
-    @Override
     protected String getLogDirectoryPath() throws IOException {
         File logDirectory = new File(getWorkingDirectory());
         logDirectory = new File(logDirectory, "HubScanLogs");

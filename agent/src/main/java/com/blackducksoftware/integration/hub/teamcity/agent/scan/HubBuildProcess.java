@@ -500,9 +500,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
             javaExec = new File(javaExec, "bin");
             if (SystemUtils.IS_OS_WINDOWS) {
-                javaExec = new File(javaExec, "java");
-            } else {
                 javaExec = new File(javaExec, "java.exe");
+            } else {
+                javaExec = new File(javaExec, "java");
             }
         }
 
