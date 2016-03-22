@@ -25,6 +25,7 @@ import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubScanJobConfig;
+import com.blackducksoftware.integration.hub.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
@@ -117,13 +118,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         proxyInfo.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
 
         globalConfig.setProxyInfo(proxyInfo);
+        printGlobalConfiguration(globalConfig);
 
         String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
         String version = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
-
         String phase = getParameter(HubConstantValues.HUB_VERSION_PHASE);
         String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
-
+        String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
+        String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
         String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
 
         File workingDirectory = context.getWorkingDirectory();
@@ -142,21 +144,27 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scanTargetPaths.add(workingDirectory.getAbsolutePath());
         }
 
-        String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
-        String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
-
-        HubScanJobConfig jobConfig = new HubScanJobConfig(projectName, version, phase, distribution, workingDirectoryPath, scanMemory,
-                shouldGenerateRiskReport, maxWaitTimeForRiskReport);
-        jobConfig.addAllScanTargetPaths(scanTargetPaths);
-
         String localHostName = HostnameHelper.getMyHostname();
         logger.info("Running on machine : " + localHostName);
 
-        printGlobalConfguration(globalConfig);
-        printJobConfguration(jobConfig);
-        URL hubUrl = new URL(globalConfig.getHubUrl());
         try {
-            if (isGlobalConfigValid(globalConfig) && isJobConfigValid(jobConfig)) {
+            HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder();
+            hubScanJobConfigBuilder.setProjectName(projectName);
+            hubScanJobConfigBuilder.setVersion(version);
+            hubScanJobConfigBuilder.setPhase(phase);
+            hubScanJobConfigBuilder.setDistribution(distribution);
+            hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
+            hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
+            hubScanJobConfigBuilder.setMaxWaitTimeForRiskReport(maxWaitTimeForRiskReport);
+            hubScanJobConfigBuilder.setScanMemory(scanMemory);
+            hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
+
+            HubScanJobConfig jobConfig = hubScanJobConfigBuilder.build(logger);
+
+            printJobConfiguration(jobConfig);
+            URL hubUrl = new URL(globalConfig.getHubUrl());
+
+            if (isGlobalConfigValid(globalConfig)) {
                 HubIntRestService restService = new HubIntRestService(serverUrl);
                 restService.setLogger(logger);
                 if (proxyInfo != null) {
@@ -194,11 +202,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
                 String projectId = null;
                 String versionId = null;
-                if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
-                    projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName(), jobConfig.getVersion(), jobConfig.getPhase(),
-                            jobConfig.getDistribution());
-                    versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
-                            jobConfig.getDistribution());
+                if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
+                    projectId = ensureProjectExists(restService, logger, jobConfig);
+                    versionId = ensureVersionExists(restService, logger, jobConfig, projectId);
                 }
 
                 boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec, globalConfig, jobConfig);
@@ -274,35 +280,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return isUrlValid && credentialsConfigured;
     }
 
-    public boolean isJobConfigValid(final HubScanJobConfig jobConfig)
-            throws IOException {
-        if (jobConfig == null) {
-            return false;
-        }
-
-        HubParameterValidator validator = new HubParameterValidator(logger);
-
-        boolean projectConfig = true;
-
-        projectConfig = validator.validateProjectNameAndVersion(jobConfig.getProjectName(), jobConfig.getVersion());
-
-        boolean scanTargetsValid = true;
-
-        if (jobConfig.getScanTargetPaths().isEmpty()) {
-            logger.error("No scan targets configured.");
-            scanTargetsValid = false;
-        } else {
-            for (String absolutePath : jobConfig.getScanTargetPaths()) {
-                if (!validator.validateTargetPath(absolutePath, jobConfig.getWorkingDirectory())) {
-                    scanTargetsValid = false;
-                }
-            }
-        }
-
-        return projectConfig && scanTargetsValid;
-    }
-
-    public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {
+    public void printGlobalConfiguration(final ServerHubConfigBean globalConfig) {
         if (globalConfig == null) {
             return;
         }
@@ -328,7 +306,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
     }
 
-    public void printJobConfguration(final HubScanJobConfig jobConfig) {
+    public void printJobConfiguration(final HubScanJobConfig jobConfig) {
         if (jobConfig == null) {
             return;
         }
@@ -350,25 +328,25 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
     }
 
-    private String ensureProjectExists(HubIntRestService service, IntLogger logger, String projectName,
-            String projectVersion, String phaseDisplayValue, String distributionDisplayValue) throws IOException, URISyntaxException,
+    private String ensureProjectExists(HubIntRestService service, IntLogger logger, HubScanJobConfig jobConfig) throws IOException, URISyntaxException,
             TeamCityHubPluginException {
+        String projectName = jobConfig.getProjectName();
+        String version = jobConfig.getVersion();
+        String phaseString = jobConfig.getPhase();
+        String distributionString = jobConfig.getDistribution();
 
         String projectId = null;
         try {
             projectId = service.getProjectByName(projectName).getId();
-
         } catch (ProjectDoesNotExistException e) {
             // Project was not found, try to create it
-
-            PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseDisplayValue);
-            DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionDisplayValue);
+            PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseString);
+            DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionString);
 
             try {
-                logger.info("Creating project : " + projectName + " and version : " + projectVersion);
-                projectId = service.createHubProjectAndVersion(projectName, projectVersion, phase.name(), distribution.name());
+                logger.info("Creating project : " + projectName + " and version : " + version);
+                projectId = service.createHubProjectAndVersion(projectName, version, phase.name(), distribution.name());
                 logger.debug("Project and Version created!");
-
             } catch (BDRestException e1) {
                 if (e1.getResource() != null) {
                     logger.error("Status : " + e1.getResource().getStatus().getCode());
@@ -389,19 +367,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return projectId;
     }
 
-    private String ensureVersionExists(HubIntRestService service, IntLogger logger, String projectVersion,
-            String projectId, String phaseDisplayValue, String distributionDisplayValue) throws IOException, URISyntaxException, TeamCityHubPluginException {
+    private String ensureVersionExists(HubIntRestService service, IntLogger logger, HubScanJobConfig jobConfig, String projectId) throws IOException,
+            URISyntaxException, TeamCityHubPluginException {
         String versionId = null;
         try {
+            String version = jobConfig.getVersion();
+            String phaseString = jobConfig.getPhase();
+            String distributionString = jobConfig.getDistribution();
 
-            PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseDisplayValue);
-            DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionDisplayValue);
+            PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseString);
+            DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionString);
 
             List<ReleaseItem> projectVersions = service.getVersionsForProject(projectId);
             for (ReleaseItem release : projectVersions) {
-                if (projectVersion.equals(release.getVersion())) {
+                if (version.equals(release.getVersion())) {
                     versionId = release.getId();
-                    logger.info("Found version : " + projectVersion);
+                    logger.info("Found version : " + version);
                     if (!release.getPhase().equals(phase.name())) {
                         logger.warn("The selected Phase does not match the Phase of this Version. If you wish to update the Phase please do so in the Hub UI.");
                     }
@@ -411,13 +392,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
             }
             if (versionId == null) {
-                logger.info("Creating version : " + projectVersion);
-                versionId = service.createHubVersion(projectVersion, projectId, phase.name(), distribution.name());
+                logger.info("Creating version : " + version);
+                versionId = service.createHubVersion(version, projectId, phase.name(), distribution.name());
                 logger.debug("Version created!");
             }
         } catch (BDRestException e) {
             throw new TeamCityHubPluginException("Could not retrieve or create the specified version.", e);
         }
+
         return versionId;
     }
 
