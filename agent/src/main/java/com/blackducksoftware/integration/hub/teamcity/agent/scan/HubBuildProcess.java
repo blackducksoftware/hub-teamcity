@@ -194,6 +194,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
                 String projectId = null;
                 String versionId = null;
+
+                // TODO this code is a remnant of an old Hub version, the CLI will create the project and version for us
                 if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
                     projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName(), jobConfig.getVersion(), jobConfig.getPhase(),
                             jobConfig.getDistribution());
@@ -215,6 +217,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
 
                 if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
+                    // TODO
+                    // if Hub older than 3.0.0, we should get the project and version Id ourselves. If either doesnt
+                    // exist, throw exception
+
+                    // if Hub 3.0.0 or newer, can we use the status files to get the code locations and get the version
+                    // the CL is mapped to and the project this version belongs to
+
                     HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
                     hubReportGenerationInfo.setService(restService);
                     hubReportGenerationInfo.setHostname(localHostName);
