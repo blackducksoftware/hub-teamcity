@@ -33,7 +33,5 @@
 		depends-on="hubServerListener" />
     
     <bean id="policyViolationFailure" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature"/>
-     
-    <bean id="policyViolationFailureController" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeatureController"/>
-     
+      
 </beans>
