@@ -8,10 +8,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import jetbrains.buildServer.agent.AgentBuildFeature;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -30,7 +32,10 @@ import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
+import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.report.api.BomReportGenerator;
 import com.blackducksoftware.integration.hub.report.api.HubBomReportData;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
@@ -41,6 +46,7 @@ import com.blackducksoftware.integration.hub.response.VersionComparison;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
+import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
@@ -169,6 +175,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
+                // initialize the hub support helper now that we have the rest service configured.
+                HubSupportHelper hubSupport = new HubSupportHelper();
+                hubSupport.checkHubSupport(restService, hubLogger);
+
                 File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
                 CLIInstaller installer = new CLIInstaller(hubToolDir);
                 if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
@@ -232,12 +242,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
                     hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
 
-                    HubSupportHelper hubSupport = new HubSupportHelper();
-                    hubSupport.checkHubSupport(restService, hubLogger);
-
                     BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo, hubSupport);
                     HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
                 }
+
+                checkPolicyFailures(build, hubLogger, hubSupport, restService, projectId, versionId);
+
             } else {
                 logger.info("Skipping Hub Build Step");
                 result = BuildFinishedStatus.FINISHED_FAILED;
@@ -559,6 +569,63 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
                 if (logger != null) {
                     logger.debug("Using proxy: '" + proxyInfo.getHost() + "' at Port: '" + proxyInfo.getPort() + "'");
+                }
+            }
+        }
+    }
+
+    private void checkPolicyFailures(AgentRunningBuild build, IntLogger logger, HubSupportHelper hubSupport, HubIntRestService restService, String projectId,
+            String versionId) {
+
+        // Check if User specified our Failure Condition on policy
+        Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
+        // The feature is only allowed to have a single instance in the configuration therefore we just want to make
+        // sure the feature collection has something meaning that it was configured.
+        if (features != null && features.iterator() != null && !features.isEmpty() && features.iterator().next() != null) {
+
+            if (hubSupport.isPolicyApiSupport() == false) {
+                String message = "This version of the Hub does not have support for Policies.";
+                build.stopBuild(message);
+            } else {
+
+                try {
+                    // We use this conditional in case there are other failure conditions in the future
+                    PolicyStatus policyStatus = restService.getPolicyStatus(projectId, versionId);
+                    if (policyStatus == null) {
+                        String message = "Could not find any information about the Policy status of the bom.";
+                        build.stopBuild(message);
+                    }
+                    if (policyStatus.getOverallStatusEnum() == PolicyStatusEnum.IN_VIOLATION) {
+                        build.stopBuild("There are Policy Violations");
+                    }
+
+                    if (policyStatus.getCountInViolation() == null) {
+                        logger.error("Could not find the number of bom entries In Violation of a Policy.");
+                    } else {
+                        logger.info("Found " + policyStatus.getCountInViolation().getValue() + " bom entries to be In Violation of a defined Policy.");
+                    }
+                    if (policyStatus.getCountInViolationOverridden() == null) {
+                        logger.error("Could not find the number of bom entries In Violation Overridden of a Policy.");
+                    } else {
+                        logger.info("Found " + policyStatus.getCountInViolationOverridden().getValue()
+                                + " bom entries to be In Violation of a defined Policy, but they have been overridden.");
+                    }
+                    if (policyStatus.getCountNotInViolation() == null) {
+                        logger.error("Could not find the number of bom entries Not In Violation of a Policy.");
+                    } else {
+                        logger.info("Found " + policyStatus.getCountNotInViolation().getValue() + " bom entries to be Not In Violation of a defined Policy.");
+                    }
+                } catch (MissingPolicyStatusException e) {
+                    logger.warn(e.getMessage());
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                    build.stopBuild(e.getMessage());
+                } catch (BDRestException e) {
+                    logger.error(e.getMessage(), e);
+                    build.stopBuild(e.getMessage());
+                } catch (URISyntaxException e) {
+                    logger.error(e.getMessage(), e);
+                    build.stopBuild(e.getMessage());
                 }
             }
         }

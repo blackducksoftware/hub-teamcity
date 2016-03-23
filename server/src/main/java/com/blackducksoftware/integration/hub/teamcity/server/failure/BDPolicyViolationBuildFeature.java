@@ -1,6 +1,5 @@
 package com.blackducksoftware.integration.hub.teamcity.server.failure;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import jetbrains.buildServer.serverSide.BuildFeature;
@@ -10,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
-import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 
 public class BDPolicyViolationBuildFeature extends BuildFeature {
 
@@ -48,14 +46,6 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
     @Override
     public String describeParameters(Map<String, String> params) {
         return "Fail the build if there are any policy violations";
-    }
-
-    @Override
-    public Map<String, String> getDefaultParameters() {
-        Map<String, String> defaultParams = new HashMap<String, String>();
-        defaultParams.put(HubConstantValues.HUB_POLICY_VIOLATION_ENABLED, Boolean.FALSE.toString());
-
-        return defaultParams;
     }
 
     @Override
