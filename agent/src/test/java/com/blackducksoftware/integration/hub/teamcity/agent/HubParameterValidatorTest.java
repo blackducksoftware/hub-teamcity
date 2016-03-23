@@ -113,7 +113,7 @@ public class HubParameterValidatorTest {
     public void testValidateTargetPathOutsideWorkingDirectory() throws Exception {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(!validator.validateTargetPath(new File(""), testWorkspace));
+        assertTrue(!validator.validateTargetPath(new File("").getAbsolutePath(), testWorkspace));
 
         String output = testLogger.getErrorMessagesString();
         assertTrue(output, output.contains("Can not scan targets outside the working directory."));
@@ -124,7 +124,7 @@ public class HubParameterValidatorTest {
         HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
         String sourcePath = testWorkspace + "/fakeDirectory";
-        assertTrue(!validator.validateTargetPath(new File(sourcePath), testWorkspace));
+        assertTrue(!validator.validateTargetPath(new File(sourcePath).getAbsolutePath(), testWorkspace));
 
         String output = testLogger.getErrorMessagesString();
 
@@ -142,7 +142,7 @@ public class HubParameterValidatorTest {
             sourceTarget.mkdirs();
         }
 
-        boolean validTargetPath = validator.validateTargetPath(new File(sourcePath), testWorkspace);
+        boolean validTargetPath = validator.validateTargetPath(new File(sourcePath).getAbsolutePath(), testWorkspace);
         if (!validTargetPath) {
             if (testLogger.getErrorMessages().size() != 0) {
                 for (String error : testLogger.getErrorMessages()) {
@@ -154,45 +154,6 @@ public class HubParameterValidatorTest {
             assertTrue(validTargetPath);
             assertTrue(testLogger.getErrorMessages().size() == 0);
         }
-    }
-
-    @Test
-    public void testValidateScanMemory() throws Exception {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
-
-        assertTrue(!validator.validateScanMemory(null));
-        String output = testLogger.getErrorMessagesString();
-        assertTrue(output, output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-        testLogger.clearErrorMessages();
-
-        assertTrue(!validator.validateScanMemory(""));
-        output = testLogger.getErrorMessagesString();
-        assertTrue(output, output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-        testLogger.clearErrorMessages();
-
-        assertTrue(!validator.validateScanMemory("   "));
-        output = testLogger.getErrorMessagesString();
-        assertTrue(output, output.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-        testLogger.clearErrorMessages();
-
-        assertTrue(!validator.validateScanMemory("506"));
-        output = testLogger.getErrorMessagesString();
-        assertTrue(output, output.contains("The Hub scan requires at least 4096 MB of memory."));
-        testLogger.clearErrorMessages();
-
-        // assertTrue(!validator.validateScanMemory("20.1"));
-        // output = testLogger.getErrorMessagesString();
-        // assertTrue(output, output.contains("Should not specify this much memory for the Hub Scan : 20.1 GB"));
-        // testLogger.clearErrorMessages();
-
-        assertTrue(!validator.validateScanMemory("two"));
-        output = testLogger.getErrorMessagesString();
-        assertTrue(output, output.contains("The amount of memory provided must be in the form of an Integer. Ex: 4096, 4608, etc."));
-        testLogger.clearErrorMessages();
-
-        assertTrue(validator.validateScanMemory("5069"));
-
-        assertTrue(validator.validateScanMemory("4096"));
     }
 
     @Test

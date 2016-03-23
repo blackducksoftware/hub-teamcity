@@ -18,17 +18,21 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubScanJobConfig;
+import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.report.api.BomReportGenerator;
+import com.blackducksoftware.integration.hub.report.api.HubBomReportData;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.response.DistributionEnum;
 import com.blackducksoftware.integration.hub.response.PhaseEnum;
@@ -141,8 +145,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
         String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
 
-        HubScanJobConfig jobConfig = new HubScanJobConfig(projectName, version, phase, distribution, scanMemory, shouldGenerateRiskReport,
-                maxWaitTimeForRiskReport, workingDirectoryPath);
+        HubScanJobConfig jobConfig = new HubScanJobConfig(projectName, version, phase, distribution, workingDirectoryPath, scanMemory,
+                shouldGenerateRiskReport, maxWaitTimeForRiskReport);
         jobConfig.addAllScanTargetPaths(scanTargetPaths);
 
         String localHostName = HostnameHelper.getMyHostname();
@@ -166,7 +170,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
                 File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
-                CLIInstaller installer = new CLIInstaller(hubToolDir, localHostName);
+                CLIInstaller installer = new CLIInstaller(hubToolDir);
                 if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(), proxyInfo.getNoProxyHostPatterns())) {
                     Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
                     installer.setProxyHost(proxyInfo.getHost());
@@ -174,7 +178,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     installer.setProxyUserName(proxyInfo.getProxyUsername());
                     installer.setProxyPassword(proxyInfo.getProxyPassword());
                 }
-                installer.performInstallation(logger, restService);
+                installer.performInstallation(logger, restService, localHostName);
 
                 File hubCLI = null;
                 if (installer.getCLIExists(hubLogger)) {
@@ -186,15 +190,20 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
                 File oneJarFile = installer.getOneJarFile();
 
+                File javaExec = installer.getProvidedJavaExec();
+
                 String projectId = null;
                 String versionId = null;
+
+                // TODO this code is a remnant of an old Hub version, the CLI will create the project and version for us
                 if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
                     projectId = ensureProjectExists(restService, logger, jobConfig.getProjectName(), jobConfig.getVersion(), jobConfig.getPhase(),
                             jobConfig.getDistribution());
                     versionId = ensureVersionExists(restService, logger, jobConfig.getVersion(), projectId, jobConfig.getPhase(),
                             jobConfig.getDistribution());
                 }
-                boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, globalConfig, jobConfig);
+
+                boolean mappingDone = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec, globalConfig, jobConfig);
 
                 // Only map the scans to a Project Version if the Project name and Project Version have been
                 // configured
@@ -208,20 +217,26 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
 
                 if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
+                    // TODO
+                    // if Hub older than 3.0.0, we should get the project and version Id ourselves. If either doesnt
+                    // exist, throw exception (could be related to the CLI issue HUB-6348
 
-                    HubReportGenerationInfo reportGenInfo = new HubReportGenerationInfo();
-                    reportGenInfo.setService(null);
-                    reportGenInfo.setHostname(localHostName);
-                    reportGenInfo.setProjectId(projectId);
-                    reportGenInfo.setVersionId(versionId);
-                    reportGenInfo.setScanTargets(jobConfig.getScanTargetPaths());
+                    // if Hub 3.0.0 or newer, can we use the status files to get the code locations and get the version
+                    // the CL is mapped to and the project this version belongs to
 
-                    reportGenInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
+                    HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
+                    hubReportGenerationInfo.setService(restService);
+                    hubReportGenerationInfo.setHostname(localHostName);
+                    hubReportGenerationInfo.setProjectId(projectId);
+                    hubReportGenerationInfo.setVersionId(versionId);
+                    hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
+                    hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
 
-                    reportGenInfo.setBeforeScanTime(null);
-                    reportGenInfo.setAfterScanTime(null);
+                    HubSupportHelper hubSupport = new HubSupportHelper();
+                    hubSupport.checkHubSupport(restService, hubLogger);
 
-                    // generateHubReport(build, logger, reportGenInfo);
+                    BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo, hubSupport);
+                    HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
                 }
             } else {
                 logger.info("Skipping Hub Build Step");
@@ -416,7 +431,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public Boolean doHubScan(HubIntRestService service, HubAgentBuildLogger logger,
-            File oneJarFile, File scanExec, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig) throws HubIntegrationException, IOException,
+            File oneJarFile, File scanExec, File javaExec, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig) throws HubIntegrationException,
+            IOException,
             URISyntaxException,
             NumberFormatException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 
@@ -480,23 +496,23 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scan.setCliSupportsMapping(false);
         }
 
-        String operatingSystem = System.getProperty("os.name");
-
-        String javaHome = getEnvironmentVariable("JAVA_HOME");
-        if (StringUtils.isBlank(javaHome)) {
-            // We couldn't get the JAVA_HOME variable so lets try to get the home
-            // of the java that is running this process
-            javaHome = System.getProperty("java.home");
-        }
-        File javaExec = new File(javaHome);
-        if (StringUtils.isBlank(javaHome) || javaExec == null || !javaExec.exists()) {
-            throw new HubIntegrationException("The JAVA_HOME could not be determined, the Hub CLI can not be executed.");
-        }
-        javaExec = new File(javaExec, "bin");
-        if (!operatingSystem.toLowerCase().contains("windows")) {
-            javaExec = new File(javaExec, "java");
-        } else {
-            javaExec = new File(javaExec, "java.exe");
+        if (javaExec == null) {
+            String javaHome = getEnvironmentVariable("JAVA_HOME");
+            if (StringUtils.isBlank(javaHome)) {
+                // We couldn't get the JAVA_HOME variable so lets try to get the home
+                // of the java that is running this process
+                javaHome = System.getProperty("java.home");
+            }
+            javaExec = new File(javaHome);
+            if (StringUtils.isBlank(javaHome) || javaExec == null || !javaExec.exists()) {
+                throw new HubIntegrationException("The JAVA_HOME could not be determined, the Hub CLI can not be executed.");
+            }
+            javaExec = new File(javaExec, "bin");
+            if (SystemUtils.IS_OS_WINDOWS) {
+                javaExec = new File(javaExec, "java.exe");
+            } else {
+                javaExec = new File(javaExec, "java");
+            }
         }
 
         Result scanResult = scan.setupAndRunScan(scanExec.getAbsolutePath(), oneJarFile.getAbsolutePath(), javaExec.getAbsolutePath());
