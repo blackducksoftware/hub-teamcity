@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 
 public class HubParameterValidator {
-
     private final HubAgentBuildLogger logger;
 
     public HubParameterValidator(HubAgentBuildLogger logger) {
@@ -51,90 +50,25 @@ public class HubParameterValidator {
         return validCredential;
     }
 
-    public boolean validateTargetPath(final File target, final String workingDirectory) throws IOException {
-        boolean validTargetPath = true;
-
-        if (target == null) {
+    public boolean validateTargetPath(final String targetAbsolutePath, final String workingDirectory) throws IOException {
+        if (null == targetAbsolutePath) {
             logger.error("Can not scan null target.");
-            validTargetPath = false;
-        } else {
-            if (!target.exists()) {
-                logger.error("The scan target '" + target.getAbsolutePath() + "' does not exist.");
-                validTargetPath = false;
-            }
-
-            String targetPath = target.getCanonicalPath();
-
-            if (!targetPath.startsWith(workingDirectory)) {
-                logger.error("Can not scan targets outside the working directory.");
-                validTargetPath = false;
-            }
-        }
-        return validTargetPath;
-    }
-
-    public boolean validateCLIPath(final File cliHomeDirectory) throws IOException {
-        boolean validCLIPath = false;
-
-        if (cliHomeDirectory == null) {
-            logger.error("The Hub CLI path has not been set.");
-            validCLIPath = false;
-        } else {
-            if (cliHomeDirectory.exists()) {
-                if (cliHomeDirectory.listFiles() != null && cliHomeDirectory.listFiles().length != 0) {
-                    File libFolder = new File(cliHomeDirectory, "lib");
-
-                    if (libFolder.exists()) {
-                        File[] cliFiles = libFolder.listFiles();
-
-                        if (cliFiles == null || cliFiles.length == 0) {
-                            logger.error("The lib directory in the Hub CLI home is empty!");
-                            validCLIPath = false;
-                        } else {
-                            for (File file : cliFiles) {
-                                if (file.getName().contains("scan.cli")) {
-                                    validCLIPath = true;
-                                    break;
-                                }
-                            }
-                            if (!validCLIPath) {
-                                logger.error("Could not find the Hub CLI in the lib directory.");
-                            }
-                        }
-                    } else {
-                        logger.error("Could not find the lib directory in the Hub CLI home directory.");
-                    }
-                } else {
-                    logger.error("The Hub CLI home directory is empty!");
-                }
-
-            } else {
-                logger.error("The Hub CLI home directory does not exist at : " + cliHomeDirectory.getCanonicalPath());
-                validCLIPath = false;
-            }
-        }
-        return validCLIPath;
-    }
-
-    public boolean validateScanMemory(final String memory) {
-        boolean validMemory = true;
-        if (StringUtils.isBlank(memory)) {
-            logger.error("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB.");
-            validMemory = false;
-        } else {
-            try {
-                Integer scanMemory = Integer.valueOf(memory);
-                if (scanMemory < 4096) {
-                    logger.error("The Hub scan requires at least 4096 MB of memory.");
-                    validMemory = false;
-                }
-            } catch (NumberFormatException e) {
-                logger.error("The amount of memory provided must be in the form of an Integer. Ex: 4096, 4608, etc.");
-                validMemory = false;
-            }
+            return false;
         }
 
-        return validMemory;
+        File target = new File(targetAbsolutePath);
+        if (null == target || !target.exists()) {
+            logger.error("The scan target '" + target.getAbsolutePath() + "' does not exist.");
+            return false;
+        }
+
+        String targetCanonicalPath = target.getCanonicalPath();
+        if (!targetCanonicalPath.startsWith(workingDirectory)) {
+            logger.error("Can not scan targets outside the working directory.");
+            return false;
+        }
+
+        return true;
     }
 
     public boolean validateProjectNameAndVersion(final String projectName, final String version) {

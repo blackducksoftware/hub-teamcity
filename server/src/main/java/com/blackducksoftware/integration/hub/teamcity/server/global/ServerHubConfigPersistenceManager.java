@@ -24,7 +24,6 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 
 public class ServerHubConfigPersistenceManager {
-
     private static final String CONFIG_FILE_NAME = "hub-config.xml";
 
     private final File configFile;
@@ -74,7 +73,6 @@ public class ServerHubConfigPersistenceManager {
                     } else {
                         errorLoadingConfig = true;
                     }
-
                 } catch (FileNotFoundException e) {
                     errorLoadingConfig = true;
                     Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
@@ -112,6 +110,7 @@ public class ServerHubConfigPersistenceManager {
             } else if (configFile.exists() && configFile.delete()) {
                 Loggers.SERVER.info("Old Hub configuration file removed, to be replaced by a new configuration.");
             }
+
             synchronized (this) {
                 outputStream = new FileOutputStream(configFile);
                 xStream.toXML(configuredServer, outputStream);
@@ -138,6 +137,7 @@ public class ServerHubConfigPersistenceManager {
                 phaseList.add(phase.getDisplayValue());
             }
         }
+
         return phaseList;
     }
 
@@ -148,6 +148,7 @@ public class ServerHubConfigPersistenceManager {
                 distributionList.add(distribution.getDisplayValue());
             }
         }
+
         return distributionList;
     }
 

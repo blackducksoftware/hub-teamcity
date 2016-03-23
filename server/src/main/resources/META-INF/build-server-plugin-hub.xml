@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:lang="http://www.springframework.org/schema/lang" xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:lang="http://www.springframework.org/schema/lang"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
                            http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
                            http://www.springframework.org/schema/lang
                            http://www.springframework.org/schema/lang/spring-lang-2.0.xsd
@@ -12,21 +11,29 @@
                            http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
                            http://www.springframework.org/schema/context
                            http://www.springframework.org/schema/context/spring-context.xsd"
-       default-autowire="constructor">
+	default-autowire="constructor">
 
-    <bean id="hubServerListener" class="com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener"/>
+	<bean id="hubServerListener"
+		class="com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener" />
+
+	<bean id="hubConfigPersistenceManager"
+		class="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" />
+
+	<bean id="serverHubConfigTab"
+		class="com.blackducksoftware.integration.hub.teamcity.server.global.HubGlobalServerConfigTab" />
+
+	<bean id="serverHubBomReportTab"
+		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubBomReportTab" />
+
+	<bean id="hubRunnerRunType"
+		class="com.blackducksoftware.integration.hub.teamcity.server.runner.scan.HubRunner" />
+
+	<bean id="hubParametersPreprocessor"
+		class="com.blackducksoftware.integration.hub.teamcity.server.runner.HubParametersPreprocessor"
+		depends-on="hubServerListener" />
     
-    <bean id="hubConfigPersistenceManager" class="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager"/>
-    
-    <bean id="serverHubConfigTab" class="com.blackducksoftware.integration.hub.teamcity.server.global.HubGlobalServerConfigTab"/>
-    
-     <bean id="hubRunnerRunType" class="com.blackducksoftware.integration.hub.teamcity.server.runner.scan.HubRunner"/>
+    <bean id="policyViolationFailure" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature"/>
      
-     <bean id="hubParametersPreprocessor" class="com.blackducksoftware.integration.hub.teamcity.server.runner.HubParametersPreprocessor"
-          depends-on="hubServerListener"/>
-          
-     <bean id="policyViolationFailure" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature"/>
-     
-     <bean id="policyViolationFailureController" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeatureController"/>
+    <bean id="policyViolationFailureController" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeatureController"/>
      
 </beans>

@@ -21,7 +21,6 @@ import com.blackducksoftware.integration.hub.teamcity.server.global.HubServerLis
 import com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager;
 
 public class HubParametersPreprocessor implements ParametersPreprocessor {
-
     private final ServerHubConfigPersistenceManager serverPeristanceManager;
 
     private BuildLog log = null;
@@ -44,21 +43,21 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
             HubProxyInfo proxyInfo = serverPeristanceManager.getConfiguredServer().getProxyInfo();
 
             if (!runParameters.containsKey(HubConstantValues.HUB_URL)) {
-                runParameters.put(HubConstantValues.HUB_URL, trimIfStringNotNull(serverPeristanceManager.getConfiguredServer().getHubUrl()));
+                runParameters.put(HubConstantValues.HUB_URL, StringUtils.trimToEmpty(serverPeristanceManager.getConfiguredServer().getHubUrl()));
             }
             if (!runParameters.containsKey(HubConstantValues.HUB_USERNAME)) {
-                runParameters.put(HubConstantValues.HUB_USERNAME, trimIfStringNotNull(credentials.getHubUser()));
+                runParameters.put(HubConstantValues.HUB_USERNAME, StringUtils.trimToEmpty(credentials.getHubUser()));
             }
             if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD)) {
-                runParameters.put(HubConstantValues.HUB_PASSWORD, trimIfStringNotNull(credentials.getEncryptedPassword()));
+                runParameters.put(HubConstantValues.HUB_PASSWORD, StringUtils.trimToEmpty(credentials.getEncryptedPassword()));
             }
             if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS) && StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
-                runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, trimIfStringNotNull(proxyInfo.getIgnoredProxyHosts()));
+                runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, StringUtils.trimToEmpty(proxyInfo.getIgnoredProxyHosts()));
             }
 
             if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != null) {
                 if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_HOST, trimIfStringNotNull(proxyInfo.getHost()));
+                    runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyInfo.getHost()));
                 }
                 if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
                     runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyInfo.getPort()));
@@ -66,21 +65,13 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
 
                 if (StringUtils.isNotBlank(proxyInfo.getProxyUsername()) && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
                     if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_USER)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_USER, trimIfStringNotNull(proxyInfo.getProxyUsername()));
+                        runParameters.put(HubConstantValues.HUB_PROXY_USER, StringUtils.trimToEmpty(proxyInfo.getProxyUsername()));
                     }
                     if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_PASS, trimIfStringNotNull(proxyInfo.getProxyPassword()));
+                        runParameters.put(HubConstantValues.HUB_PROXY_PASS, StringUtils.trimToEmpty(proxyInfo.getProxyPassword()));
                     }
                 }
             }
-        }
-    }
-
-    private String trimIfStringNotNull(String value) {
-        if (StringUtils.isBlank(value)) {
-            return "";
-        } else {
-            return value.trim();
         }
     }
 
@@ -94,7 +85,6 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
     }
 
     private boolean isHubBuildStepConfigured(@NotNull Map<String, String> runParameters) {
-
         boolean hubVersionPhase = runParameters.containsKey(HubConstantValues.HUB_VERSION_PHASE)
                 && StringUtils.isNotBlank(runParameters.get(HubConstantValues.HUB_VERSION_PHASE));
         boolean hubVersionDistribution = runParameters.containsKey(HubConstantValues.HUB_VERSION_DISTRIBUTION)

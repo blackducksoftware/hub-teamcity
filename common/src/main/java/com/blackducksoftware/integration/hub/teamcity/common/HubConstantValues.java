@@ -1,7 +1,6 @@
 package com.blackducksoftware.integration.hub.teamcity.common;
 
 public final class HubConstantValues {
-
     public static final String PLUGIN_PREFIX = "com.blackducksoftware.integration.hub.";
 
     public static final String PLUGIN_MAVEN_ENABLED = PLUGIN_PREFIX + "mavenEnabled";
@@ -16,7 +15,11 @@ public final class HubConstantValues {
 
     public static final String HUB_VERSION_DISTRIBUTION = PLUGIN_PREFIX + "distribution";
 
-    public static final String HUB_CLI_PATH = PLUGIN_PREFIX + "cliPath";
+    // public static final String HUB_CLI_PATH = PLUGIN_PREFIX + "cliPath"; // TODO delete this
+
+    public static final String HUB_GENERATE_RISK_REPORT = PLUGIN_PREFIX + "generateRiskReport";
+
+    public static final String HUB_MAX_WAIT_TIME_FOR_RISK_REPORT = PLUGIN_PREFIX + "maxWaitTimeForRiskReport";
 
     public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
 
@@ -51,6 +54,6 @@ public final class HubConstantValues {
     public static final String HUB_POLICY_VIOLATION_ENABLED = PLUGIN_PREFIX + "hubPolicyViolationEnabled";
 
     private HubConstantValues() {
-
     }
+
 }
