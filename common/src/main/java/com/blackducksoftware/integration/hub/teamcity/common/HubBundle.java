@@ -8,6 +8,8 @@ public final class HubBundle {
 
     public static final String RUNNER_TYPE = "hub_runner";
 
+    public static final String POLICY_FAILURE_CONDITION = "BD_Policy_Violation";
+
     private HubBundle() {
 
     }

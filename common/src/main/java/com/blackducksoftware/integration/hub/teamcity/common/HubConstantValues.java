@@ -48,6 +48,8 @@ public final class HubConstantValues {
 
     public static final String HUB_BUILD_INFO = "build-info.json";
 
+    public static final String HUB_POLICY_VIOLATION_ENABLED = PLUGIN_PREFIX + "hubPolicyViolationEnabled";
+
     private HubConstantValues() {
 
     }
