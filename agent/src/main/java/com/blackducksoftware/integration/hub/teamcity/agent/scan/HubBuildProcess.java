@@ -221,6 +221,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
 
                 if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
+                    // TODO
+                    // if Hub older than 3.0.0, we should get the project and version Id ourselves. If either doesnt
+                    // exist, throw exception (could be related to the CLI issue HUB-6348
+
+                    // if Hub 3.0.0 or newer, can we use the status files to get the code locations and get the version
+                    // the CL is mapped to and the project this version belongs to
+
                     HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
                     hubReportGenerationInfo.setService(restService);
                     hubReportGenerationInfo.setHostname(localHostName);
@@ -482,9 +489,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
             javaExec = new File(javaExec, "bin");
             if (SystemUtils.IS_OS_WINDOWS) {
-                javaExec = new File(javaExec, "java");
-            } else {
                 javaExec = new File(javaExec, "java.exe");
+            } else {
+                javaExec = new File(javaExec, "java");
             }
         }
 
