@@ -13,14 +13,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScannerSplitStream;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 
 public class TeamCityScanExecutor extends ScanExecutor {
 
-    protected TeamCityScanExecutor(String hubUrl, String hubUsername, String hubPassword, List<String> scanTargets, Integer buildNumber) {
-        super(hubUrl, hubUsername, hubPassword, scanTargets, buildNumber);
+    protected TeamCityScanExecutor(String hubUrl, String hubUsername, String hubPassword, List<String> scanTargets, Integer buildNumber,
+            HubSupportHelper supportHelper) {
+        super(hubUrl, hubUsername, hubPassword, scanTargets, buildNumber, supportHelper);
     }
 
     @Override
@@ -169,7 +171,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
 
             if (logDirectoryPath != null) {
                 File logDirectory = new File(logDirectoryPath);
-                if (logDirectory.exists() && doesHubSupportLogOption()) {
+                if (logDirectory.exists()) {
 
                     getLogger().info("You can view the BlackDuck Scan CLI logs at : '"
                             + logDirectory.getAbsolutePath() + "'");
