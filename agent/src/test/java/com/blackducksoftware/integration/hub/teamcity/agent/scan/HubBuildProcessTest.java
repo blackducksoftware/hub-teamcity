@@ -114,7 +114,7 @@ public class HubBuildProcessTest {
         HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
         process.setHubLogger(logger);
 
-        process.printGlobalConfguration(null);
+        process.printGlobalConfiguration(null);
 
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, !output.contains("--> Hub Server Url : "));
@@ -131,8 +131,7 @@ public class HubBuildProcessTest {
         HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
         process.setHubLogger(logger);
 
-        process.printGlobalConfguration(new ServerHubConfigBean());
-
+        process.printGlobalConfiguration(new ServerHubConfigBean());
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("--> Hub Server Url : "));
         assertTrue(output, !output.contains("--> Hub User :"));
@@ -157,7 +156,7 @@ public class HubBuildProcessTest {
         globalConfig.setGlobalCredentials(new HubCredentialsBean("testUser", "testPassword"));
         globalConfig.setProxyInfo(proxyInfo);
 
-        process.printGlobalConfguration(globalConfig);
+        process.printGlobalConfiguration(globalConfig);
 
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("--> Hub Server Url : testUrl"));
@@ -184,7 +183,7 @@ public class HubBuildProcessTest {
         globalConfig.setGlobalCredentials(new HubCredentialsBean("testUser", "testPassword"));
         globalConfig.setProxyInfo(proxyInfo);
 
-        process.printGlobalConfguration(globalConfig);
+        process.printGlobalConfiguration(globalConfig);
 
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("--> Hub Server Url : testUrl"));
@@ -213,7 +212,7 @@ public class HubBuildProcessTest {
 
         HubScanJobConfig jobConfig = builder.build(logger);
 
-        process.printJobConfguration(jobConfig);
+        process.printJobConfiguration(jobConfig);
 
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("Working directory : "));
@@ -285,19 +284,6 @@ public class HubBuildProcessTest {
     }
 
     @Test
-    public void testIsJobConfigValidNull() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
-        process.setHubLogger(logger);
-
-        assertTrue(!process.isJobConfigValid(null));
-
-        String output = testLogger.getErrorMessagesString();
-
-        assertTrue(output, !output.contains("There is no memory specified for the Hub scan."));
-        assertTrue(output, !output.contains("No scan targets configured."));
-    }
-
-    @Test
     public void testIsJobConfigValidEmpty() throws Exception {
         HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
         process.setHubLogger(logger);
@@ -313,6 +299,7 @@ public class HubBuildProcessTest {
         HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
         process.setHubLogger(logger);
 
+        exception.expect(HubIntegrationException.class);
         List<String> scanTargetPaths = new ArrayList<String>();
 
         scanTargetPaths.add(new File(testSourceFile, "emptyFile.txt").getAbsolutePath());
@@ -322,8 +309,7 @@ public class HubBuildProcessTest {
         builder.addAllScanTargetPaths(scanTargetPaths);
         builder.setWorkingDirectory(workingDirectory.getAbsolutePath());
         builder.setScanMemory("23");
-        HubScanJobConfig jobConfig = builder.build(logger);
-        assertTrue(!process.isJobConfigValid(jobConfig));
+        builder.build(logger);
 
         String output = testLogger.getErrorMessagesString();
         assertTrue(output, output.contains("Can not scan targets outside the working directory."));
@@ -340,9 +326,7 @@ public class HubBuildProcessTest {
         builder.setWorkingDirectory(workingDirectory.getAbsolutePath());
         builder.setScanMemory("4096");
 
-        HubScanJobConfig jobConfig = builder.build(logger);
-
-        assertTrue(!process.isJobConfigValid(jobConfig));
+        builder.build(logger);
 
         String output = testLogger.getErrorMessagesString();
         assertTrue(output, output.contains("The scan target '"));
@@ -359,21 +343,9 @@ public class HubBuildProcessTest {
         builder.addScanTargetPath(new File(testSourceFile, "emptyFile.txt").getAbsolutePath());
         builder.setWorkingDirectory(workingDirectory.getAbsolutePath());
         builder.setScanMemory("4096");
+        builder.build(logger);
 
-        HubScanJobConfig jobConfig = builder.build(logger);
-
-        boolean validJobConfig = process.isJobConfigValid(jobConfig);
-
-        if (!validJobConfig) {
-            if (testLogger.getErrorMessages().size() != 0) {
-                for (String error : testLogger.getErrorMessages()) {
-                    System.out.print(error);
-                }
-            }
-            fail();
-        } else {
-            assertTrue(testLogger.getErrorMessages().size() == 0);
-        }
+        assertTrue(testLogger.getErrorMessages().size() == 0);
     }
 
     @Test

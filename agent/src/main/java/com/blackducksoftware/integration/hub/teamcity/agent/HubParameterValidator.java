@@ -1,7 +1,5 @@
 package com.blackducksoftware.integration.hub.teamcity.agent;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -48,44 +46,6 @@ public class HubParameterValidator {
             }
         }
         return validCredential;
-    }
-
-    public boolean validateTargetPath(final String targetAbsolutePath, final String workingDirectory) throws IOException {
-        if (null == targetAbsolutePath) {
-            logger.error("Can not scan null target.");
-            return false;
-        }
-
-        File target = new File(targetAbsolutePath);
-        if (null == target || !target.exists()) {
-            logger.error("The scan target '" + target.getAbsolutePath() + "' does not exist.");
-            return false;
-        }
-
-        String targetCanonicalPath = target.getCanonicalPath();
-        if (!targetCanonicalPath.startsWith(workingDirectory)) {
-            logger.error("Can not scan targets outside the working directory.");
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean validateProjectNameAndVersion(final String projectName, final String version) {
-        boolean validProjectConfig = true;
-
-        if (StringUtils.isBlank(projectName) && StringUtils.isBlank(version)) {
-            logger.warn("No Project Name or Version were found. Any scans run will not be mapped to a Version.");
-            validProjectConfig = true;
-        } else if (StringUtils.isBlank(projectName)) {
-            logger.error("No Project Name was found.");
-            validProjectConfig = false;
-        } else if (StringUtils.isBlank(version)) {
-            logger.error("No Project Version were found.");
-            validProjectConfig = false;
-        }
-
-        return validProjectConfig;
     }
 
 }

@@ -118,11 +118,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         proxyInfo.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
 
         globalConfig.setProxyInfo(proxyInfo);
-        printGlobalConfguration(globalConfig);
+        printGlobalConfiguration(globalConfig);
 
         String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
         String version = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
-
         String phase = getParameter(HubConstantValues.HUB_VERSION_PHASE);
         String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
         String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
@@ -149,23 +148,23 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         logger.info("Running on machine : " + localHostName);
 
         try {
-            HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
-            builder.setProjectName(projectName);
-            builder.setVersion(version);
-            builder.setPhase(phase);
-            builder.setDistribution(distribution);
-            builder.setWorkingDirectory(workingDirectoryPath);
-            builder.setScanMemory(scanMemory);
-            builder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
-            builder.setMaxWaitTimeForRiskReport(maxWaitTimeForRiskReport);
-            builder.addAllScanTargetPaths(scanTargetPaths);
+            HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder();
+            hubScanJobConfigBuilder.setProjectName(projectName);
+            hubScanJobConfigBuilder.setVersion(version);
+            hubScanJobConfigBuilder.setPhase(phase);
+            hubScanJobConfigBuilder.setDistribution(distribution);
+            hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
+            hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
+            hubScanJobConfigBuilder.setMaxWaitTimeForRiskReport(maxWaitTimeForRiskReport);
+            hubScanJobConfigBuilder.setScanMemory(scanMemory);
+            hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 
-            HubScanJobConfig jobConfig = builder.build(logger);
+            HubScanJobConfig jobConfig = hubScanJobConfigBuilder.build(logger);
 
-            printJobConfguration(jobConfig);
+            printJobConfiguration(jobConfig);
             URL hubUrl = new URL(globalConfig.getHubUrl());
 
-            if (isGlobalConfigValid(globalConfig) && isJobConfigValid(jobConfig)) {
+            if (isGlobalConfigValid(globalConfig)) {
                 HubIntRestService restService = new HubIntRestService(serverUrl);
                 restService.setLogger(logger);
                 if (proxyInfo != null) {
@@ -283,35 +282,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return isUrlValid && credentialsConfigured;
     }
 
-    public boolean isJobConfigValid(final HubScanJobConfig jobConfig)
-            throws IOException {
-        if (jobConfig == null) {
-            return false;
-        }
-
-        HubParameterValidator validator = new HubParameterValidator(logger);
-
-        boolean projectConfig = true;
-
-        projectConfig = validator.validateProjectNameAndVersion(jobConfig.getProjectName(), jobConfig.getVersion());
-
-        boolean scanTargetsValid = true;
-
-        if (jobConfig.getScanTargetPaths().isEmpty()) {
-            logger.error("No scan targets configured.");
-            scanTargetsValid = false;
-        } else {
-            for (String absolutePath : jobConfig.getScanTargetPaths()) {
-                if (!validator.validateTargetPath(absolutePath, jobConfig.getWorkingDirectory())) {
-                    scanTargetsValid = false;
-                }
-            }
-        }
-
-        return projectConfig && scanTargetsValid;
-    }
-
-    public void printGlobalConfguration(final ServerHubConfigBean globalConfig) {
+    public void printGlobalConfiguration(final ServerHubConfigBean globalConfig) {
         if (globalConfig == null) {
             return;
         }
@@ -337,7 +308,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
     }
 
-    public void printJobConfguration(final HubScanJobConfig jobConfig) {
+    public void printJobConfiguration(final HubScanJobConfig jobConfig) {
         if (jobConfig == null) {
             return;
         }
@@ -369,10 +340,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         String projectId = null;
         try {
             projectId = service.getProjectByName(projectName).getId();
-
         } catch (ProjectDoesNotExistException e) {
             // Project was not found, try to create it
-
             PhaseEnum phase = PhaseEnum.getPhaseByDisplayValue(phaseString);
             DistributionEnum distribution = DistributionEnum.getDistributionByDisplayValue(distributionString);
 
@@ -380,7 +349,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 logger.info("Creating project : " + projectName + " and version : " + version);
                 projectId = service.createHubProjectAndVersion(projectName, version, phase.name(), distribution.name());
                 logger.debug("Project and Version created!");
-
             } catch (BDRestException e1) {
                 if (e1.getResource() != null) {
                     logger.error("Status : " + e1.getResource().getStatus().getCode());
