@@ -16,8 +16,6 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
 
     public final static String DESCRIPTION = "Fail the build if there are any policy violations";
 
-    public final static String PARAMETER_URL = "hubPolicyViolationFeatureEdit.html";
-
     private final PluginDescriptor pluginDescriptor;
 
     public BDPolicyViolationBuildFeature(@NotNull final PluginDescriptor pluginDescriptor) {
@@ -33,7 +31,7 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
     @Override
     @Nullable
     public String getEditParametersUrl() {
-        return pluginDescriptor.getPluginResourcesPath(PARAMETER_URL);
+        return pluginDescriptor.getPluginResourcesPath();
     }
 
     @Override
