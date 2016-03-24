@@ -209,7 +209,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     versionId = ensureVersionExists(restService, logger, jobConfig, projectId);
                 }
 
-                // initialize the hub support helper now that we have the rest service configured.
                 HubSupportHelper hubSupport = new HubSupportHelper();
                 hubSupport.checkHubSupport(restService, hubLogger);
 

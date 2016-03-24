@@ -132,6 +132,7 @@ public class HubBuildProcessTest {
         process.setHubLogger(logger);
 
         process.printGlobalConfiguration(new ServerHubConfigBean());
+        
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("--> Hub Server Url : "));
         assertTrue(output, !output.contains("--> Hub User :"));
