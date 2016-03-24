@@ -415,6 +415,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         scan.setScanMemory(jobConfig.getScanMemory());
         scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
         scan.setVerboseRun(isVerbose());
+        if (StringUtils.isNotBlank(jobConfig.getProjectName())
+                && StringUtils.isNotBlank(jobConfig.getVersion())) {
+
+            scan.setProject(jobConfig.getProjectName());
+            scan.setVersion(jobConfig.getVersion());
+        }
 
         if (javaExec == null) {
             String javaHome = getEnvironmentVariable("JAVA_HOME");
