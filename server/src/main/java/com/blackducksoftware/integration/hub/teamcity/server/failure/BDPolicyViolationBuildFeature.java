@@ -12,7 +12,11 @@ import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 
 public class BDPolicyViolationBuildFeature extends BuildFeature {
 
-    private final static String DISPLAY_NAME = "Fail Build on Black Duck Hub Policy Violations";
+    public final static String DISPLAY_NAME = "Fail Build on Black Duck Hub Policy Violations";
+
+    public final static String DESCRIPTION = "Fail the build if there are any policy violations";
+
+    public final static String PARAMETER_URL = "hubPolicyViolationFeatureEdit.html";
 
     private final PluginDescriptor pluginDescriptor;
 
@@ -29,7 +33,7 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
     @Override
     @Nullable
     public String getEditParametersUrl() {
-        return pluginDescriptor.getPluginResourcesPath("hubPolicyViolationFeatureEdit.html");
+        return pluginDescriptor.getPluginResourcesPath(PARAMETER_URL);
     }
 
     @Override
@@ -45,7 +49,7 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
 
     @Override
     public String describeParameters(Map<String, String> params) {
-        return "Fail the build if there are any policy violations";
+        return DESCRIPTION;
     }
 
     @Override

@@ -15,11 +15,11 @@ import jetbrains.buildServer.serverSide.crypt.RSACipher;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.hub.response.DistributionEnum;
-import com.blackducksoftware.integration.hub.response.PhaseEnum;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
+import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
+import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 
