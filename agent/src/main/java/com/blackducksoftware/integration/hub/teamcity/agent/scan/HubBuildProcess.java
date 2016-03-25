@@ -8,8 +8,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import jetbrains.buildServer.agent.AgentBuildFeature;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -27,13 +29,17 @@ import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
+import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
 import com.blackducksoftware.integration.hub.report.api.RiskReportGenerator;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
+import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
@@ -198,6 +204,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
                 String projectId = null;
                 String versionId = null;
+
+                // TODO this code is a remnant of an old Hub version, the CLI will create the project and version for us
                 if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
                     projectId = ensureProjectExists(restService, logger, jobConfig);
                     versionId = ensureVersionExists(restService, logger, jobConfig, projectId);
@@ -236,6 +244,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     writer.write(contents);
                     writer.close();
                 }
+
+                checkPolicyFailures(build, hubLogger, hubSupport, restService, projectId, versionId);
+
             } else {
                 logger.info("Skipping Hub Build Step");
                 result = BuildFinishedStatus.FINISHED_FAILED;
@@ -272,7 +283,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public boolean isGlobalConfigValid(final ServerHubConfigBean globalConfig) throws IOException {
-
         HubParameterValidator validator = new HubParameterValidator(logger);
 
         boolean isUrlValid = validator.isServerUrlValid(globalConfig.getHubUrl());
@@ -410,7 +420,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             IOException,
             URISyntaxException,
             NumberFormatException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
         TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(), globalConfig.getGlobalCredentials().getHubUser(),
                 globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(), Integer.valueOf(context.getBuild()
                         .getBuildNumber()), supportHelper);
@@ -426,9 +435,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         scan.setScanMemory(jobConfig.getScanMemory());
         scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
         scan.setVerboseRun(isVerbose());
-        if (StringUtils.isNotBlank(jobConfig.getProjectName())
-                && StringUtils.isNotBlank(jobConfig.getVersion())) {
-
+        if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
             scan.setProject(jobConfig.getProjectName());
             scan.setVersion(jobConfig.getVersion());
         }
@@ -456,21 +463,18 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         if (scanResult != Result.SUCCESS) {
             result = BuildFinishedStatus.FINISHED_FAILED;
         }
-
     }
 
     public void addProxySettingsToScanner(IntLogger logger, TeamCityScanExecutor scan, HubProxyInfo proxyInfo) throws HubIntegrationException,
             URISyntaxException,
             MalformedURLException {
         if (proxyInfo != null) {
-
             if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
                 if (StringUtils.isNotBlank(proxyInfo.getProxyUsername()) && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
                     scan.setProxyHost(proxyInfo.getHost());
                     scan.setProxyPort(proxyInfo.getPort());
                     scan.setProxyUsername(proxyInfo.getProxyUsername());
                     scan.setProxyPassword(proxyInfo.getProxyPassword());
-
                 } else {
                     scan.setProxyHost(proxyInfo.getHost());
                     scan.setProxyPort(proxyInfo.getPort());
@@ -481,4 +485,58 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
         }
     }
+
+    private void checkPolicyFailures(AgentRunningBuild build, IntLogger logger, HubSupportHelper hubSupport, HubIntRestService restService, String projectId,
+            String versionId) {
+        // Check if User specified our Failure Condition on policy
+        Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
+        // The feature is only allowed to have a single instance in the configuration therefore we just want to make
+        // sure the feature collection has something meaning that it was configured.
+        if (features != null && features.iterator() != null && !features.isEmpty() && features.iterator().next() != null) {
+            if (hubSupport.isPolicyApiSupport() == false) {
+                String message = "This version of the Hub does not have support for Policies.";
+                build.stopBuild(message);
+            } else {
+                try {
+                    // We use this conditional in case there are other failure conditions in the future
+                    PolicyStatus policyStatus = restService.getPolicyStatus(projectId, versionId);
+                    if (policyStatus == null) {
+                        String message = "Could not find any information about the Policy status of the bom.";
+                        build.stopBuild(message);
+                    }
+                    if (policyStatus.getOverallStatusEnum() == PolicyStatusEnum.IN_VIOLATION) {
+                        build.stopBuild("There are Policy Violations");
+                    }
+                    if (policyStatus.getCountInViolation() == null) {
+                        logger.error("Could not find the number of bom entries In Violation of a Policy.");
+                    } else {
+                        logger.info("Found " + policyStatus.getCountInViolation().getValue() + " bom entries to be In Violation of a defined Policy.");
+                    }
+                    if (policyStatus.getCountInViolationOverridden() == null) {
+                        logger.error("Could not find the number of bom entries In Violation Overridden of a Policy.");
+                    } else {
+                        logger.info("Found " + policyStatus.getCountInViolationOverridden().getValue()
+                                + " bom entries to be In Violation of a defined Policy, but they have been overridden.");
+                    }
+                    if (policyStatus.getCountNotInViolation() == null) {
+                        logger.error("Could not find the number of bom entries Not In Violation of a Policy.");
+                    } else {
+                        logger.info("Found " + policyStatus.getCountNotInViolation().getValue() + " bom entries to be Not In Violation of a defined Policy.");
+                    }
+                } catch (MissingPolicyStatusException e) {
+                    logger.warn(e.getMessage());
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                    build.stopBuild(e.getMessage());
+                } catch (BDRestException e) {
+                    logger.error(e.getMessage(), e);
+                    build.stopBuild(e.getMessage());
+                } catch (URISyntaxException e) {
+                    logger.error(e.getMessage(), e);
+                    build.stopBuild(e.getMessage());
+                }
+            }
+        }
+    }
+
 }
