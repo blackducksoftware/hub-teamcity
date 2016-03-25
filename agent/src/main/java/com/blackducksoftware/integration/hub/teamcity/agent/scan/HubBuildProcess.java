@@ -28,9 +28,9 @@ import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
-import com.blackducksoftware.integration.hub.report.api.BomReportGenerator;
-import com.blackducksoftware.integration.hub.report.api.HubBomReportData;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
+import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
+import com.blackducksoftware.integration.hub.report.api.RiskReportGenerator;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
@@ -224,13 +224,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
                     hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
 
-                    BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo, hubSupport);
-                    HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
+                    RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo, hubSupport);
+                    HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger);
 
-                    String reportPath = workingDirectoryPath + File.separator + "risk_report.json";
+                    String reportPath = workingDirectoryPath + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
 
                     Gson gson = new Gson();
-                    String contents = gson.toJson(hubBomReportData);
+                    String contents = gson.toJson(hubRiskReportData);
 
                     FileWriter writer = new FileWriter(reportPath);
                     writer.write(contents);

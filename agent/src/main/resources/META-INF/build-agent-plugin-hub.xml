@@ -15,6 +15,7 @@
 
 	<bean id="hubBuildRunner"
 		class="com.blackducksoftware.integration.hub.teamcity.agent.scan.HubBuildRunner" />
+
 	<bean id="riskReportListener" class="com.blackducksoftware.integration.hub.teamcity.agent.artifacts.RiskReportListener" />
 
 </beans>

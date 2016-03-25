@@ -22,11 +22,11 @@
 	<bean id="serverHubConfigTab"
 		class="com.blackducksoftware.integration.hub.teamcity.server.global.HubGlobalServerConfigTab" />
 
-	<bean id="hubBomReportTab"
-		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubBomReportTab" />
+	<bean id="hubRiskReportTab"
+		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubRiskReportTab" />
 
 	<bean id="hubBomReportController"
-		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubBomReportController" />
+		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubRiskReportController" />
 
 	<bean id="hubRunnerRunType"
 		class="com.blackducksoftware.integration.hub.teamcity.server.runner.scan.HubRunner" />

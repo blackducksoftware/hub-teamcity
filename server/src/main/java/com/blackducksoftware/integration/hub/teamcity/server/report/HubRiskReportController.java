@@ -17,16 +17,17 @@ import jetbrains.buildServer.web.openapi.WebControllerManager;
 
 import org.springframework.web.servlet.ModelAndView;
 
-import com.blackducksoftware.integration.hub.report.api.HubBomReportData;
+import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
+import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.google.gson.Gson;
 
-public class HubBomReportController extends BaseController {
+public class HubRiskReportController extends BaseController {
     private PluginDescriptor pluginDescriptor;
 
     private SBuildServer server;
 
-    public HubBomReportController(WebControllerManager manager, PluginDescriptor pluginDescriptor, SBuildServer server) {
-        manager.registerController("/hubBomReport.html", this);
+    public HubRiskReportController(WebControllerManager manager, PluginDescriptor pluginDescriptor, SBuildServer server) {
+        manager.registerController(HubConstantValues.HUB_RISK_REPORT_TAB_PATH, this);
 
         this.pluginDescriptor = pluginDescriptor;
         this.server = server;
@@ -36,16 +37,16 @@ public class HubBomReportController extends BaseController {
     protected ModelAndView doHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
         SBuild build = BuildDataExtensionUtil.retrieveBuild(request, server);
 
-        String hubBomReportPath = build.getArtifactsDirectory().getCanonicalPath() + File.separator + "risk_report.json";
+        String hubBomReportPath = build.getArtifactsDirectory().getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
         FileReader fileReader = new FileReader(hubBomReportPath);
 
         Gson gson = new Gson();
-        HubBomReportData hubBomReportData = gson.fromJson(fileReader, HubBomReportData.class);
+        HubRiskReportData hubRiskReportData = gson.fromJson(fileReader, HubRiskReportData.class);
 
         Map<String, Object> model = new HashMap<String, Object>();
-        model.put("hubBomReportData", hubBomReportData);
+        model.put("hubRiskReportData", hubRiskReportData);
 
-        return new ModelAndView(pluginDescriptor.getPluginResourcesPath("hubBomReportTab.jsp"), model);
+        return new ModelAndView(pluginDescriptor.getPluginResourcesPath("hubRiskReportTab.jsp"), model);
     }
 
 }

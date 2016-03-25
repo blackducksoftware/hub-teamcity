@@ -12,6 +12,8 @@ import jetbrains.buildServer.util.EventDispatcher;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+
 public class RiskReportListener extends AgentLifeCycleAdapter {
     @NotNull
     private final ArtifactsWatcher artifactsWatcher;
@@ -26,7 +28,7 @@ public class RiskReportListener extends AgentLifeCycleAdapter {
         runner.getBuild().getBuildLogger().error("risk report listener called for build finished");
         try {
             String workingDirectoryCanonicalPath = runner.getWorkingDirectory().getCanonicalPath();
-            String reportPath = workingDirectoryCanonicalPath + File.separator + "risk_report.json";
+            String reportPath = workingDirectoryCanonicalPath + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
 
             artifactsWatcher.addNewArtifactsPath(reportPath);
         } catch (IOException e) {

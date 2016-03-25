@@ -10,15 +10,22 @@ import jetbrains.buildServer.web.openapi.WebControllerManager;
 
 import org.jetbrains.annotations.NotNull;
 
-public class HubBomReportTab extends SimpleCustomTab {
-    public HubBomReportTab(@NotNull final WebControllerManager webControllerManager) {
-        super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "/hubBomReport.html", "HUB BOM Report");
+import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+
+public class HubRiskReportTab extends SimpleCustomTab {
+    public HubRiskReportTab(@NotNull final WebControllerManager webControllerManager) {
+        super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", HubConstantValues.HUB_RISK_REPORT_TAB_PATH, "Black Duck HUB Risk Report");
         register();
     }
 
     @Override
     public void fillModel(Map<String, Object> model, HttpServletRequest request) {
         super.fillModel(model, request);
+    }
+
+    @Override
+    public boolean isVisible() {
+        return super.isVisible();
     }
 
 }

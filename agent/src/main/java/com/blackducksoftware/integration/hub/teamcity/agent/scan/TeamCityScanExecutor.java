@@ -19,7 +19,6 @@ import com.blackducksoftware.integration.hub.ScannerSplitStream;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 
 public class TeamCityScanExecutor extends ScanExecutor {
-
     protected TeamCityScanExecutor(String hubUrl, String hubUsername, String hubPassword, List<String> scanTargets, Integer buildNumber,
             HubSupportHelper supportHelper) {
         super(hubUrl, hubUsername, hubPassword, scanTargets, buildNumber, supportHelper);
@@ -38,7 +37,6 @@ public class TeamCityScanExecutor extends ScanExecutor {
     @Override
     protected Result executeScan(List<String> cmd, String logDirectoryPath) throws HubIntegrationException, InterruptedException {
         try {
-
             File logBaseDirectory = new File(getLogDirectoryPath());
             logBaseDirectory.mkdirs();
             File standardOutFile = new File(logBaseDirectory, "CLI_Output.txt");
@@ -59,7 +57,6 @@ public class TeamCityScanExecutor extends ScanExecutor {
             }
             for (Integer index : indexToMask) {
                 maskIndex(cmdToOutput, index);
-
             }
 
             // ///////////////////////
@@ -172,10 +169,8 @@ public class TeamCityScanExecutor extends ScanExecutor {
             if (logDirectoryPath != null) {
                 File logDirectory = new File(logDirectoryPath);
                 if (logDirectory.exists()) {
-
                     getLogger().info("You can view the BlackDuck Scan CLI logs at : '"
                             + logDirectory.getAbsolutePath() + "'");
-
                     getLogger().info("");
                 }
             }

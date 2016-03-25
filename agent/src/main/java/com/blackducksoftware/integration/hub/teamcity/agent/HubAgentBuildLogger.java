@@ -9,7 +9,6 @@ import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
 
 public class HubAgentBuildLogger implements IntLogger {
-
     private final BuildProgressLogger logger;
 
     private LogLevel loggerLevel = LogLevel.INFO;
@@ -34,12 +33,10 @@ public class HubAgentBuildLogger implements IntLogger {
 
     public void targetStarted(String txt) {
         logger.targetStarted(txt);
-
     }
 
     public void targetFinished(String txt) {
         logger.targetFinished(txt);
-
     }
 
     @Override
