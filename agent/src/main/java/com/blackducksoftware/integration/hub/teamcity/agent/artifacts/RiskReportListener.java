@@ -1,7 +1,6 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.artifacts;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import jetbrains.buildServer.agent.AgentLifeCycleAdapter;
@@ -12,8 +11,6 @@ import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import jetbrains.buildServer.util.EventDispatcher;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.google.gson.Gson;
 
 public class RiskReportListener extends AgentLifeCycleAdapter {
     @NotNull
@@ -30,13 +27,6 @@ public class RiskReportListener extends AgentLifeCycleAdapter {
         try {
             String workingDirectoryCanonicalPath = runner.getWorkingDirectory().getCanonicalPath();
             String reportPath = workingDirectoryCanonicalPath + File.separator + "risk_report.json";
-
-            Gson gson = new Gson();
-            String contents = gson.toJson(status);
-
-            FileWriter writer = new FileWriter(reportPath);
-            writer.write(contents);
-            writer.close();
 
             artifactsWatcher.addNewArtifactsPath(reportPath);
         } catch (IOException e) {

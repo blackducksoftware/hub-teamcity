@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class HubBomReportTab extends SimpleCustomTab {
     public HubBomReportTab(@NotNull final WebControllerManager webControllerManager) {
-        super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "hubBomReportTab.jsp", "HUB BOM Report");
+        super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "/hubBomReport.html", "HUB BOM Report");
         register();
     }
 

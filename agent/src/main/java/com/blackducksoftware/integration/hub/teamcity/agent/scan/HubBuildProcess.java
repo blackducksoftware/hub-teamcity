@@ -1,6 +1,7 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -49,6 +50,7 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConf
 import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
 import com.blackducksoftware.integration.util.HostnameHelper;
+import com.google.gson.Gson;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
     @NotNull
@@ -241,6 +243,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
                     BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo, hubSupport);
                     HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
+
+                    String reportPath = workingDirectoryPath + File.separator + "risk_report.json";
+
+                    Gson gson = new Gson();
+                    String contents = gson.toJson(hubBomReportData);
+
+                    FileWriter writer = new FileWriter(reportPath);
+                    writer.write(contents);
+                    writer.close();
                 }
             } else {
                 logger.info("Skipping Hub Build Step");
