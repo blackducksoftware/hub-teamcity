@@ -18,8 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.blackducksoftware.integration.hub.response.DistributionEnum;
-import com.blackducksoftware.integration.hub.response.PhaseEnum;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
@@ -28,6 +26,8 @@ import com.blackducksoftware.integration.hub.teamcity.mocks.MockSBuildServer;
 import com.blackducksoftware.integration.hub.teamcity.mocks.MockSRunningBuild;
 import com.blackducksoftware.integration.hub.teamcity.mocks.MockServerPaths;
 import com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener;
+import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
+import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 
 public class HubParametersPreProcessorTest {
 
