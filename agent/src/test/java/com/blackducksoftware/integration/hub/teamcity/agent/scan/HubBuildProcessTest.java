@@ -132,7 +132,7 @@ public class HubBuildProcessTest {
         process.setHubLogger(logger);
 
         process.printGlobalConfiguration(new ServerHubConfigBean());
-
+        
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("--> Hub Server Url : "));
         assertTrue(output, !output.contains("--> Hub User :"));
@@ -300,6 +300,7 @@ public class HubBuildProcessTest {
         HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
         process.setHubLogger(logger);
 
+        exception.expect(HubIntegrationException.class);
         List<String> scanTargetPaths = new ArrayList<String>();
 
         scanTargetPaths.add(new File(testSourceFile, "emptyFile.txt").getAbsolutePath());
