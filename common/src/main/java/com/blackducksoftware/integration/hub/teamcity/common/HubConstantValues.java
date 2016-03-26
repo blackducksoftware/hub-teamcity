@@ -51,8 +51,6 @@ public final class HubConstantValues {
 
     public static final String HUB_BUILD_INFO = "build-info.json";
 
-    public static final String HUB_RISK_REPORT_TAB_PATH = "/hubRiskReport.html";
-
     public static final String HUB_RISK_REPORT_FILENAME = "hub_risk_report.json";
 
     private HubConstantValues() {
