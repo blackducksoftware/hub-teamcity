@@ -273,7 +273,6 @@
 	</table>
 </div>
 
-<!-- load this script after the tables otherwise the tables wont exist 
-						yet when this script runs -->
+<!-- load this script after the tables otherwise the tables wont exist yet when this script runs -->
 <script type="text/javascript"
 	src="${teamcityPluginResourcesPath}js/HubReportStartup.js"></script>

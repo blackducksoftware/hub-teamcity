@@ -25,16 +25,13 @@
 	<bean id="hubRiskReportTab"
 		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubRiskReportTab" />
 
-	<bean id="hubBomReportController"
-		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubRiskReportController" />
-
 	<bean id="hubRunnerRunType"
 		class="com.blackducksoftware.integration.hub.teamcity.server.runner.scan.HubRunner" />
 
 	<bean id="hubParametersPreprocessor"
 		class="com.blackducksoftware.integration.hub.teamcity.server.runner.HubParametersPreprocessor"
 		depends-on="hubServerListener" />
-    
+
     <bean id="policyViolationFailure" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature"/>
       
 </beans>
