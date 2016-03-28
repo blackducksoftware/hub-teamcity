@@ -12,7 +12,6 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProcess;
 
 abstract public class HubCallableBuildProcess implements BuildProcess, Callable<BuildFinishedStatus> {
-
     private Future<BuildFinishedStatus> future;
 
     @Override
@@ -37,7 +36,6 @@ abstract public class HubCallableBuildProcess implements BuildProcess, Callable<
         } catch (final RejectedExecutionException e) {
             throw new RunBuildException(e);
         }
-
     }
 
     @Override

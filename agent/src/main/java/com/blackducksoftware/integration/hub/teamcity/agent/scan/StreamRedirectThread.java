@@ -34,4 +34,5 @@ public class StreamRedirectThread extends Thread {
             // Ignore
         }
     }
+
 }

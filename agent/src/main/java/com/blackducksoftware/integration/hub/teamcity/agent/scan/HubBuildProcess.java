@@ -1,6 +1,7 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -15,6 +16,7 @@ import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
+import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -32,9 +34,9 @@ import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusExcept
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
-import com.blackducksoftware.integration.hub.report.api.BomReportGenerator;
-import com.blackducksoftware.integration.hub.report.api.HubBomReportData;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
+import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
+import com.blackducksoftware.integration.hub.report.api.RiskReportGenerator;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
@@ -49,6 +51,7 @@ import com.blackducksoftware.integration.hub.version.api.ReleaseItem;
 import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
 import com.blackducksoftware.integration.util.HostnameHelper;
+import com.google.gson.Gson;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
     @NotNull
@@ -57,15 +60,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     @NotNull
     private final BuildRunnerContext context;
 
+    @NotNull
+    private final ArtifactsWatcher artifactsWatcher;
+
     private HubAgentBuildLogger logger;
 
     private BuildFinishedStatus result;
 
     private Boolean verbose;
 
-    public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context) {
+    public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context, @NotNull final ArtifactsWatcher artifactsWatcher) {
         this.build = build;
         this.context = context;
+        this.artifactsWatcher = artifactsWatcher;
     }
 
     public void setverbose(boolean verbose) {
@@ -204,7 +211,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 String versionId = null;
 
                 // TODO this code is a remnant of an old Hub version, the CLI will create the project and version for us
-                if (StringUtils.isNotBlank(jobConfig.getProjectName()) && StringUtils.isNotBlank(jobConfig.getVersion())) {
+                if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
                     projectId = ensureProjectExists(restService, logger, jobConfig);
                     versionId = ensureVersionExists(restService, logger, jobConfig, projectId);
                 }
@@ -230,8 +237,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
                     hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
 
-                    BomReportGenerator bomReportGenerator = new BomReportGenerator(hubReportGenerationInfo, hubSupport);
-                    HubBomReportData hubBomReportData = bomReportGenerator.generateHubReport(logger);
+                    RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo, hubSupport);
+                    HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger);
+
+                    String reportPath = workingDirectoryPath + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
+
+                    Gson gson = new Gson();
+                    String contents = gson.toJson(hubRiskReportData);
+
+                    FileWriter writer = new FileWriter(reportPath);
+                    writer.write(contents);
+                    writer.close();
+
+                    artifactsWatcher.addNewArtifactsPath(reportPath);
                 }
 
                 checkPolicyFailures(build, hubLogger, hubSupport, restService, projectId, versionId);
@@ -272,7 +290,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public boolean isGlobalConfigValid(final ServerHubConfigBean globalConfig) throws IOException {
-
         HubParameterValidator validator = new HubParameterValidator(logger);
 
         boolean isUrlValid = validator.isServerUrlValid(globalConfig.getHubUrl());
@@ -410,7 +427,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             IOException,
             URISyntaxException,
             NumberFormatException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
         TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(), globalConfig.getGlobalCredentials().getHubUser(),
                 globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(), Integer.valueOf(context.getBuild()
                         .getBuildNumber()), supportHelper);
@@ -426,9 +442,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         scan.setScanMemory(jobConfig.getScanMemory());
         scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
         scan.setVerboseRun(isVerbose());
-        if (StringUtils.isNotBlank(jobConfig.getProjectName())
-                && StringUtils.isNotBlank(jobConfig.getVersion())) {
-
+        if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
             scan.setProject(jobConfig.getProjectName());
             scan.setVersion(jobConfig.getVersion());
         }
@@ -456,21 +470,18 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         if (scanResult != Result.SUCCESS) {
             result = BuildFinishedStatus.FINISHED_FAILED;
         }
-
     }
 
     public void addProxySettingsToScanner(IntLogger logger, TeamCityScanExecutor scan, HubProxyInfo proxyInfo) throws HubIntegrationException,
             URISyntaxException,
             MalformedURLException {
         if (proxyInfo != null) {
-
             if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
                 if (StringUtils.isNotBlank(proxyInfo.getProxyUsername()) && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
                     scan.setProxyHost(proxyInfo.getHost());
                     scan.setProxyPort(proxyInfo.getPort());
                     scan.setProxyUsername(proxyInfo.getProxyUsername());
                     scan.setProxyPassword(proxyInfo.getProxyPassword());
-
                 } else {
                     scan.setProxyHost(proxyInfo.getHost());
                     scan.setProxyPort(proxyInfo.getPort());
@@ -484,18 +495,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     private void checkPolicyFailures(AgentRunningBuild build, IntLogger logger, HubSupportHelper hubSupport, HubIntRestService restService, String projectId,
             String versionId) {
-
         // Check if User specified our Failure Condition on policy
         Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
         // The feature is only allowed to have a single instance in the configuration therefore we just want to make
         // sure the feature collection has something meaning that it was configured.
         if (features != null && features.iterator() != null && !features.isEmpty() && features.iterator().next() != null) {
-
             if (hubSupport.isPolicyApiSupport() == false) {
                 String message = "This version of the Hub does not have support for Policies.";
                 build.stopBuild(message);
             } else {
-
                 try {
                     // We use this conditional in case there are other failure conditions in the future
                     PolicyStatus policyStatus = restService.getPolicyStatus(projectId, versionId);
@@ -506,7 +514,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     if (policyStatus.getOverallStatusEnum() == PolicyStatusEnum.IN_VIOLATION) {
                         build.stopBuild("There are Policy Violations");
                     }
-
                     if (policyStatus.getCountInViolation() == null) {
                         logger.error("Could not find the number of bom entries In Violation of a Policy.");
                     } else {
@@ -538,4 +545,5 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
         }
     }
+
 }

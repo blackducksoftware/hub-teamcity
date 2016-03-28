@@ -105,4 +105,5 @@ public class HubParameterValidatorTest {
         assertTrue(validator.isHubCredentialConfigured(credential));
         assertTrue(testLogger.getErrorMessages().size() == 0);
     }
+
 }

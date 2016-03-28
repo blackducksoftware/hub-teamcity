@@ -31,6 +31,7 @@ import com.blackducksoftware.integration.hub.project.api.ProjectItem;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TeamCityHubIntTestHelper;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestAgentRunningBuild;
+import com.blackducksoftware.integration.hub.teamcity.agent.util.TestArtifactsWatcher;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildAgentConfiguration;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildRunnerContext;
@@ -41,6 +42,7 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConf
 import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
 import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 import com.blackducksoftware.integration.suite.encryption.PasswordEncrypter;
+import com.google.common.collect.ImmutableList;
 
 public class HubBuildProcessTest {
     private static Properties testProperties;
@@ -105,13 +107,12 @@ public class HubBuildProcessTest {
 
     @Test
     public void testConstructor() {
-        assertNotNull(new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext()));
-
+        assertNotNull(new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher()));
     }
 
     @Test
     public void testPrintGlobalConfigurationNull() {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         process.printGlobalConfiguration(null);
@@ -123,16 +124,15 @@ public class HubBuildProcessTest {
         assertTrue(output, !output.contains("--> Proxy Port :"));
         assertTrue(output, !output.contains("--> No Proxy Hosts :"));
         assertTrue(output, !output.contains("--> Proxy Username :"));
-
     }
 
     @Test
     public void testPrintGlobalConfigurationEmpty() {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         process.printGlobalConfiguration(new ServerHubConfigBean());
-        
+
         String output = testLogger.getProgressMessagesString();
         assertTrue(output, output.contains("--> Hub Server Url : "));
         assertTrue(output, !output.contains("--> Hub User :"));
@@ -140,12 +140,11 @@ public class HubBuildProcessTest {
         assertTrue(output, !output.contains("--> Proxy Port :"));
         assertTrue(output, !output.contains("--> No Proxy Hosts :"));
         assertTrue(output, !output.contains("--> Proxy Username :"));
-
     }
 
     @Test
     public void testPrintGlobalConfigurationPassThroughProxy() {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
         HubProxyInfo proxyInfo = new HubProxyInfo();
         proxyInfo.setHost("Test host");
@@ -170,7 +169,7 @@ public class HubBuildProcessTest {
 
     @Test
     public void testPrintGlobalConfigurationAuthenticatedProxy() {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
         HubProxyInfo proxyInfo = new HubProxyInfo();
         proxyInfo.setHost("Test host");
@@ -197,7 +196,7 @@ public class HubBuildProcessTest {
 
     @Test
     public void testPrintJobConfiguration() throws HubIntegrationException, IOException {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         String workingDir = new File("").getAbsolutePath();
@@ -228,8 +227,21 @@ public class HubBuildProcessTest {
     }
 
     @Test
+    public void testPrintJobConfigurationEmptyScanTargets() {
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
+        process.setHubLogger(logger);
+
+        HubScanJobConfig jobConfig = new HubScanJobConfig(null, null, null, null, null, 0, false, 0, new ImmutableList.Builder<String>().build());
+
+        process.printJobConfiguration(jobConfig);
+
+        String output = testLogger.getProgressMessagesString();
+        assertTrue(output, !output.contains("--> Hub scan targets : "));
+    }
+
+    @Test
     public void testIsGlobalConfigValidNull() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         ServerHubConfigBean globalConfig = new ServerHubConfigBean();
@@ -246,7 +258,7 @@ public class HubBuildProcessTest {
 
     @Test
     public void testIsGlobalConfigValidEmptyCredentials() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         ServerHubConfigBean globalConfig = new ServerHubConfigBean();
@@ -263,7 +275,7 @@ public class HubBuildProcessTest {
 
     @Test
     public void testIsGlobalConfigValid() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         ServerHubConfigBean globalConfig = new ServerHubConfigBean();
@@ -286,7 +298,7 @@ public class HubBuildProcessTest {
 
     @Test
     public void testIsJobConfigValidEmpty() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         exception.expect(HubIntegrationException.class);
@@ -297,7 +309,7 @@ public class HubBuildProcessTest {
     @Test
     @Ignore
     public void testIsJobConfigValidInvalid() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         exception.expect(HubIntegrationException.class);
@@ -319,7 +331,7 @@ public class HubBuildProcessTest {
     @Test
     @Ignore
     public void testIsJobConfigValidTargetNotExisting() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
@@ -337,7 +349,7 @@ public class HubBuildProcessTest {
     @Test
     @Ignore
     public void testIsJobConfigValidTargetValid() throws Exception {
-        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext());
+        HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
         HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
@@ -354,11 +366,12 @@ public class HubBuildProcessTest {
     public void testCallNothingConfigured() throws Exception {
         TestBuildRunnerContext context = new TestBuildRunnerContext();
         context.setWorkingDirectory(workingDirectory);
+        context.getRunnerParameters().put(HubConstantValues.HUB_SCAN_MEMORY, "256");
 
         TestAgentRunningBuild build = new TestAgentRunningBuild();
         build.setLogger(testLogger);
 
-        HubBuildProcess process = new HubBuildProcess(build, context);
+        HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
 
         assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
 
@@ -387,7 +400,7 @@ public class HubBuildProcessTest {
         TestAgentRunningBuild build = new TestAgentRunningBuild();
         build.setLogger(testLogger);
 
-        HubBuildProcess process = new HubBuildProcess(build, context);
+        HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
 
         assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
 
@@ -417,7 +430,7 @@ public class HubBuildProcessTest {
         TestAgentRunningBuild build = new TestAgentRunningBuild();
         build.setLogger(testLogger);
 
-        HubBuildProcess process = new HubBuildProcess(build, context);
+        HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
 
         assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
 
@@ -449,7 +462,7 @@ public class HubBuildProcessTest {
         TestAgentRunningBuild build = new TestAgentRunningBuild();
         build.setLogger(testLogger);
 
-        HubBuildProcess process = new HubBuildProcess(build, context);
+        HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
 
         assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
 
@@ -497,7 +510,7 @@ public class HubBuildProcessTest {
             build.setAgentConfiguration(agentConfig);
             build.setLogger(testLogger);
 
-            HubBuildProcess process = new HubBuildProcess(build, context);
+            HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
 
             BuildFinishedStatus result = process.call();
 
@@ -596,7 +609,7 @@ public class HubBuildProcessTest {
             context.setBuild(build);
             build.setLogger(testLogger);
 
-            HubBuildProcess process = new HubBuildProcess(build, context);
+            HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
             BuildFinishedStatus result = process.call();
 
             String output = testLogger.getErrorMessagesString();
@@ -695,7 +708,7 @@ public class HubBuildProcessTest {
             context.setBuild(build);
             build.setLogger(testLogger);
 
-            HubBuildProcess process = new HubBuildProcess(build, context);
+            HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
             BuildFinishedStatus result = process.call();
 
             String output = testLogger.getErrorMessagesString();

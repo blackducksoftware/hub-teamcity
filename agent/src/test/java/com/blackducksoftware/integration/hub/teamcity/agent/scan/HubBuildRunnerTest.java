@@ -8,6 +8,7 @@ import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
 import org.junit.Test;
 
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestAgentRunningBuild;
+import com.blackducksoftware.integration.hub.teamcity.agent.util.TestArtifactsWatcher;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildRunnerContext;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 
@@ -15,19 +16,19 @@ public class HubBuildRunnerTest {
 
     @Test
     public void testConstructor() {
-        assertNotNull(new HubBuildRunner());
+        assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
 
     }
 
     @Test
     public void testCreateBuildProcess() throws Exception {
-        HubBuildRunner runner = new HubBuildRunner();
+        HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
         assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext()));
     }
 
     @Test
     public void testGetRunnerInfo() {
-        HubBuildRunner runner = new HubBuildRunner();
+        HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
         AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
 
         assertTrue(runnerInfo.canRun(null));
