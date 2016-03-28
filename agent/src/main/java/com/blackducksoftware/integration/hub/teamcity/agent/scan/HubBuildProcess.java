@@ -26,6 +26,7 @@ import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
+import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
@@ -219,7 +220,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 HubSupportHelper hubSupport = new HubSupportHelper();
                 hubSupport.checkHubSupport(restService, hubLogger);
 
-                doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec, globalConfig, jobConfig, hubSupport);
+                ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec, globalConfig, jobConfig, hubSupport);
 
                 if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
                     // TODO
@@ -236,6 +237,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     hubReportGenerationInfo.setVersionId(versionId);
                     hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
                     hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
+                    hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
 
                     RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo, hubSupport);
                     HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger);
@@ -421,7 +423,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return versionId;
     }
 
-    public void doHubScan(HubIntRestService service, HubAgentBuildLogger logger,
+    public ScanExecutor doHubScan(HubIntRestService service, HubAgentBuildLogger logger,
             File oneJarFile, File scanExec, File javaExec, ServerHubConfigBean globalConfig, HubScanJobConfig jobConfig, HubSupportHelper supportHelper)
             throws HubIntegrationException,
             IOException,
@@ -470,6 +472,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         if (scanResult != Result.SUCCESS) {
             result = BuildFinishedStatus.FINISHED_FAILED;
         }
+
+        return scan;
     }
 
     public void addProxySettingsToScanner(IntLogger logger, TeamCityScanExecutor scan, HubProxyInfo proxyInfo) throws HubIntegrationException,
