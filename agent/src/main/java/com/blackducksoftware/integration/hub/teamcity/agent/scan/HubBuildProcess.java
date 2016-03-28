@@ -16,6 +16,7 @@ import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
+import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -59,15 +60,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     @NotNull
     private final BuildRunnerContext context;
 
+    @NotNull
+    private final ArtifactsWatcher artifactsWatcher;
+
     private HubAgentBuildLogger logger;
 
     private BuildFinishedStatus result;
 
     private Boolean verbose;
 
-    public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context) {
+    public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context, @NotNull final ArtifactsWatcher artifactsWatcher) {
         this.build = build;
         this.context = context;
+        this.artifactsWatcher = artifactsWatcher;
     }
 
     public void setverbose(boolean verbose) {
@@ -243,6 +248,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     FileWriter writer = new FileWriter(reportPath);
                     writer.write(contents);
                     writer.close();
+
+                    artifactsWatcher.addNewArtifactsPath(reportPath);
                 }
 
                 checkPolicyFailures(build, hubLogger, hubSupport, restService, projectId, versionId);
