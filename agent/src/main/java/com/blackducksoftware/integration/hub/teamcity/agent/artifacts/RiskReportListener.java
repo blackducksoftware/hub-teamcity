@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import jetbrains.buildServer.agent.AgentLifeCycleAdapter;
 import jetbrains.buildServer.agent.AgentLifeCycleListener;
+import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
@@ -18,21 +19,27 @@ public class RiskReportListener extends AgentLifeCycleAdapter {
     @NotNull
     private final ArtifactsWatcher artifactsWatcher;
 
-    public RiskReportListener(@NotNull final EventDispatcher<AgentLifeCycleListener> agentDispatcher, @NotNull final ArtifactsWatcher artifactsWatcher) {
+    private final BuildRunnerContext context;
+
+    public RiskReportListener(@NotNull final EventDispatcher<AgentLifeCycleListener> agentDispatcher, @NotNull final ArtifactsWatcher artifactsWatcher,
+            BuildRunnerContext context) {
         this.artifactsWatcher = artifactsWatcher;
+        this.context = context;
+
         agentDispatcher.addListener(this);
     }
 
     @Override
-    public void runnerFinished(@NotNull BuildRunnerContext runner, @NotNull BuildFinishedStatus status) {
-        runner.getBuild().getBuildLogger().error("risk report listener called for build finished");
+    public void buildFinished(@NotNull AgentRunningBuild agentRunningBuild, @NotNull BuildFinishedStatus status) {
         try {
-            String workingDirectoryCanonicalPath = runner.getWorkingDirectory().getCanonicalPath();
+            String workingDirectoryCanonicalPath = context.getWorkingDirectory().getCanonicalPath();
             String reportPath = workingDirectoryCanonicalPath + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
-
-            artifactsWatcher.addNewArtifactsPath(reportPath);
+            File riskReportFile = new File(reportPath);
+            if (null != riskReportFile && riskReportFile.exists()) {
+                artifactsWatcher.addNewArtifactsPath(reportPath);
+            }
         } catch (IOException e) {
-            runner.getBuild().getBuildLogger().error("IOException processing risk report: " + e.getMessage());
+            agentRunningBuild.getBuildLogger().error("IOException processing risk report: " + e.getMessage());
         }
     }
 
