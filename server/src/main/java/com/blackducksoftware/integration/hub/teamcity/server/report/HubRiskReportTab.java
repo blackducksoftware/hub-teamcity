@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+import com.blackducksoftware.integration.hub.util.HubResourceBundleHelper;
 import com.google.gson.Gson;
 
 public class HubRiskReportTab extends SimpleCustomTab {
@@ -42,6 +43,9 @@ public class HubRiskReportTab extends SimpleCustomTab {
             HubRiskReportData hubRiskReportData = gson.fromJson(fileReader, HubRiskReportData.class);
 
             model.put("hubRiskReportData", hubRiskReportData);
+
+            HubResourceBundleHelper bundle = new HubResourceBundleHelper();
+            model.put("bundle", bundle);
         } catch (IOException e) {
             Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());
         }
