@@ -46,12 +46,12 @@ import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
+import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
 import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 import com.blackducksoftware.integration.hub.version.api.ReleaseItem;
 import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
 import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
-import com.blackducksoftware.integration.util.HostnameHelper;
 import com.google.gson.Gson;
 
 public class HubBuildProcess extends HubCallableBuildProcess {

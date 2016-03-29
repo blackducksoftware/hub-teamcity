@@ -32,6 +32,7 @@
 		class="com.blackducksoftware.integration.hub.teamcity.server.runner.HubParametersPreprocessor"
 		depends-on="hubServerListener" />
 
-    <bean id="policyViolationFailure" class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature"/>
-      
+	<bean id="policyViolationFailure"
+		class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature" />
+
 </beans>
