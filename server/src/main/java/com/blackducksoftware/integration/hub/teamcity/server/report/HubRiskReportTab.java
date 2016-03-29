@@ -45,6 +45,10 @@ public class HubRiskReportTab extends SimpleCustomTab {
             model.put("hubRiskReportData", hubRiskReportData);
 
             HubResourceBundleHelper bundle = new HubResourceBundleHelper();
+            bundle.setKeyPrefix("hub.riskreport");
+            if (null != request.getLocale()) {
+                bundle.setLocale(request.getLocale());
+            }
             model.put("bundle", bundle);
         } catch (IOException e) {
             Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());

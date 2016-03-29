@@ -18,7 +18,7 @@
 
 <div class="riskReportBackgroundColor">
 	<div class="reportHeader">
-		<div class="h1 reportHeaderTitle">${bundle.getRiskReportKey("title")}</div>
+		<div class="h1 reportHeaderTitle">${bundle.getString("title")}</div>
 
 		<div style="float: right;">
 			<img class="reportHeaderIcon"
@@ -42,13 +42,13 @@
 			<div style="float: right;"
 				class="linkText riskReportText clickable evenPadding"
 				onclick="window.open('${hubRiskReportData.getReport().getReportVersionUrl()}', '_blank');">
-				${bundle.getRiskReportKey("hub.report.link")}</div>
+				${bundle.getString("hub.report.link")}</div>
 		</div>
 		<div>
-			<div class="versionSummaryLabel">${bundle.getRiskReportKey("phase")}:</div>
+			<div class="versionSummaryLabel">${bundle.getString("phase")}:</div>
 			<div class="versionSummaryLabel">${hubRiskReportData.htmlEscape(hubRiskReportData.getReport().getDetailedReleaseSummary().getPhaseDisplayValue())}</div>
 			<div class="versionSummaryLabel">|</div>
-			<div class="versionSummaryLabel">${bundle.getRiskReportKey("distribution")}:</div>
+			<div class="versionSummaryLabel">${bundle.getString("distribution")}:</div>
 			<div class="versionSummaryLabel">${hubRiskReportData.htmlEscape(hubRiskReportData.getReport().getDetailedReleaseSummary().getDistributionDisplayValue())}</div>
 		</div>
 	</div>
@@ -56,14 +56,14 @@
 	<!-- SECURITY RISK SUMMARY -->
 	<div class="riskSummaryContainer horizontal rounded">
 		<div class="riskSummaryContainerLabel">
-			${bundle.getRiskReportKey("vulnerability.risk.title")} <i id="securityDescriptionIcon"
+			${bundle.getString("vulnerability.risk.title")} <i id="securityDescriptionIcon"
 				class="fa fa-info-circle infoIcon"
-				title="${bundle.getRiskReportKey('vulnerability.risk.description')}"></i>
+				title="${bundle.getString('vulnerability.risk.description')}"></i>
 		</div>
 
 		<div class="progress-bar horizontal">
 			<div id="highSecurityRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getRiskReportKey("entry.high")}</div>
+				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getString("entry.high")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getVulnerabilityRiskHighCount()}</div>
 			<div class="progress-track">
@@ -75,7 +75,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="mediumSecurityRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getRiskReportKey("entry.medium")}</div>
+				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getString("entry.medium")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getVulnerabilityRiskMediumCount()}</div>
 			<div class="progress-track">
@@ -87,7 +87,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="lowSecurityRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getRiskReportKey("entry.low")}</div>
+				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getString("entry.low")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getVulnerabilityRiskLowCount()}</div>
 			<div class="progress-track">
@@ -99,7 +99,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="noneSecurityRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getRiskReportKey("entry.none")}</div>
+				onclick="filterTableByVulnerabilityRisk(this)">${bundle.getString("entry.none")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getVulnerabilityRiskNoneCount()}</div>
 			<div class="progress-track">
@@ -114,14 +114,14 @@
 	<!-- LICENSE  RISK SUMMARY -->
 	<div class="riskSummaryContainer horizontal rounded">
 		<div class="riskSummaryContainerLabel">
-			${bundle.getRiskReportKey("license.risk.title")} <i id="licenseDescriptionIcon"
+			${bundle.getString("license.risk.title")} <i id="licenseDescriptionIcon"
 				class="fa fa-info-circle infoIcon"
-				title="${bundle.getRiskReportKey('license.risk.description')}"></i>
+				title="${bundle.getString('license.risk.description')}"></i>
 		</div>
 
 		<div class="progress-bar horizontal">
 			<div id="highLicenseRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByLicenseRisk(this)">${bundle.getRiskReportKey("entry.high")}</div>
+				onclick="filterTableByLicenseRisk(this)">${bundle.getString("entry.high")}</div>
 			<div class="riskSummaryCount">${hubRiskReportData.getLicenseRiskHighCount()}</div>
 			<div class="progress-track">
 				<div id="highLicenseRiskBar" class="progress-fill-high">
@@ -132,7 +132,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="mediumLicenseRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByLicenseRisk(this)">${bundle.getRiskReportKey("entry.medium")}</div>
+				onclick="filterTableByLicenseRisk(this)">${bundle.getString("entry.medium")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getLicenseRiskMediumCount()}</div>
 			<div class="progress-track">
@@ -144,7 +144,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="lowLicenseRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByLicenseRisk(this)">${bundle.getRiskReportKey("entry.low")}</div>
+				onclick="filterTableByLicenseRisk(this)">${bundle.getString("entry.low")}</div>
 			<div class="riskSummaryCount">${hubRiskReportData.getLicenseRiskLowCount()}</div>
 			<div class="progress-track">
 				<div id="lowLicenseRiskBar" class="progress-fill-low">
@@ -155,7 +155,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="noneLicenseRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByLicenseRisk(this)">${bundle.getRiskReportKey("entry.none")}</div>
+				onclick="filterTableByLicenseRisk(this)">${bundle.getString("entry.none")}</div>
 			<div class="riskSummaryCount">${hubRiskReportData.getLicenseRiskNoneCount()}</div>
 			<div class="progress-track">
 				<div id="noLicenseRiskBar" class="progress-fill-none">
@@ -169,14 +169,14 @@
 	<!-- OPERATIONAL RISK SUMMARY -->
 	<div class="riskSummaryContainer horizontal rounded">
 		<div class="riskSummaryContainerLabel">
-			${bundle.getRiskReportKey("operational.risk.title")} <i id="operationalDescriptionIcon"
+			${bundle.getString("operational.risk.title")} <i id="operationalDescriptionIcon"
 				class="fa fa-info-circle infoIcon"
-				title="${bundle.getRiskReportKey('operational.risk.description')}"></i>
+				title="${bundle.getString('operational.risk.description')}"></i>
 		</div>
 
 		<div class="progress-bar horizontal">
 			<div id="highOperationalRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByOperationalRisk(this)">${bundle.getRiskReportKey("entry.high")}</div>
+				onclick="filterTableByOperationalRisk(this)">${bundle.getString("entry.high")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getOperationalRiskHighCount()}</div>
 			<div class="progress-track">
@@ -189,7 +189,7 @@
 		<div class="progress-bar horizontal">
 			<div id="mediumOperationalRiskLabel"
 				class="clickable riskSummaryLabel"
-				onclick="filterTableByOperationalRisk(this)">${bundle.getRiskReportKey("entry.medium")}</div>
+				onclick="filterTableByOperationalRisk(this)">${bundle.getString("entry.medium")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getOperationalRiskMediumCount()}</div>
 			<div class="progress-track">
@@ -201,7 +201,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="lowOperationalRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByOperationalRisk(this)">${bundle.getRiskReportKey("entry.low")}</div>
+				onclick="filterTableByOperationalRisk(this)">${bundle.getString("entry.low")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getOperationalRiskLowCount()}</div>
 			<div class="progress-track">
@@ -213,7 +213,7 @@
 
 		<div class="progress-bar horizontal">
 			<div id="noneOperationalRiskLabel" class="clickable riskSummaryLabel"
-				onclick="filterTableByOperationalRisk(this)">${bundle.getRiskReportKey("entry.none")}</div>
+				onclick="filterTableByOperationalRisk(this)">${bundle.getString("entry.none")}</div>
 			<div class="riskSummaryCount">
 				${hubRiskReportData.getOperationalRiskNoneCount()}</div>
 			<div class="progress-track">
@@ -228,7 +228,7 @@
 	<table class="table-summary horizontal">
 		<tbody>
 			<tr>
-				<td class="summaryLabel" style="font-weight: bold;">${bundle.getRiskReportKey("entries")}:</td>
+				<td class="summaryLabel" style="font-weight: bold;">${bundle.getString("entries")}:</td>
 				<td class="summaryValue">${hubRiskReportData.getBomEntries().size()}</td>
 			</tr>
 		</tbody>
@@ -236,16 +236,16 @@
 	<table id="hubBomReport" class="table sortable">
 		<thead>
 			<tr>
-				<th class="clickable componentColumn columnLabel evenPadding">${bundle.getRiskReportKey("component")}</th>
-				<th class="clickable componentColumn columnLabel evenPadding">${bundle.getRiskReportKey("version")}</th>
-				<th class="clickable columnLabel evenPadding">${bundle.getRiskReportKey("license")}</th>
-				<th class="clickable riskColumnLabel evenPadding">${bundle.getRiskReportKey("entry.high.short")}</th>
-				<th class="clickable riskColumnLabel evenPadding">${bundle.getRiskReportKey("entry.medium.short")}</th>
-				<th class="clickable riskColumnLabel evenPadding">${bundle.getRiskReportKey("entry.low.short")}</th>
+				<th class="clickable componentColumn columnLabel evenPadding">${bundle.getString("component")}</th>
+				<th class="clickable componentColumn columnLabel evenPadding">${bundle.getString("version")}</th>
+				<th class="clickable columnLabel evenPadding">${bundle.getString("license")}</th>
+				<th class="clickable riskColumnLabel evenPadding">${bundle.getString("entry.high.short")}</th>
+				<th class="clickable riskColumnLabel evenPadding">${bundle.getString("entry.medium.short")}</th>
+				<th class="clickable riskColumnLabel evenPadding">${bundle.getString("entry.low.short")}</th>
 				<th class="clickable riskColumnLabel evenPadding"
-					title="${bundle.getRiskReportKey('license.risk.title')}">${bundle.getRiskReportKey("license.risk.title.short")}</th>
+					title="${bundle.getString('license.risk.title')}">${bundle.getString("license.risk.title.short")}</th>
 				<th class="clickable riskColumnLabel evenPadding"
-					title="${bundle.getRiskReportKey('operational.risk.title')}">${bundle.getRiskReportKey("operational.risk.title.short")}</th>
+					title="${bundle.getString('operational.risk.title')}">${bundle.getString("operational.risk.title.short")}</th>
 			</tr>
 		</thead>
 		<tbody>
