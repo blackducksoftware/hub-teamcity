@@ -2,8 +2,8 @@ package com.blackducksoftware.integration.hub.teamcity.server.global;
 
 import jetbrains.buildServer.log.Loggers;
 
-import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
-import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
+import com.blackducksoftware.integration.hub.logging.IntLogger;
+import com.blackducksoftware.integration.hub.logging.LogLevel;
 
 public class HubServerLogger implements IntLogger {
     private LogLevel loggerLevel = LogLevel.INFO;

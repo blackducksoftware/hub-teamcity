@@ -5,8 +5,8 @@ import java.io.StringWriter;
 
 import jetbrains.buildServer.agent.BuildProgressLogger;
 
-import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
-import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
+import com.blackducksoftware.integration.hub.logging.IntLogger;
+import com.blackducksoftware.integration.hub.logging.LogLevel;
 
 public class HubAgentBuildLogger implements IntLogger {
     private final BuildProgressLogger logger;

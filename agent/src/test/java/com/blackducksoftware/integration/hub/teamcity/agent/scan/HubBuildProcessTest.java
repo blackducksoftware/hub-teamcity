@@ -301,7 +301,6 @@ public class HubBuildProcessTest {
         HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(), new TestArtifactsWatcher());
         process.setHubLogger(logger);
 
-        exception.expect(HubIntegrationException.class);
         HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
         builder.build(logger);
     }
