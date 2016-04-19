@@ -30,7 +30,9 @@ import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.encryption.PasswordEncrypter;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
+import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
@@ -382,9 +384,9 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			// Do not change the saved password unless the User has provided a
 			// new one
 			final String decryptedWebPassword = getDecryptedWebPassword(password);
-
 			if (StringUtils.isNotBlank(decryptedWebPassword)) {
-				credentialsBean.setEncryptedPassword(PasswordEncrypter.publicEncrypt(decryptedWebPassword));
+				credentialsBean
+						.setEncryptedPassword(PasswordEncrypter.encrypt(new HubServerLogger(), decryptedWebPassword));
 				credentialsBean.setActualPasswordLength(decryptedWebPassword.length());
 			}
 		} else {

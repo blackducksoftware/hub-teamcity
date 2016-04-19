@@ -7,163 +7,163 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.blackducksoftware.integration.suite.sdk.util.PasswordDecrypter;
+import com.blackducksoftware.integration.hub.encryption.PasswordDecrypter;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("globalHubCredentials")
 public class HubCredentialsBean implements Serializable {
+	private static final long serialVersionUID = -7836018713177994162L;
 
-    private String hubUser;
+	private String hubUser;
 
-    private String hubPass;
+	private String hubPass;
 
-    private Integer actualPasswordLength;
+	private Integer actualPasswordLength;
 
-    public HubCredentialsBean(String hubUser) {
-        this.hubUser = hubUser;
-    }
+	public HubCredentialsBean(final String hubUser) {
+		this.hubUser = hubUser;
+	}
 
-    public HubCredentialsBean(String hubUser, String password) {
-        this.hubUser = hubUser;
-        hubPass = password;
-    }
+	public HubCredentialsBean(final String hubUser, final String password) {
+		this.hubUser = hubUser;
+		hubPass = password;
+	}
 
-    public HubCredentialsBean(HubCredentialsBean credentials) {
-        if ((credentials != null) && !credentials.isEmpty()) {
-            hubUser = credentials.getHubUser();
+	public HubCredentialsBean(final HubCredentialsBean credentials) {
+		if ((credentials != null) && !credentials.isEmpty()) {
+			hubUser = credentials.getHubUser();
 
-            hubPass = credentials.getEncryptedPassword();
-        }
-    }
+			hubPass = credentials.getEncryptedPassword();
+		}
+	}
 
-    public String getHubUser() {
-        return hubUser;
-    }
+	public String getHubUser() {
+		return hubUser;
+	}
 
-    public void setHubUser(String hubUser) {
-        this.hubUser = hubUser;
-    }
+	public void setHubUser(final String hubUser) {
+		this.hubUser = hubUser;
+	}
 
-    public String getEncryptedPassword() {
-        return hubPass;
-    }
+	public String getEncryptedPassword() {
+		return hubPass;
+	}
 
-    public void setEncryptedPassword(String encryptedPassword) {
-        hubPass = encryptedPassword;
-    }
+	public void setEncryptedPassword(final String encryptedPassword) {
+		hubPass = encryptedPassword;
+	}
 
-    public Integer getActualPasswordLength() {
-        return actualPasswordLength;
-    }
+	public Integer getActualPasswordLength() {
+		return actualPasswordLength;
+	}
 
-    public void setActualPasswordLength(Integer actualPasswordLength) {
-        this.actualPasswordLength = actualPasswordLength;
-    }
+	public void setActualPasswordLength(final Integer actualPasswordLength) {
+		this.actualPasswordLength = actualPasswordLength;
+	}
 
-    public String getMaskedPassword() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        if (StringUtils.isBlank(hubPass)) {
-            return null;
-        }
+	public String getMaskedPassword()
+			throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+		if (StringUtils.isBlank(hubPass)) {
+			return null;
+		}
 
-        if (actualPasswordLength == null) {
-            String password = getDecryptedPassword();
-            if (StringUtils.isNotBlank(password)) {
-                actualPasswordLength = password.length();
-            }
-        }
-        if (actualPasswordLength != null) {
-            char[] array = new char[actualPasswordLength];
-            Arrays.fill(array, '*');
-            return new String(array);
-        } else {
-            return null;
-        }
-    }
+		if (actualPasswordLength == null) {
+			final String password = getDecryptedPassword();
+			if (StringUtils.isNotBlank(password)) {
+				actualPasswordLength = password.length();
+			}
+		}
+		if (actualPasswordLength != null) {
+			final char[] array = new char[actualPasswordLength];
+			Arrays.fill(array, '*');
+			return new String(array);
+		} else {
+			return null;
+		}
+	}
 
-    public String getDecryptedPassword() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        String encryptedPassword = hubPass;
-        if (StringUtils.isBlank(encryptedPassword)) {
-            return null;
-        }
-        ClassLoader originalClassLoader = Thread.currentThread()
-                .getContextClassLoader();
-        boolean changed = false;
-        try {
+	public String getDecryptedPassword()
+			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		final String encryptedPassword = hubPass;
+		if (StringUtils.isBlank(encryptedPassword)) {
+			return null;
+		}
+		final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+		boolean changed = false;
+		try {
+			if (PasswordDecrypter.class.getClassLoader() != originalClassLoader) {
+				changed = true;
+				Thread.currentThread().setContextClassLoader(PasswordDecrypter.class.getClassLoader());
+			}
 
-            if (PasswordDecrypter.class.getClassLoader() != originalClassLoader) {
-                changed = true;
-                Thread.currentThread().setContextClassLoader(PasswordDecrypter.class.getClassLoader());
-            }
+			final Method method = PasswordDecrypter.class.getDeclaredMethod("decrypt", String.class);
+			method.setAccessible(true);
+			final Object result = method.invoke(null, encryptedPassword);
+			if (result != null) {
+				return String.valueOf(result);
+			} else {
+				return null;
+			}
+		} finally {
+			if (changed) {
+				Thread.currentThread().setContextClassLoader(originalClassLoader);
+			}
+		}
+	}
 
-            Method method = PasswordDecrypter.class.getDeclaredMethod("decrypt", String.class);
-            method.setAccessible(true);
-            Object result = method.invoke(null, encryptedPassword);
-            if (result != null) {
-                return String.valueOf(result);
-            } else {
-                return null;
-            }
-        } finally {
-            if (changed) {
-                Thread.currentThread().setContextClassLoader(
-                        originalClassLoader);
-            }
-        }
-    }
+	public boolean isEmpty() {
+		return StringUtils.isBlank(hubUser) && StringUtils.isBlank(hubPass);
+	}
 
-    public boolean isEmpty() {
-        return StringUtils.isBlank(hubUser) && StringUtils.isBlank(hubPass);
-    }
+	@Override
+	public String toString() {
+		return "CCCredentialsBean [hubUser=" + hubUser + ", hubPass=" + hubPass + "]";
+	}
 
-    @Override
-    public String toString() {
-        return "CCCredentialsBean [hubUser=" + hubUser + ", hubPass=" + hubPass + "]";
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((hubPass == null) ? 0 : hubPass.hashCode());
+		result = prime * result + ((hubUser == null) ? 0 : hubUser.hashCode());
+		result = prime * result + ((actualPasswordLength == null) ? 0 : actualPasswordLength);
+		return result;
+	}
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((hubPass == null) ? 0 : hubPass.hashCode());
-        result = prime * result + ((hubUser == null) ? 0 : hubUser.hashCode());
-        result = prime * result + ((actualPasswordLength == null) ? 0 : actualPasswordLength);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        HubCredentialsBean other = (HubCredentialsBean) obj;
-        if (hubPass == null) {
-            if (other.hubPass != null) {
-                return false;
-            }
-        } else if (!hubPass.equals(other.hubPass)) {
-            return false;
-        }
-        if (hubUser == null) {
-            if (other.hubUser != null) {
-                return false;
-            }
-        } else if (!hubUser.equals(other.hubUser)) {
-            return false;
-        }
-        if (actualPasswordLength == null) {
-            if (other.actualPasswordLength != null) {
-                return false;
-            }
-        } else if (actualPasswordLength != other.actualPasswordLength) {
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final HubCredentialsBean other = (HubCredentialsBean) obj;
+		if (hubPass == null) {
+			if (other.hubPass != null) {
+				return false;
+			}
+		} else if (!hubPass.equals(other.hubPass)) {
+			return false;
+		}
+		if (hubUser == null) {
+			if (other.hubUser != null) {
+				return false;
+			}
+		} else if (!hubUser.equals(other.hubUser)) {
+			return false;
+		}
+		if (actualPasswordLength == null) {
+			if (other.actualPasswordLength != null) {
+				return false;
+			}
+		} else if (actualPasswordLength != other.actualPasswordLength) {
+			return false;
+		}
+		return true;
+	}
 
 }
