@@ -508,7 +508,7 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-					PasswordEncrypter.encrypt(testLogger, testProperties.getProperty("TEST_PASSWORD")));
+					PasswordEncrypter.encrypt(logger, testProperties.getProperty("TEST_PASSWORD")));
 
 			context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
 			context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION,
@@ -621,7 +621,7 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-					PasswordEncrypter.publicEncrypt(testProperties.getProperty("TEST_PASSWORD")));
+					PasswordEncrypter.encrypt(logger, testProperties.getProperty("TEST_PASSWORD")));
 
 			context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST,
 					testProperties.getProperty("TEST_PROXY_HOST_PASSTHROUGH"));
@@ -745,7 +745,7 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-					PasswordEncrypter.publicEncrypt(testProperties.getProperty("TEST_PASSWORD")));
+					PasswordEncrypter.encrypt(logger, testProperties.getProperty("TEST_PASSWORD")));
 
 			context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST,
 					testProperties.getProperty("TEST_PROXY_HOST_PASSTHROUGH"));
