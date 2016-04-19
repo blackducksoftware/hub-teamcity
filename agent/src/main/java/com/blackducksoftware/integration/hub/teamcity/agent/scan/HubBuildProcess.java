@@ -33,6 +33,8 @@ import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.logging.IntLogger;
+import com.blackducksoftware.integration.hub.logging.LogLevel;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
@@ -50,8 +52,6 @@ import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
 import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 import com.blackducksoftware.integration.hub.version.api.ReleaseItem;
-import com.blackducksoftware.integration.suite.sdk.logging.IntLogger;
-import com.blackducksoftware.integration.suite.sdk.logging.LogLevel;
 import com.google.gson.Gson;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
@@ -163,7 +163,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             hubScanJobConfigBuilder.setDistribution(distribution);
             hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
             hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
-            hubScanJobConfigBuilder.setMaxWaitTimeForRiskReport(maxWaitTimeForRiskReport);
+            hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
             hubScanJobConfigBuilder.setScanMemory(scanMemory);
             hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 

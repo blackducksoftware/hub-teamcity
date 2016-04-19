@@ -18,11 +18,8 @@ import jetbrains.buildServer.log.LogInitializer;
 
 public class HubServerLoggerTest {
 	private static PrintStream orgStream = null;
-
 	private static PrintStream orgErrStream = null;
-
 	private static ByteArrayOutputStream byteOutput = null;
-
 	private static PrintStream currStream = null;
 
 	@BeforeClass
