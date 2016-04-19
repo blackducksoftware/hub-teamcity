@@ -45,9 +45,8 @@
 
 	<repositories>
 		<repository>
-			<id>repo.jenkins-ci.org</id>
-			<name>jenkins</name>
-			<url>http://repo.jenkins-ci.org/public/</url>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com</url>
 		</repository>
 		<repository>
 			<id>bds-int-public</id>
@@ -58,11 +57,11 @@
 	<distributionManagement>
 		<repository>
 			<id>bds-int-public</id>
-			<url>https://updates.suite.blackducksoftware.com/bdhubjenkins</url>
+			<url>https://updates.suite.blackducksoftware.com/integrations/</url>
 		</repository>
 		<snapshotRepository>
 			<id>bds-int-public</id>
-			<url>https://updates.suite.blackducksoftware.com/bdhubjenkins</url>
+			<url>https://updates.suite.blackducksoftware.com/integrations/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
