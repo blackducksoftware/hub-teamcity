@@ -602,9 +602,9 @@ public class HubBuildProcessTest {
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-				if (project != null && project.getId() != null) {
-					restHelper.deleteHubProject(project.getId());
-				}
+				// if (project != null && project.getId() != null) {
+				// restHelper.deleteHubProject(project.getId());
+				// }
 			} catch (final ProjectDoesNotExistException e) {
 				// ignore this one
 			}
@@ -722,9 +722,9 @@ public class HubBuildProcessTest {
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-				if (project != null && project.getId() != null) {
-					restHelper.deleteHubProject(project.getId());
-				}
+				// if (project != null && project.getId() != null) {
+				// restHelper.deleteHubProject(project.getId());
+				// }
 			} catch (final ProjectDoesNotExistException e) {
 				// ignore this one
 			}
@@ -841,9 +841,9 @@ public class HubBuildProcessTest {
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-				if (project != null && project.getId() != null) {
-					restHelper.deleteHubProject(project.getId());
-				}
+				// if (project != null && project.getId() != null) {
+				// restHelper.deleteHubProject(project.getId());
+				// }
 			} catch (final ProjectDoesNotExistException e) {
 				// ignore this one
 			}
