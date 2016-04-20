@@ -20,11 +20,19 @@ import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
+import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
+import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistException;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.logging.IntLogger;
 import com.blackducksoftware.integration.hub.logging.LogLevel;
+import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
+import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
+import com.blackducksoftware.integration.hub.polling.HubEventPolling;
+import com.blackducksoftware.integration.hub.project.api.ProjectItem;
 import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
 import com.blackducksoftware.integration.hub.report.api.RiskReportGenerator;
@@ -37,6 +45,7 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredential
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
+import com.blackducksoftware.integration.hub.version.api.ReleaseItem;
 import com.google.gson.Gson;
 
 import jetbrains.buildServer.agent.AgentBuildFeature;
@@ -124,7 +133,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		printGlobalConfiguration(globalConfig);
 
 		final String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
-		final String version = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
+		final String projectVersion = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
 		final String phase = getParameter(HubConstantValues.HUB_VERSION_PHASE);
 		final String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
 		final String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
@@ -153,7 +162,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		try {
 			final HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder();
 			hubScanJobConfigBuilder.setProjectName(projectName);
-			hubScanJobConfigBuilder.setVersion(version);
+			hubScanJobConfigBuilder.setVersion(projectVersion);
 			hubScanJobConfigBuilder.setPhase(phase);
 			hubScanJobConfigBuilder.setDistribution(distribution);
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
@@ -205,14 +214,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				final File javaExec = installer.getProvidedJavaExec();
 
-				String projectId = null;
-				String versionId = null;
+				ProjectItem project = null;
+				ReleaseItem version = null;
 
-				// TODO this code is a remnant of an old Hub version, the CLI
-				// will create the project and version for us
 				if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
-					projectId = ensureProjectExists(restService, logger, jobConfig);
-					versionId = ensureVersionExists(restService, logger, jobConfig, projectId);
+					project = ensureProjectExists(restService, logger, projectName);
+					version = ensureVersionExists(restService, logger, projectVersion, project, jobConfig);
 				}
 
 				final HubSupportHelper hubSupport = new HubSupportHelper();
@@ -221,27 +228,21 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
 						globalConfig, jobConfig, hubSupport);
 
+				final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
+				hubReportGenerationInfo.setService(restService);
+				hubReportGenerationInfo.setHostname(localHostName);
+				hubReportGenerationInfo.setProject(project);
+				hubReportGenerationInfo.setVersion(version);
+				hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
+				hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForBomUpdateInMilliseconds());
+				hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
+
+				boolean waitForBom = true;
+
 				if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
-					// TODO
-					// if Hub older than 3.0.0, we should get the project and
-					// version Id ourselves. If either doesnt
-					// exist, throw exception (could be related to the CLI issue
-					// HUB-6348
 
-					// if Hub 3.0.0 or newer, can we use the status files to get
-					// the code locations and get the version
-					// the CL is mapped to and the project this version belongs
-					// to
-
-					final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
-					hubReportGenerationInfo.setService(restService);
-					hubReportGenerationInfo.setHostname(localHostName);
-					// hubReportGenerationInfo.setProjectId(projectId);
-					// hubReportGenerationInfo.setVersionId(versionId);
-					hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
-					// hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForRiskReportInMilliseconds());
-					hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
-
+					waitForBomToBeUpdated(hubLogger, restService, hubSupport, hubReportGenerationInfo);
+					waitForBom = false;
 					final RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo,
 							hubSupport);
 					final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger);
@@ -259,7 +260,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					artifactsWatcher.addNewArtifactsPath(reportPath);
 				}
 
-				checkPolicyFailures(build, hubLogger, hubSupport, restService, projectId, versionId);
+				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo,
+						version.getLink(ReleaseItem.POLICY_STATUS_LINK), waitForBom);
 
 			} else {
 				logger.info("Skipping Hub Build Step");
@@ -269,10 +271,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			logger.error(e);
 			result = BuildFinishedStatus.FINISHED_FAILED;
 
-		} finally {
-
 		}
-
 		logger.targetFinished("Hub Build Step");
 		return result;
 	}
@@ -354,107 +353,100 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		}
 	}
 
-	private String ensureProjectExists(final HubIntRestService service, final IntLogger logger,
-			final HubScanJobConfig jobConfig) throws IOException, URISyntaxException, TeamCityHubPluginException {
-		final String projectName = jobConfig.getProjectName();
-		final String version = jobConfig.getVersion();
-		final String phaseString = jobConfig.getPhase();
-		final String distributionString = jobConfig.getDistribution();
+	private ProjectItem ensureProjectExists(final HubIntRestService service, final IntLogger logger,
+			final String projectName) throws IOException, URISyntaxException, TeamCityHubPluginException {
+		ProjectItem project = null;
+		try {
+			project = service.getProjectByName(projectName);
 
-		final String projectId = null;
-		// try {
-		// // projectId = service.getProjectByName(projectName).getId();
-		// projectId = null;
-		// } catch (final ProjectDoesNotExistException e) {
-		// // Project was not found, try to create it
-		// final PhaseEnum phase =
-		// PhaseEnum.getPhaseByDisplayValue(phaseString);
-		// final DistributionEnum distribution =
-		// DistributionEnum.getDistributionByDisplayValue(distributionString);
-		//
-		// try {
-		// logger.info("Creating project : " + projectName + " and version : " +
-		// version);
-		// // projectId = service.createHubProjectAndVersion(projectName,
-		// // version, phase.name(), distribution.name());
-		// projectId = null;
-		// logger.debug("Project and Version created!");
-		// } catch (final BDRestException e1) {
-		// if (e1.getResource() != null) {
-		// logger.error("Status : " + e1.getResource().getStatus().getCode());
-		// logger.error("Response : " +
-		// e1.getResource().getResponse().getEntityAsText());
-		// }
-		// throw new TeamCityHubPluginException("Problem creating the Project.
-		// ", e1);
-		// }
-		// } catch (final BDRestException e) {
-		// if (e.getResource() != null) {
-		// if (e.getResource() != null) {
-		// logger.error("Status : " + e.getResource().getStatus().getCode());
-		// logger.error("Response : " +
-		// e.getResource().getResponse().getEntityAsText());
-		// }
-		// throw new TeamCityHubPluginException("Problem getting the Project. ",
-		// e);
-		// }
-		// }
+		} catch (final NullPointerException npe) {
+			project = createProject(service, logger, projectName);
+		} catch (final ProjectDoesNotExistException e) {
+			project = createProject(service, logger, projectName);
+		} catch (final BDRestException e) {
+			if (e.getResource() != null) {
+				if (e.getResource() != null) {
+					logger.error("Status : " + e.getResource().getStatus().getCode());
+					logger.error("Response : " + e.getResource().getResponse().getEntityAsText());
+				}
+				throw new TeamCityHubPluginException("Problem getting the Project. ", e);
+			}
+		}
 
-		return projectId;
+		return project;
 	}
 
-	private String ensureVersionExists(final HubIntRestService service, final IntLogger logger,
-			final HubScanJobConfig jobConfig, final String projectId)
-					throws IOException, URISyntaxException, TeamCityHubPluginException {
-		final String versionId = null;
-		// try {
-		// final String version = jobConfig.getVersion();
-		// final String phaseString = jobConfig.getPhase();
-		// final String distributionString = jobConfig.getDistribution();
-		//
-		// final PhaseEnum phase =
-		// PhaseEnum.getPhaseByDisplayValue(phaseString);
-		// final DistributionEnum distribution =
-		// DistributionEnum.getDistributionByDisplayValue(distributionString);
-		//
-		// final List<ReleaseItem> projectVersions =
-		// service.getVersionsForProject(projectId);
-		// for (final ReleaseItem release : projectVersions) {
-		// if (version.equals(release.getVersion())) {
-		// versionId = release.getId();
-		// logger.info("Found version : " + version);
-		// if (!release.getPhase().equals(phase.name())) {
-		// logger.warn(
-		// "The selected Phase does not match the Phase of this Version. If you
-		// wish to update the Phase please do so in the Hub UI.");
-		// }
-		// if (!release.getDistribution().equals(distribution.name())) {
-		// logger.warn(
-		// "The selected Distribution does not match the Distribution of this
-		// Version. If you wish to update the Distribution please do so in the
-		// Hub UI.");
-		// }
-		// }
-		// }
-		// if (versionId == null) {
-		// logger.info("Creating version : " + version);
-		// versionId = service.createHubVersion(version, projectId,
-		// phase.name(), distribution.name());
-		// logger.debug("Version created!");
-		// }
-		// } catch (final BDRestException e) {
-		// throw new TeamCityHubPluginException("Could not retrieve or create
-		// the specified version.", e);
-		// }
+	private ProjectItem createProject(final HubIntRestService service, final IntLogger logger, final String projectName)
+			throws IOException, URISyntaxException, TeamCityHubPluginException {
+		// Project was not found, try to create it
+		ProjectItem project = null;
+		try {
+			final String projectUrl = service.createHubProject(projectName);
+			project = service.getProject(projectUrl);
+		} catch (final BDRestException e1) {
+			if (e1.getResource() != null) {
+				logger.error("Status : " + e1.getResource().getStatus().getCode());
+				logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
+			}
+			throw new TeamCityHubPluginException("Problem creating the Project. ", e1);
+		}
 
-		return versionId;
+		return project;
+	}
+
+	/**
+	 * Ensures the Version exists. Returns the version URL
+	 */
+	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
+			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
+			throws IOException, URISyntaxException, TeamCityHubPluginException {
+		ReleaseItem version = null;
+
+		try {
+			version = service.getVersion(project, projectVersion);
+			if (!version.getPhase().equals(jobConfig.getPhase())) {
+				logger.warn(
+						"The selected Phase does not match the Phase of this Version. If you wish to update the Phase please do so in the Hub UI.");
+			}
+			if (!version.getDistribution().equals(jobConfig.getDistribution())) {
+				logger.warn(
+						"The selected Distribution does not match the Distribution of this Version. If you wish to update the Distribution please do so in the Hub UI.");
+			}
+		} catch (final NullPointerException npe) {
+			version = createVersion(service, logger, projectVersion, project, jobConfig);
+		} catch (final VersionDoesNotExistException e) {
+			version = createVersion(service, logger, projectVersion, project, jobConfig);
+		} catch (final BDRestException e) {
+			throw new TeamCityHubPluginException("Could not retrieve or create the specified version.", e);
+		}
+		return version;
+	}
+
+	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
+			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
+			throws IOException, URISyntaxException, TeamCityHubPluginException {
+		ReleaseItem version = null;
+
+		try {
+			final String versionURL = service.createHubVersion(project, projectVersion, jobConfig.getPhase(),
+					jobConfig.getDistribution());
+			version = service.getProjectVersion(versionURL);
+		} catch (final BDRestException e1) {
+			if (e1.getResource() != null) {
+				logger.error("Status : " + e1.getResource().getStatus().getCode());
+				logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
+			}
+			throw new TeamCityHubPluginException("Problem creating the Version. ", e1);
+		}
+
+		return version;
 	}
 
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper)
-					throws HubIntegrationException, IOException, URISyntaxException, NumberFormatException,
-					NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			throws HubIntegrationException, IOException, URISyntaxException, NumberFormatException,
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -529,8 +521,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
-			final HubSupportHelper hubSupport, final HubIntRestService restService, final String projectId,
-			final String versionId) {
+			final HubSupportHelper hubSupport, final HubIntRestService restService,
+			final HubReportGenerationInfo bomUpdateInfo, final String policyStatusUrl, final boolean waitForBom) {
 		// Check if User specified our Failure Condition on policy
 		final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
 		// The feature is only allowed to have a single instance in the
@@ -543,60 +535,74 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				final String message = "This version of the Hub does not have support for Policies.";
 				build.stopBuild(message);
 			} else {
-				// try {
-				// // We use this conditional in case there are other failure
-				// // conditions in the future
-				// final PolicyStatus policyStatus =
-				// restService.getPolicyStatus(projectId, versionId);
-				// if (policyStatus == null) {
-				// final String message = "Could not find any information about
-				// the Policy status of the bom.";
-				// build.stopBuild(message);
-				// }
-				// if (policyStatus.getOverallStatusEnum() ==
-				// PolicyStatusEnum.IN_VIOLATION) {
-				// build.stopBuild("There are Policy Violations");
-				// }
-				// if (policyStatus.getCountInViolation() == null) {
-				// logger.error("Could not find the number of bom entries In
-				// Violation of a Policy.");
-				// } else {
-				// logger.info("Found " +
-				// policyStatus.getCountInViolation().getValue()
-				// + " bom entries to be In Violation of a defined Policy.");
-				// }
-				// if (policyStatus.getCountInViolationOverridden() == null) {
-				// logger.error("Could not find the number of bom entries In
-				// Violation Overridden of a Policy.");
-				// } else {
-				// logger.info("Found " +
-				// policyStatus.getCountInViolationOverridden().getValue()
-				// + " bom entries to be In Violation of a defined Policy, but
-				// they have been overridden.");
-				// }
-				// if (policyStatus.getCountNotInViolation() == null) {
-				// logger.error("Could not find the number of bom entries Not In
-				// Violation of a Policy.");
-				// } else {
-				// logger.info("Found " +
-				// policyStatus.getCountNotInViolation().getValue()
-				// + " bom entries to be Not In Violation of a defined
-				// Policy.");
-				// }
-				// } catch (final MissingPolicyStatusException e) {
-				// logger.warn(e.getMessage());
-				// } catch (final IOException e) {
-				// logger.error(e.getMessage(), e);
-				// build.stopBuild(e.getMessage());
-				// } catch (final BDRestException e) {
-				// logger.error(e.getMessage(), e);
-				// build.stopBuild(e.getMessage());
-				// } catch (final URISyntaxException e) {
-				// logger.error(e.getMessage(), e);
-				// build.stopBuild(e.getMessage());
-				// }
+				try {
+					if (waitForBom) {
+						logger.info("About to wait for BOM update");
+						waitForBomToBeUpdated(logger, restService, hubSupport, bomUpdateInfo);
+					}
+					// We use this conditional in case there are other failure
+					// conditions in the future
+					final PolicyStatus policyStatus = restService.getPolicyStatus(policyStatusUrl);
+					if (policyStatus == null) {
+						build.stopBuild("Could not find any information about the Policy status of the bom.");
+						return;
+					}
+					if (policyStatus.getOverallStatusEnum() == PolicyStatusEnum.IN_VIOLATION) {
+						build.stopBuild("Policy Violations found");
+						return;
+					}
+
+					if (policyStatus.getCountInViolation() == null) {
+						logger.error("Could not find the number of bom entries In Violation of a Policy.");
+					} else {
+						logger.info("Found " + policyStatus.getCountInViolation().getValue()
+								+ " bom entries to be In Violation of a defined Policy.");
+					}
+					if (policyStatus.getCountInViolationOverridden() == null) {
+						logger.error("Could not find the number of bom entries In Violation Overridden of a Policy.");
+					} else {
+						logger.info("Found " + policyStatus.getCountInViolationOverridden().getValue()
+								+ " bom entries to be In Violation of a defined Policy, but they have been overridden.");
+					}
+					if (policyStatus.getCountNotInViolation() == null) {
+						logger.error("Could not find the number of bom entries Not In Violation of a Policy.");
+					} else {
+						logger.info("Found " + policyStatus.getCountNotInViolation().getValue()
+								+ " bom entries to be Not In Violation of a defined Policy.");
+					}
+
+				} catch (final MissingPolicyStatusException e) {
+					logger.warn(e.getMessage());
+				} catch (final IOException e) {
+					logger.error(e.getMessage(), e);
+					build.stopBuild(e.getMessage());
+				} catch (final BDRestException e) {
+					logger.error(e.getMessage(), e);
+					build.stopBuild(e.getMessage());
+				} catch (final URISyntaxException e) {
+					logger.error(e.getMessage(), e);
+					build.stopBuild(e.getMessage());
+				} catch (final InterruptedException e) {
+					logger.error(e.getMessage(), e);
+					build.stopBuild(e.getMessage());
+				} catch (final HubIntegrationException e) {
+					logger.error(e.getMessage(), e);
+					build.stopBuild(e.getMessage());
+				}
 			}
 		}
 	}
 
+	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
+			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
+			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
+
+		final HubEventPolling hubEventPolling = new HubEventPolling(service);
+
+		if (supportHelper.isCliStatusDirOptionSupport()) {
+			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
+		} else {
+			hubEventPolling.assertBomUpToDate(bomUpdateInfo);
+		}
+	}
 }
