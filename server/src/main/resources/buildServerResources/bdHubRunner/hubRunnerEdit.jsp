@@ -117,7 +117,7 @@
 				<tr class="noBorder" id="blackDuckHubMaxWaitTimeForRiskReport">
 					<th>
 						<label for="com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport">
-							Maximum time to wait for report (in minutes):
+							Maximum time to wait for BOM update (in minutes):
 							<bs:helpIcon iconTitle="Maximum time to wait (in minutes) for the BOM to be updated with the scan results. This also gets used as the maximum time to wait for the Report to be generated. Default: 5 minutes" />
 						</label>
 					</th>

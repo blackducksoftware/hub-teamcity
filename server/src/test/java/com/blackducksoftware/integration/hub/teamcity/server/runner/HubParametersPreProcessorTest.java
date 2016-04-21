@@ -25,8 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
@@ -40,6 +43,7 @@ import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
 import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 
 import jetbrains.buildServer.serverSide.BuildServerAdapter;
+import jetbrains.buildServer.serverSide.BuildServerListener;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.ServerPaths;
@@ -48,7 +52,15 @@ import jetbrains.buildServer.util.EventDispatcher;
 
 public class HubParametersPreProcessorTest {
 	private final static String parentDir = "runner";
+	
+	@Mock
+	private EventDispatcher<BuildServerListener> mockedEventDispatcher;
 
+	@Before
+	public void testSetup() throws Exception {
+		MockitoAnnotations.initMocks(this);
+	}
+	
 	private SBuildServer getMockedBuildServer(final String serverVersion) {
 		return MockSBuildServer.getMockedSBuildServer(serverVersion);
 	}
@@ -61,8 +73,7 @@ public class HubParametersPreProcessorTest {
 		return MockSRunningBuild.getMockedSRunningBuild(buildLog);
 	}
 
-	private EventDispatcher getEventDispatcher() {
-		final EventDispatcher mockedEventDispatcher = Mockito.mock(EventDispatcher.class);
+	private EventDispatcher<BuildServerListener> getEventDispatcher() {
 		Mockito.doNothing().when(mockedEventDispatcher).addListener(Mockito.any(BuildServerAdapter.class));
 		return mockedEventDispatcher;
 	}
@@ -70,7 +81,7 @@ public class HubParametersPreProcessorTest {
 	private HubServerListener getHubServerListener() {
 		final ServerPaths serverPaths = getMockedServerPaths("NoConfig");
 		final SBuildServer buildServer = getMockedBuildServer("TestVersion");
-		final EventDispatcher dispatcher = getEventDispatcher();
+		final EventDispatcher<BuildServerListener> dispatcher = getEventDispatcher();
 
 		return new HubServerListener(dispatcher, buildServer, serverPaths);
 	}

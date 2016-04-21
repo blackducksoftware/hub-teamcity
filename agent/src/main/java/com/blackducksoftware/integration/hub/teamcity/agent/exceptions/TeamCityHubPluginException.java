@@ -18,6 +18,8 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.exceptions;
 
 public class TeamCityHubPluginException extends Exception {
+	private static final long serialVersionUID = -1471078296882978823L;
+
 	public TeamCityHubPluginException() {
 	}
 

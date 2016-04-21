@@ -32,7 +32,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 import com.blackducksoftware.integration.hub.teamcity.mocks.MockSBuildServer;
@@ -40,6 +42,7 @@ import com.blackducksoftware.integration.hub.teamcity.mocks.MockServerPaths;
 
 import jetbrains.buildServer.log.LogInitializer;
 import jetbrains.buildServer.serverSide.BuildServerAdapter;
+import jetbrains.buildServer.serverSide.BuildServerListener;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerPaths;
 import jetbrains.buildServer.util.EventDispatcher;
@@ -52,6 +55,9 @@ public class HubServerListenerTest {
 	private static ByteArrayOutputStream byteOutput = null;
 	private static PrintStream currStream = null;
 	private static Properties testProperties;
+
+	@Mock
+	private EventDispatcher<BuildServerListener> mockedEventDispatcher;
 
 	@BeforeClass
 	public static void startup() {
@@ -81,6 +87,7 @@ public class HubServerListenerTest {
 		currStream.flush();
 		byteOutput.flush();
 		byteOutput.reset();
+		MockitoAnnotations.initMocks(this);
 	}
 
 	@AfterClass
@@ -97,8 +104,7 @@ public class HubServerListenerTest {
 		return MockServerPaths.getMockedServerPaths(parentDir, configDir);
 	}
 
-	private EventDispatcher getEventDispatcher() {
-		final EventDispatcher mockedEventDispatcher = Mockito.mock(EventDispatcher.class);
+	private EventDispatcher<BuildServerListener> getEventDispatcher() {
 		Mockito.doNothing().when(mockedEventDispatcher).addListener(Mockito.any(BuildServerAdapter.class));
 		return mockedEventDispatcher;
 	}
@@ -107,7 +113,7 @@ public class HubServerListenerTest {
 	public void testConstructor() throws Exception {
 		final ServerPaths serverPaths = getMockedServerPaths("ValidConfig");
 		final SBuildServer buildServer = getMockedBuildServer("TestVersion");
-		final EventDispatcher dispatcher = getEventDispatcher();
+		final EventDispatcher<BuildServerListener> dispatcher = getEventDispatcher();
 
 		final HubServerListener listener = new HubServerListener(dispatcher, buildServer, serverPaths);
 
@@ -153,7 +159,7 @@ public class HubServerListenerTest {
 	public void testServerStartup() throws Exception {
 		final ServerPaths serverPaths = getMockedServerPaths("EmptyConfig");
 		final SBuildServer buildServer = getMockedBuildServer("TestVersion");
-		final EventDispatcher dispatcher = getEventDispatcher();
+		final EventDispatcher<BuildServerListener> dispatcher = getEventDispatcher();
 
 		final HubServerListener listener = new HubServerListener(dispatcher, buildServer, serverPaths);
 		listener.serverStartup();
