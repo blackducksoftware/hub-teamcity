@@ -69,9 +69,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	private final ArtifactsWatcher artifactsWatcher;
 
 	private HubAgentBuildLogger logger;
-
 	private BuildFinishedStatus result;
-
 	private Boolean verbose;
 
 	public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context,
@@ -215,12 +213,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					return result;
 				}
 				final File oneJarFile = installer.getOneJarFile();
-
 				final File javaExec = installer.getProvidedJavaExec();
 
 				ProjectItem project = null;
 				ReleaseItem version = null;
-
 				if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
 					project = ensureProjectExists(restService, logger, projectName);
 					version = ensureVersionExists(restService, logger, projectVersion, project, jobConfig);
@@ -242,9 +238,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
 
 				boolean waitForBom = true;
-
 				if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
-
 					final RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo,
 							hubSupport);
 					// will wait for bom to be updated while generating the
@@ -266,7 +260,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo,
 						version.getLink(ReleaseItem.POLICY_STATUS_LINK), waitForBom);
-
 			} else {
 				logger.info("Skipping Hub Build Step");
 				result = BuildFinishedStatus.FINISHED_FAILED;
@@ -274,7 +267,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		} catch (final Exception e) {
 			logger.error(e);
 			result = BuildFinishedStatus.FINISHED_FAILED;
-
 		}
 		logger.targetFinished("Hub Build Step");
 		return result;
@@ -296,7 +288,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		}
 		final String result = value.trim();
 		return result;
-
 	}
 
 	public boolean isGlobalConfigValid(final ServerHubConfigBean globalConfig) throws IOException {
@@ -340,13 +331,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			return;
 		}
 		logger.info("Working directory : " + jobConfig.getWorkingDirectory());
-
 		logger.info("--> Project : " + jobConfig.getProjectName());
 		logger.info("--> Version : " + jobConfig.getVersion());
-
 		logger.info("--> Version Phase : " + jobConfig.getPhase());
 		logger.info("--> Version Distribution : " + jobConfig.getDistribution());
-
 		logger.info("--> Hub scan memory : " + jobConfig.getScanMemory() + " MB");
 
 		if (jobConfig.getScanTargetPaths().size() > 0) {
@@ -362,7 +350,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		ProjectItem project = null;
 		try {
 			project = service.getProjectByName(projectName);
-
 		} catch (final NullPointerException npe) {
 			project = createProject(service, logger, projectName);
 		} catch (final ProjectDoesNotExistException e) {
@@ -405,7 +392,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
 					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
-
 		try {
 			version = service.getVersion(project, projectVersion);
 			if (!version.getPhase().equals(jobConfig.getPhase())) {
@@ -578,7 +564,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					if (policyViolationFound) {
 						build.stopBuild("Policy Violations found");
 					}
-
 				} catch (final MissingPolicyStatusException e) {
 					logger.warn(e.getMessage());
 				} catch (final IOException e) {
@@ -605,13 +590,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
 					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException,
 					IOException {
-
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
-
 		if (supportHelper.isCliStatusDirOptionSupport()) {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
 		} else {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo);
 		}
 	}
+
 }

@@ -15,7 +15,6 @@ import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistExcept
 import com.blackducksoftware.integration.hub.project.api.ProjectItem;
 
 public class TeamCityHubIntTestHelper extends HubIntRestService {
-
 	public TeamCityHubIntTestHelper(final String baseUrl) {
 		super(baseUrl);
 	}
@@ -61,7 +60,6 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 		resource.setMethod(Method.DELETE);
 		resource.delete();
 		final int responseCode = resource.getResponse().getStatus().getCode();
-
 		if (responseCode != 204) {
 			throw new BDRestException(
 					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "

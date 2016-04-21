@@ -11,10 +11,9 @@ import java.io.OutputStream;
  */
 public class StreamRedirectThread extends Thread {
 	private final InputStream in;
-
 	private final OutputStream out;
 
-	public StreamRedirectThread(InputStream in, OutputStream out) {
+	public StreamRedirectThread(final InputStream in, final OutputStream out) {
 		super("Stream Redirect Thread");
 		this.in = in;
 		this.out = out;
@@ -30,7 +29,7 @@ public class StreamRedirectThread extends Thread {
 				}
 				out.write(i);
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			// Ignore
 		}
 	}

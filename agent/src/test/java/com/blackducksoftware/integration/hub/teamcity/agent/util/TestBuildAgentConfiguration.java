@@ -16,33 +16,28 @@ public class TestBuildAgentConfiguration implements BuildAgentConfiguration {
 		return toolDir;
 	}
 
-	public void setAgentToolsDirectory(File toolDir) {
+	public void setAgentToolsDirectory(final File toolDir) {
 		this.toolDir = toolDir;
 	}
 
 	@Override
-	public void addAlternativeAgentAddress(String arg0) {
-
+	public void addAlternativeAgentAddress(final String arg0) {
 	}
 
 	@Override
-	public void addConfigurationParameter(String arg0, String arg1) {
-
+	public void addConfigurationParameter(final String arg0, final String arg1) {
 	}
 
 	@Override
-	public void addCustomProperty(String arg0, String arg1) {
-
+	public void addCustomProperty(final String arg0, final String arg1) {
 	}
 
 	@Override
-	public void addEnvironmentVariable(String arg0, String arg1) {
-
+	public void addEnvironmentVariable(final String arg0, final String arg1) {
 	}
 
 	@Override
-	public void addSystemProperty(String arg0, String arg1) {
-
+	public void addSystemProperty(final String arg0, final String arg1) {
 	}
 
 	@Override
@@ -96,7 +91,7 @@ public class TestBuildAgentConfiguration implements BuildAgentConfiguration {
 	}
 
 	@Override
-	public File getCacheDirectory(String arg0) {
+	public File getCacheDirectory(final String arg0) {
 		return null;
 	}
 
@@ -111,7 +106,7 @@ public class TestBuildAgentConfiguration implements BuildAgentConfiguration {
 	}
 
 	@Override
-	public String getEnv(String arg0) {
+	public String getEnv(final String arg0) {
 		return null;
 	}
 

@@ -3,7 +3,6 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
 
 import org.junit.Test;
 
@@ -12,24 +11,24 @@ import com.blackducksoftware.integration.hub.teamcity.agent.util.TestArtifactsWa
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildRunnerContext;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 
-public class HubBuildRunnerTest {
+import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
 
+public class HubBuildRunnerTest {
 	@Test
 	public void testConstructor() {
 		assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
-
 	}
 
 	@Test
 	public void testCreateBuildProcess() throws Exception {
-		HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
+		final HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
 		assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext()));
 	}
 
 	@Test
 	public void testGetRunnerInfo() {
-		HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
-		AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
+		final HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
+		final AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
 
 		assertTrue(runnerInfo.canRun(null));
 

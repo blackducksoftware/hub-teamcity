@@ -12,20 +12,14 @@ import jetbrains.buildServer.agent.ToolCannotBeFoundException;
 import jetbrains.buildServer.parameters.ValueResolver;
 
 public class TestBuildRunnerContext implements BuildRunnerContext {
-
 	private Map<String, String> runnerParameters = null;
-
 	private File workingDirectory;
-
 	private Map<String, String> environmentParameters = null;
-
 	private Map<String, String> configParameters = null;
-
 	private Map<String, String> systemParameters = null;
-
 	private AgentRunningBuild build;
 
-	public void setWorkingDirectory(File workingDirectory) {
+	public void setWorkingDirectory(final File workingDirectory) {
 		this.workingDirectory = workingDirectory;
 	}
 
@@ -42,15 +36,15 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 	}
 
 	@Override
-	public void addRunnerParameter(String key, String value) {
+	public void addRunnerParameter(final String key, final String value) {
 		runnerParameters.put(key, value);
 	}
 
-	public void removeRunnerParameter(String key) {
+	public void removeRunnerParameter(final String key) {
 		runnerParameters.remove(key);
 	}
 
-	public String getRunnerParameter(String key) {
+	public String getRunnerParameter(final String key) {
 		return runnerParameters.get(key);
 	}
 
@@ -60,34 +54,32 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 	}
 
 	@Override
-	public void addConfigParameter(String key, String value) {
+	public void addConfigParameter(final String key, final String value) {
 		configParameters.put(key, value);
 	}
 
 	@Override
-	public void addEnvironmentVariable(String key, String value) {
+	public void addEnvironmentVariable(final String key, final String value) {
 		environmentParameters.put(key, value);
 	}
 
 	@Override
-	public void addSystemProperty(String key, String value) {
+	public void addSystemProperty(final String key, final String value) {
 		systemParameters.put(key, value);
 	}
 
 	@Override
 	public AgentRunningBuild getBuild() {
-
 		return build;
 	}
 
-	public void setBuild(AgentRunningBuild build) {
+	public void setBuild(final AgentRunningBuild build) {
 		this.build = build;
 	}
 
 	@Override
 	public BuildParametersMap getBuildParameters() {
-		BuildParametersMap buildParameterMap = new BuildParametersMap() {
-
+		final BuildParametersMap buildParameterMap = new BuildParametersMap() {
 			@Override
 			public Map<String, String> getAllParameters() {
 				// TODO Auto-generated function stub
@@ -103,7 +95,6 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 			public Map<String, String> getSystemProperties() {
 				return systemParameters;
 			}
-
 		};
 
 		return buildParameterMap;
@@ -111,37 +102,31 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 
 	@Override
 	public Map<String, String> getConfigParameters() {
-
 		return null;
 	}
 
 	@Override
 	public String getName() {
-
 		return null;
 	}
 
 	@Override
 	public ValueResolver getParametersResolver() {
-
 		return null;
 	}
 
 	@Override
 	public String getRunType() {
-
 		return null;
 	}
 
 	@Override
-	public String getToolPath(String arg0) throws ToolCannotBeFoundException {
-
+	public String getToolPath(final String arg0) throws ToolCannotBeFoundException {
 		return null;
 	}
 
 	@Override
-	public boolean parametersHaveReferencesTo(Collection<String> arg0) {
-
+	public boolean parametersHaveReferencesTo(final Collection<String> arg0) {
 		return false;
 	}
 

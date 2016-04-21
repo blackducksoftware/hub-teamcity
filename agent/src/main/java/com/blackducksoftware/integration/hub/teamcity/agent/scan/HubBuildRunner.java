@@ -1,5 +1,9 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
+
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentBuildRunner;
 import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
@@ -8,10 +12,6 @@ import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 
 public class HubBuildRunner implements AgentBuildRunner {
 	@NotNull
@@ -31,7 +31,7 @@ public class HubBuildRunner implements AgentBuildRunner {
 	public AgentBuildRunnerInfo getRunnerInfo() {
 		return new AgentBuildRunnerInfo() {
 			@Override
-			public boolean canRun(BuildAgentConfiguration arg0) {
+			public boolean canRun(final BuildAgentConfiguration arg0) {
 				return true;
 			}
 

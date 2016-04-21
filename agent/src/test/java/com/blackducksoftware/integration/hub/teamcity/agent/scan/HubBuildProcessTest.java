@@ -46,17 +46,11 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 
 public class HubBuildProcessTest {
 	private static Properties testProperties;
-
 	private static HubAgentBuildLogger logger;
-
 	private static TestBuildProgressLogger testLogger;
-
 	private static File testEmptyDirectory;
-
 	private static File testSourceFile;
-
 	private static File workingDirectory;
-
 	private static TeamCityHubIntTestHelper restHelper;
 
 	@Rule
@@ -70,7 +64,6 @@ public class HubBuildProcessTest {
 
 		try {
 			testProperties.load(is);
-
 		} catch (final IOException e) {
 			System.err.println("reading test.properties failed!");
 		}
@@ -716,7 +709,6 @@ public class HubBuildProcessTest {
 			} catch (final BDRestException e) {
 				// ignore this one
 			}
-
 		}
 	}
 
@@ -829,113 +821,7 @@ public class HubBuildProcessTest {
 			} catch (final BDRestException e) {
 				// ignore this one
 			}
-
 		}
 	}
 
-	// @Test
-	// public void testCallFullyConfiguredBasicAuthProxy() throws Exception {
-	// try {
-	// final TestBuildRunnerContext context = new TestBuildRunnerContext();
-	// context.setWorkingDirectory(workingDirectory);
-	//
-	// context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR,
-	// (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
-	//
-	// context.addRunnerParameter(HubConstantValues.HUB_URL,
-	// testProperties.getProperty("TEST_HUB_SERVER_URL"));
-	// context.addRunnerParameter(HubConstantValues.HUB_USERNAME,
-	// testProperties.getProperty("TEST_USERNAME"));
-	// context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-	// PasswordEncrypter.encrypt(logger,
-	// testProperties.getProperty("TEST_PASSWORD")));
-	//
-	// context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST,
-	// testProperties.getProperty("TEST_PROXY_HOST_BASIC"));
-	// context.addRunnerParameter(HubConstantValues.HUB_PROXY_PORT,
-	// testProperties.getProperty("TEST_PROXY_PORT_BASIC"));
-	// context.addRunnerParameter(HubConstantValues.HUB_NO_PROXY_HOSTS,
-	// "ignoreHost, otherhost");
-	// context.addRunnerParameter(HubConstantValues.HUB_PROXY_USER,
-	// testProperties.getProperty("TEST_PROXY_USER_BASIC"));
-	// context.addRunnerParameter(HubConstantValues.HUB_PROXY_PASS,
-	// testProperties.getProperty("TEST_PROXY_PASSWORD_BASIC"));
-	//
-	// context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME,
-	// testProperties.getProperty("TEST_PROJECT"));
-	// context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION,
-	// testProperties.getProperty("TEST_VERSION"));
-	// context.addRunnerParameter(HubConstantValues.HUB_VERSION_PHASE,
-	// PhaseEnum.DEVELOPMENT.name());
-	// context.addRunnerParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION,
-	// DistributionEnum.INTERNAL.name());
-	// context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
-	//
-	// context.addEnvironmentVariable("JAVA_HOME",
-	// System.getProperty("java.home"));
-	//
-	// final TestAgentRunningBuild build = new TestAgentRunningBuild();
-	// context.setBuild(build);
-	// build.setLogger(testLogger);
-	//
-	// final HubBuildProcess process = new HubBuildProcess(build, context, new
-	// TestArtifactsWatcher());
-	//
-	// assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
-	//
-	// final String output = testLogger.getErrorMessagesString();
-	//
-	// assertTrue(output, !output.contains("There is no Server URL specified"));
-	// assertTrue(output, !output.contains("There is no Hub username
-	// specified"));
-	// assertTrue(output, !output.contains("There is no Hub password
-	// specified."));
-	//
-	// assertTrue(output, !output.contains(
-	// "There is no memory specified for the Hub scan. The scan requires a
-	// minimum of 4096 MB."));
-	// assertTrue(output, !output.contains("The Hub CLI path has not been
-	// set."));
-	//
-	// final String progressOutput = testLogger.getProgressMessagesString();
-	//
-	// assertTrue(progressOutput, progressOutput
-	// .contains("--> Hub Server Url :" +
-	// testProperties.getProperty("TEST_HUB_SERVER_URL")));
-	// assertTrue(progressOutput,
-	// progressOutput.contains("--> Hub User : " +
-	// testProperties.getProperty("TEST_USERNAME")));
-	// assertTrue(progressOutput, progressOutput.contains("--> Proxy Host :"));
-	// assertTrue(progressOutput, progressOutput.contains("--> Proxy Port :"));
-	// assertTrue(progressOutput, progressOutput.contains("--> No Proxy Hosts
-	// :"));
-	// assertTrue(progressOutput, progressOutput.contains("--> Proxy Username
-	// :"));
-	//
-	// assertTrue(progressOutput, progressOutput.contains("Working directory :
-	// "));
-	// assertTrue(progressOutput,
-	// progressOutput.contains("--> Project : " +
-	// testProperties.getProperty("TEST_PROJECT")));
-	// assertTrue(progressOutput,
-	// progressOutput.contains("--> Version : " +
-	// testProperties.getProperty("TEST_VERSION")));
-	// assertTrue(progressOutput, progressOutput.contains("--> Version Phase : "
-	// + PhaseEnum.DEVELOPMENT.name()));
-	// assertTrue(progressOutput,
-	// progressOutput.contains("--> Version Distribution : " +
-	// DistributionEnum.INTERNAL.name()));
-	// assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory :
-	// 4096"));
-	// assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets
-	// : "));
-	// assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
-	// } finally {
-	// final ProjectItem project =
-	// restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-	// if (project != null) {
-	// restHelper.deleteHubProject(project);
-	// }
-	// }
-	// }
 }

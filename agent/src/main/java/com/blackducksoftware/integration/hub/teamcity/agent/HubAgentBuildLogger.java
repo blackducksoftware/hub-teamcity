@@ -3,17 +3,16 @@ package com.blackducksoftware.integration.hub.teamcity.agent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import jetbrains.buildServer.agent.BuildProgressLogger;
-
 import com.blackducksoftware.integration.hub.logging.IntLogger;
 import com.blackducksoftware.integration.hub.logging.LogLevel;
 
+import jetbrains.buildServer.agent.BuildProgressLogger;
+
 public class HubAgentBuildLogger implements IntLogger {
 	private final BuildProgressLogger logger;
-
 	private LogLevel loggerLevel = LogLevel.INFO;
 
-	public HubAgentBuildLogger(BuildProgressLogger logger) {
+	public HubAgentBuildLogger(final BuildProgressLogger logger) {
 		this.logger = logger;
 	}
 
@@ -22,7 +21,7 @@ public class HubAgentBuildLogger implements IntLogger {
 	}
 
 	@Override
-	public void setLogLevel(LogLevel level) {
+	public void setLogLevel(final LogLevel level) {
 		loggerLevel = level;
 	}
 
@@ -31,27 +30,27 @@ public class HubAgentBuildLogger implements IntLogger {
 		return loggerLevel;
 	}
 
-	public void targetStarted(String txt) {
+	public void targetStarted(final String txt) {
 		logger.targetStarted(txt);
 	}
 
-	public void targetFinished(String txt) {
+	public void targetFinished(final String txt) {
 		logger.targetFinished(txt);
 	}
 
 	@Override
-	public void info(String txt) {
+	public void info(final String txt) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.INFO)) {
 			logger.progressMessage(txt);
 		}
 	}
 
 	@Override
-	public void error(String txt, Throwable e) {
+	public void error(final String txt, final Throwable e) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
 			logger.error(txt);
 			if (e != null) {
-				StringWriter sw = new StringWriter();
+				final StringWriter sw = new StringWriter();
 				e.printStackTrace(new PrintWriter(sw));
 				logger.error(sw.toString());
 			}
@@ -59,39 +58,39 @@ public class HubAgentBuildLogger implements IntLogger {
 	}
 
 	@Override
-	public void error(String txt) {
+	public void error(final String txt) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
 			logger.error(txt);
 		}
 	}
 
 	@Override
-	public void warn(String txt) {
+	public void warn(final String txt) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.WARN)) {
 			logger.progressMessage(txt);
 		}
 	}
 
 	@Override
-	public void trace(String txt) {
+	public void trace(final String txt) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.TRACE)) {
 			logger.progressMessage(txt);
 		}
 	}
 
 	@Override
-	public void debug(String txt) {
+	public void debug(final String txt) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.DEBUG)) {
 			logger.progressMessage(txt);
 		}
 	}
 
 	@Override
-	public void debug(String txt, Throwable e) {
+	public void debug(final String txt, final Throwable e) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.DEBUG)) {
 			logger.progressMessage(txt);
 			if (e != null) {
-				StringWriter sw = new StringWriter();
+				final StringWriter sw = new StringWriter();
 				e.printStackTrace(new PrintWriter(sw));
 				logger.progressMessage(sw.toString());
 			}
@@ -99,20 +98,20 @@ public class HubAgentBuildLogger implements IntLogger {
 	}
 
 	@Override
-	public void error(Throwable e) {
+	public void error(final Throwable e) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
-			StringWriter sw = new StringWriter();
+			final StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 			logger.error(sw.toString());
 		}
 	}
 
 	@Override
-	public void trace(String txt, Throwable e) {
+	public void trace(final String txt, final Throwable e) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.TRACE)) {
 			logger.progressMessage(txt);
 			if (e != null) {
-				StringWriter sw = new StringWriter();
+				final StringWriter sw = new StringWriter();
 				e.printStackTrace(new PrintWriter(sw));
 				logger.progressMessage(sw.toString());
 			}

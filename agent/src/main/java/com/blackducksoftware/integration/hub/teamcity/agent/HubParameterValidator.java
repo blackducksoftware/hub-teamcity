@@ -10,7 +10,7 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredential
 public class HubParameterValidator {
 	private final HubAgentBuildLogger logger;
 
-	public HubParameterValidator(HubAgentBuildLogger logger) {
+	public HubParameterValidator(final HubAgentBuildLogger logger) {
 		this.logger = logger;
 	}
 
@@ -22,7 +22,7 @@ public class HubParameterValidator {
 		} else {
 			try {
 				new URL(url);
-			} catch (MalformedURLException e) {
+			} catch (final MalformedURLException e) {
 				logger.error("The server URL specified is not a valid URL.");
 				validUrl = false;
 			}

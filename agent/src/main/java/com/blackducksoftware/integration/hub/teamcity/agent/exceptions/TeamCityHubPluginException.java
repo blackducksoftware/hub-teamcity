@@ -4,15 +4,15 @@ public class TeamCityHubPluginException extends Exception {
 	public TeamCityHubPluginException() {
 	}
 
-	public TeamCityHubPluginException(String message) {
+	public TeamCityHubPluginException(final String message) {
 		super(message);
 	}
 
-	public TeamCityHubPluginException(Throwable cause) {
+	public TeamCityHubPluginException(final Throwable cause) {
 		super(cause);
 	}
 
-	public TeamCityHubPluginException(String message, Throwable cause) {
+	public TeamCityHubPluginException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
