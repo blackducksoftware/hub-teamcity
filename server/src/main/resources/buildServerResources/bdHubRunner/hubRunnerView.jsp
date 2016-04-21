@@ -30,7 +30,7 @@
             Generate Black Duck Risk Report: <props:displayValue name="com.blackducksoftware.integration.hub.generateRiskReport" />
         </div>
         <div class="parameter">
-            Maximum time to wait for report (in minutes): <props:displayValue name="com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport" />
+            Maximum time to wait for BOM update (in minutes): <props:displayValue name="com.blackducksoftware.integration.hub.maxWaitTimeForRiskReport" />
         </div>
         <div class="parameter">
             Hub Scan Memory (in MB's): <props:displayValue

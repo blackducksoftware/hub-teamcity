@@ -1,3 +1,20 @@
+@rem ***************************************************************************
+@rem Copyright (C) 2016 Black Duck Software, Inc.
+@rem http://www.blackducksoftware.com/
+@rem
+@rem This program is free software; you can redistribute it and/or
+@rem modify it under the terms of the GNU General Public License version 2 only
+@rem as published by the Free Software Foundation.
+@rem
+@rem This program is distributed in the hope that it will be useful,
+@rem but WITHOUT ANY WARRANTY; without even the implied warranty of
+@rem MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+@rem GNU General Public License for more details.
+@rem
+@rem You should have received a copy of the GNU General Public License version 2
+@rem along with this program; if not, write to the Free Software
+@rem Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+@rem ***************************************************************************
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
 @rem
