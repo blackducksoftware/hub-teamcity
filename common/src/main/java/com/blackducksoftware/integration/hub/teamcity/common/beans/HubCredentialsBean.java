@@ -15,9 +15,7 @@ public class HubCredentialsBean implements Serializable {
 	private static final long serialVersionUID = -7836018713177994162L;
 
 	private String hubUser;
-
 	private String hubPass;
-
 	private Integer actualPasswordLength;
 
 	public HubCredentialsBean(final String hubUser) {
@@ -32,7 +30,6 @@ public class HubCredentialsBean implements Serializable {
 	public HubCredentialsBean(final HubCredentialsBean credentials) {
 		if ((credentials != null) && !credentials.isEmpty()) {
 			hubUser = credentials.getHubUser();
-
 			hubPass = credentials.getEncryptedPassword();
 		}
 	}

@@ -12,28 +12,25 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("serializableHubProxyInfo")
 public class HubProxyInfo implements Serializable {
+	private static final long serialVersionUID = 4662970389558781942L;
 
 	private String host = "";
-
 	private Integer port = null;
-
 	private String proxyUsername = "";
-
 	private String proxyPassword = "";
-
 	private String ignoredProxyHosts = "";
 
 	public HubProxyInfo() {
 	}
 
-	public HubProxyInfo(String host, Integer port, List<Pattern> noProxyHostsPatterns, String proxyUsername,
-			String proxyPassword) {
+	public HubProxyInfo(final String host, final Integer port, final List<Pattern> noProxyHostsPatterns,
+			final String proxyUsername, final String proxyPassword) {
 		this.host = host;
 		this.port = port;
 
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		if (noProxyHostsPatterns != null && !noProxyHostsPatterns.isEmpty()) {
-			for (Pattern pattern : noProxyHostsPatterns) {
+			for (final Pattern pattern : noProxyHostsPatterns) {
 				if (builder.length() == 0) {
 					builder.append(pattern.pattern());
 				} else {
@@ -48,7 +45,8 @@ public class HubProxyInfo implements Serializable {
 		this.proxyPassword = proxyPassword;
 	}
 
-	public HubProxyInfo(String host, Integer port, String noProxyHosts, String proxyUsername, String proxyPassword) {
+	public HubProxyInfo(final String host, final Integer port, final String noProxyHosts, final String proxyUsername,
+			final String proxyPassword) {
 		this.host = host;
 		this.port = port;
 
@@ -58,7 +56,7 @@ public class HubProxyInfo implements Serializable {
 		this.proxyPassword = proxyPassword;
 	}
 
-	public HubProxyInfo(HubProxyInfo proxyInfo) {
+	public HubProxyInfo(final HubProxyInfo proxyInfo) {
 		host = proxyInfo.getHost();
 
 		port = proxyInfo.getPort();
@@ -71,7 +69,7 @@ public class HubProxyInfo implements Serializable {
 		return host;
 	}
 
-	public void setHost(String host) {
+	public void setHost(final String host) {
 		this.host = host;
 	}
 
@@ -79,7 +77,7 @@ public class HubProxyInfo implements Serializable {
 		return port;
 	}
 
-	public void setPort(Integer port) {
+	public void setPort(final Integer port) {
 		this.port = port;
 	}
 
@@ -87,7 +85,7 @@ public class HubProxyInfo implements Serializable {
 		return proxyUsername;
 	}
 
-	public void setProxyUsername(String username) {
+	public void setProxyUsername(final String username) {
 		proxyUsername = username;
 	}
 
@@ -95,7 +93,7 @@ public class HubProxyInfo implements Serializable {
 		return proxyPassword;
 	}
 
-	public void setProxyPassword(String password) {
+	public void setProxyPassword(final String password) {
 		proxyPassword = password;
 	}
 
@@ -103,23 +101,23 @@ public class HubProxyInfo implements Serializable {
 		return ignoredProxyHosts;
 	}
 
-	public void setIgnoredProxyHosts(String ignoredProxyHosts) {
+	public void setIgnoredProxyHosts(final String ignoredProxyHosts) {
 		this.ignoredProxyHosts = ignoredProxyHosts;
 	}
 
 	public List<Pattern> getNoProxyHostPatterns() {
-		List<Pattern> noProxyHostsPatterns = new ArrayList<Pattern>();
+		final List<Pattern> noProxyHostsPatterns = new ArrayList<Pattern>();
 		if (StringUtils.isNotBlank(ignoredProxyHosts)) {
 			String[] ignoreHosts = null;
 			if (StringUtils.isNotBlank(ignoredProxyHosts)) {
 				if (ignoredProxyHosts.contains(",")) {
 					ignoreHosts = ignoredProxyHosts.split(",");
-					for (String ignoreHost : ignoreHosts) {
-						Pattern pattern = Pattern.compile(ignoreHost.trim());
+					for (final String ignoreHost : ignoreHosts) {
+						final Pattern pattern = Pattern.compile(ignoreHost.trim());
 						noProxyHostsPatterns.add(pattern);
 					}
 				} else {
-					Pattern pattern = Pattern.compile(ignoredProxyHosts);
+					final Pattern pattern = Pattern.compile(ignoredProxyHosts);
 					noProxyHostsPatterns.add(pattern);
 				}
 			}
@@ -138,7 +136,7 @@ public class HubProxyInfo implements Serializable {
 	 *
 	 * @return boolean
 	 */
-	public static boolean checkMatchingNoProxyHostPatterns(String hostToMatch, List<Pattern> noProxyHosts) {
+	public static boolean checkMatchingNoProxyHostPatterns(final String hostToMatch, final List<Pattern> noProxyHosts) {
 		if (noProxyHosts == null || noProxyHosts.isEmpty()) {
 			// User did not specify any hosts to ignore the proxy
 			return false;
@@ -146,8 +144,8 @@ public class HubProxyInfo implements Serializable {
 		boolean match = false;
 		if (!StringUtils.isBlank(hostToMatch) && !noProxyHosts.isEmpty()) {
 
-			for (Pattern pattern : noProxyHosts) {
-				Matcher m = pattern.matcher(hostToMatch);
+			for (final Pattern pattern : noProxyHosts) {
+				final Matcher m = pattern.matcher(hostToMatch);
 				while (m.find()) {
 					match = true;
 					break;
@@ -179,7 +177,7 @@ public class HubProxyInfo implements Serializable {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -189,7 +187,7 @@ public class HubProxyInfo implements Serializable {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		HubProxyInfo other = (HubProxyInfo) obj;
+		final HubProxyInfo other = (HubProxyInfo) obj;
 		if (host == null) {
 			if (other.host != null) {
 				return false;

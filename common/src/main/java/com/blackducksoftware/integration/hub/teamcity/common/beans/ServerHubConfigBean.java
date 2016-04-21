@@ -6,6 +6,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("serializableHubServer")
 public class ServerHubConfigBean implements Serializable {
+	private static final long serialVersionUID = 435773839748832926L;
 
 	private String hubUrl = "";
 
@@ -22,7 +23,7 @@ public class ServerHubConfigBean implements Serializable {
 		return hubUrl;
 	}
 
-	public void setHubUrl(String hubUrl) {
+	public void setHubUrl(final String hubUrl) {
 		this.hubUrl = hubUrl;
 	}
 
@@ -30,7 +31,7 @@ public class ServerHubConfigBean implements Serializable {
 		return globalCredentials;
 	}
 
-	public void setGlobalCredentials(HubCredentialsBean globalCredentials) {
+	public void setGlobalCredentials(final HubCredentialsBean globalCredentials) {
 		this.globalCredentials = globalCredentials;
 	}
 
@@ -38,7 +39,7 @@ public class ServerHubConfigBean implements Serializable {
 		return proxyInfo;
 	}
 
-	public void setProxyInfo(HubProxyInfo proxyInfo) {
+	public void setProxyInfo(final HubProxyInfo proxyInfo) {
 		this.proxyInfo = proxyInfo;
 	}
 
@@ -59,7 +60,7 @@ public class ServerHubConfigBean implements Serializable {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -69,7 +70,7 @@ public class ServerHubConfigBean implements Serializable {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		ServerHubConfigBean other = (ServerHubConfigBean) obj;
+		final ServerHubConfigBean other = (ServerHubConfigBean) obj;
 		if (hubUrl == null) {
 			if (other.hubUrl != null) {
 				return false;
