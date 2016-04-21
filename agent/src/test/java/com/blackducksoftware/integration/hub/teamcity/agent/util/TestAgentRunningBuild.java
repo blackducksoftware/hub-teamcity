@@ -23,288 +23,288 @@ import jetbrains.buildServer.vcs.VcsRootEntry;
 
 public class TestAgentRunningBuild implements AgentRunningBuild {
 
-    private TestBuildProgressLogger testLogger;
+	private TestBuildProgressLogger testLogger;
 
-    private BuildAgentConfiguration config;
+	private BuildAgentConfiguration config;
 
-    public void setLogger(TestBuildProgressLogger testLogger) {
-        this.testLogger = testLogger;
+	public void setLogger(TestBuildProgressLogger testLogger) {
+		this.testLogger = testLogger;
 
-    }
+	}
 
-    @Override
-    public BuildProgressLogger getBuildLogger() {
-        return testLogger;
-    }
+	@Override
+	public BuildProgressLogger getBuildLogger() {
+		return testLogger;
+	}
 
-    @Override
-    public Collection<AgentBuildFeature> getBuildFeatures() {
-        ArrayList<AgentBuildFeature> buildFeatures = new ArrayList<AgentBuildFeature>();
-        return buildFeatures;
-    }
+	@Override
+	public Collection<AgentBuildFeature> getBuildFeatures() {
+		ArrayList<AgentBuildFeature> buildFeatures = new ArrayList<AgentBuildFeature>();
+		return buildFeatures;
+	}
 
-    @Override
-    public Collection<AgentBuildFeature> getBuildFeaturesOfType(String arg0) {
-        ArrayList<AgentBuildFeature> buildFeatures = new ArrayList<AgentBuildFeature>();
+	@Override
+	public Collection<AgentBuildFeature> getBuildFeaturesOfType(String arg0) {
+		ArrayList<AgentBuildFeature> buildFeatures = new ArrayList<AgentBuildFeature>();
 
-        return buildFeatures;
-    }
+		return buildFeatures;
+	}
 
-    @Override
-    public String getAccessCode() {
+	@Override
+	public String getAccessCode() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getAccessUser() {
+	@Override
+	public String getAccessUser() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public BuildAgentConfiguration getAgentConfiguration() {
-        return config;
-    }
+	@Override
+	public BuildAgentConfiguration getAgentConfiguration() {
+		return config;
+	}
 
-    public void setAgentConfiguration(BuildAgentConfiguration config) {
-        this.config = config;
-    }
+	public void setAgentConfiguration(BuildAgentConfiguration config) {
+		this.config = config;
+	}
 
-    @Override
-    public File getAgentTempDirectory() {
+	@Override
+	public File getAgentTempDirectory() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public List<ArtifactDependencyInfo> getArtifactDependencies() {
+	@Override
+	public List<ArtifactDependencyInfo> getArtifactDependencies() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getBuildCurrentVersion(VcsRoot arg0) {
+	@Override
+	public String getBuildCurrentVersion(VcsRoot arg0) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public long getBuildId() {
+	@Override
+	public long getBuildId() {
 
-        return 0;
-    }
+		return 0;
+	}
 
-    @Override
-    public String getBuildPreviousVersion(VcsRoot arg0) {
+	@Override
+	public String getBuildPreviousVersion(VcsRoot arg0) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public File getBuildTempDirectory() {
+	@Override
+	public File getBuildTempDirectory() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getBuildTypeId() {
+	@Override
+	public String getBuildTypeId() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getBuildTypeName() {
+	@Override
+	public String getBuildTypeName() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public <T> T getBuildTypeOptionValue(Option<T> arg0) {
+	@Override
+	public <T> T getBuildTypeOptionValue(Option<T> arg0) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public File getDefaultCheckoutDirectory() {
+	@Override
+	public File getDefaultCheckoutDirectory() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public long getExecutionTimeoutMinutes() {
+	@Override
+	public long getExecutionTimeoutMinutes() {
 
-        return 0;
-    }
+		return 0;
+	}
 
-    @Override
-    public List<VcsChangeInfo> getPersonalVcsChanges() {
+	@Override
+	public List<VcsChangeInfo> getPersonalVcsChanges() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getProjectName() {
+	@Override
+	public String getProjectName() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public List<VcsChangeInfo> getVcsChanges() {
+	@Override
+	public List<VcsChangeInfo> getVcsChanges() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public List<VcsRootEntry> getVcsRootEntries() {
+	@Override
+	public List<VcsRootEntry> getVcsRootEntries() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public boolean isCheckoutOnAgent() {
+	@Override
+	public boolean isCheckoutOnAgent() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public boolean isCheckoutOnServer() {
+	@Override
+	public boolean isCheckoutOnServer() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public boolean isCleanBuild() {
+	@Override
+	public boolean isCleanBuild() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public boolean isCustomCheckoutDirectory() {
+	@Override
+	public boolean isCustomCheckoutDirectory() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public boolean isPersonal() {
+	@Override
+	public boolean isPersonal() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public boolean isPersonalPatchAvailable() {
+	@Override
+	public boolean isPersonalPatchAvailable() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public void addSharedConfigParameter(String arg0, String arg1) {
+	@Override
+	public void addSharedConfigParameter(String arg0, String arg1) {
 
-    }
+	}
 
-    @Override
-    public void addSharedEnvironmentVariable(String arg0, String arg1) {
+	@Override
+	public void addSharedEnvironmentVariable(String arg0, String arg1) {
 
-    }
+	}
 
-    @Override
-    public void addSharedSystemProperty(String arg0, String arg1) {
+	@Override
+	public void addSharedSystemProperty(String arg0, String arg1) {
 
-    }
+	}
 
-    @Override
-    public String getArtifactsPaths() {
+	@Override
+	public String getArtifactsPaths() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getBuildNumber() {
+	@Override
+	public String getBuildNumber() {
 
-        return "5678";
-    }
+		return "5678";
+	}
 
-    @Override
-    public BuildParametersMap getBuildParameters() {
+	@Override
+	public BuildParametersMap getBuildParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public File getCheckoutDirectory() {
+	@Override
+	public File getCheckoutDirectory() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public boolean getFailBuildOnExitCode() {
+	@Override
+	public boolean getFailBuildOnExitCode() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public BuildInterruptReason getInterruptReason() {
+	@Override
+	public BuildInterruptReason getInterruptReason() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public BuildParametersMap getMandatoryBuildParameters() {
+	@Override
+	public BuildParametersMap getMandatoryBuildParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public ResolvedParameters getResolvedParameters() {
+	@Override
+	public ResolvedParameters getResolvedParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getRunType() {
+	@Override
+	public String getRunType() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public Map<String, String> getRunnerParameters() {
+	@Override
+	public Map<String, String> getRunnerParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public BuildParametersMap getSharedBuildParameters() {
+	@Override
+	public BuildParametersMap getSharedBuildParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public Map<String, String> getSharedConfigParameters() {
+	@Override
+	public Map<String, String> getSharedConfigParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public ValueResolver getSharedParametersResolver() {
+	@Override
+	public ValueResolver getSharedParametersResolver() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public UnresolvedParameters getUnresolvedParameters() {
+	@Override
+	public UnresolvedParameters getUnresolvedParameters() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public File getWorkingDirectory() {
+	@Override
+	public File getWorkingDirectory() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public void stopBuild(String arg0) {
+	@Override
+	public void stopBuild(String arg0) {
 
-    }
+	}
 
 }

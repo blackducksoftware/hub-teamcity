@@ -14,96 +14,96 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredential
 
 public class HubParameterValidatorTest {
 
-    private static String testWorkspace;
+	private static String testWorkspace;
 
-    private static TestBuildProgressLogger testLogger;
+	private static TestBuildProgressLogger testLogger;
 
-    private static HubAgentBuildLogger buildLogger;
+	private static HubAgentBuildLogger buildLogger;
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+	@Rule
+	public TemporaryFolder folder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void testStartup() {
-        testWorkspace = HubParameterValidatorTest.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        testWorkspace = testWorkspace.substring(0, testWorkspace.indexOf("/target"));
-        testWorkspace = testWorkspace + "/test-workspace";
+	@BeforeClass
+	public static void testStartup() {
+		testWorkspace = HubParameterValidatorTest.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		testWorkspace = testWorkspace.substring(0, testWorkspace.indexOf("/target"));
+		testWorkspace = testWorkspace + "/test-workspace";
 
-        testLogger = new TestBuildProgressLogger();
-        buildLogger = new HubAgentBuildLogger(testLogger);
-    }
+		testLogger = new TestBuildProgressLogger();
+		buildLogger = new HubAgentBuildLogger(testLogger);
+	}
 
-    @After
-    public void testCleanup() {
-        testLogger.clearAllOutput();
-    }
+	@After
+	public void testCleanup() {
+		testLogger.clearAllOutput();
+	}
 
-    @Test
-    public void testConstructorNoLogger() {
-        assertNotNull(new HubParameterValidator(new HubAgentBuildLogger(null)));
-    }
+	@Test
+	public void testConstructorNoLogger() {
+		assertNotNull(new HubParameterValidator(new HubAgentBuildLogger(null)));
+	}
 
-    @Test
-    public void testConstructorWithLogger() {
-        assertNotNull(new HubParameterValidator(new HubAgentBuildLogger(new TestBuildProgressLogger())));
-    }
+	@Test
+	public void testConstructorWithLogger() {
+		assertNotNull(new HubParameterValidator(new HubAgentBuildLogger(new TestBuildProgressLogger())));
+	}
 
-    @Test
-    public void testIsServerUrlValidNoUrl() {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+	@Test
+	public void testIsServerUrlValidNoUrl() {
+		HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(!validator.isServerUrlValid(null));
+		assertTrue(!validator.isServerUrlValid(null));
 
-        String output = testLogger.getErrorMessagesString();
+		String output = testLogger.getErrorMessagesString();
 
-        assertTrue(output, output.contains("There is no Server URL specified"));
-    }
+		assertTrue(output, output.contains("There is no Server URL specified"));
+	}
 
-    @Test
-    public void testIsServerUrlValidBlankUrl() {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+	@Test
+	public void testIsServerUrlValidBlankUrl() {
+		HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(!validator.isServerUrlValid(""));
+		assertTrue(!validator.isServerUrlValid(""));
 
-        String output = testLogger.getErrorMessagesString();
+		String output = testLogger.getErrorMessagesString();
 
-        assertTrue(output, output.contains("There is no Server URL specified"));
-    }
+		assertTrue(output, output.contains("There is no Server URL specified"));
+	}
 
-    @Test
-    public void testIsServerUrlValidUrlInvalid() {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+	@Test
+	public void testIsServerUrlValidUrlInvalid() {
+		HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(!validator.isServerUrlValid("testUrl"));
-        String output = testLogger.getErrorMessagesString();
-        assertTrue(output, output.contains("The server URL specified is not a valid URL."));
-    }
+		assertTrue(!validator.isServerUrlValid("testUrl"));
+		String output = testLogger.getErrorMessagesString();
+		assertTrue(output, output.contains("The server URL specified is not a valid URL."));
+	}
 
-    @Test
-    public void testIsServerUrlValidUrlValid() {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
+	@Test
+	public void testIsServerUrlValidUrlValid() {
+		HubParameterValidator validator = new HubParameterValidator(buildLogger);
 
-        assertTrue(validator.isServerUrlValid("http://testUrl"));
-        assertTrue(testLogger.getErrorMessages().size() == 0);
-    }
+		assertTrue(validator.isServerUrlValid("http://testUrl"));
+		assertTrue(testLogger.getErrorMessages().size() == 0);
+	}
 
-    @Test
-    public void testIsHubCredentialConfiguredEmptyCredentials() {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
-        assertTrue(!validator.isHubCredentialConfigured(new HubCredentialsBean("")));
+	@Test
+	public void testIsHubCredentialConfiguredEmptyCredentials() {
+		HubParameterValidator validator = new HubParameterValidator(buildLogger);
+		assertTrue(!validator.isHubCredentialConfigured(new HubCredentialsBean("")));
 
-        String output = testLogger.getErrorMessagesString();
+		String output = testLogger.getErrorMessagesString();
 
-        assertTrue(output, output.contains("There is no Hub username specified"));
-        assertTrue(output, output.contains("There is no Hub password specified."));
-    }
+		assertTrue(output, output.contains("There is no Hub username specified"));
+		assertTrue(output, output.contains("There is no Hub password specified."));
+	}
 
-    @Test
-    public void testIsHubCredentialConfiguredValidCredentials() {
-        HubParameterValidator validator = new HubParameterValidator(buildLogger);
-        HubCredentialsBean credential = new HubCredentialsBean("user", "password");
-        assertTrue(validator.isHubCredentialConfigured(credential));
-        assertTrue(testLogger.getErrorMessages().size() == 0);
-    }
+	@Test
+	public void testIsHubCredentialConfiguredValidCredentials() {
+		HubParameterValidator validator = new HubParameterValidator(buildLogger);
+		HubCredentialsBean credential = new HubCredentialsBean("user", "password");
+		assertTrue(validator.isHubCredentialConfigured(credential));
+		assertTrue(testLogger.getErrorMessages().size() == 0);
+	}
 
 }

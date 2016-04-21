@@ -92,9 +92,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 				}
 			}
 		}
-		// else {
-		// blank request??
-		// }
 	}
 
 	public void checkInput(final HttpServletRequest request, final ActionErrors errors)
@@ -126,11 +123,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		if (StringUtils.isBlank(url)) {
 			errors.addError("errorUrl", "Please specify a URL.");
 		} else {
-			// if (isTestConnectionRequest(request)) {
-			// checkUrl(url, errors, true);
-			// } else {
-			// checkUrl(url, errors, false);
-			// }
 			checkUrl(url, errors);
 		}
 
@@ -140,11 +132,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		}
 	}
 
-	private ActionErrors checkUrl(final String url, final ActionErrors errors) { // ,
-																					// boolean
-																					// isTestConnection)
-																					// {
-
+	private ActionErrors checkUrl(final String url, final ActionErrors errors) {
 		URL testUrl = null;
 		try {
 			testUrl = new URL(url);
@@ -156,7 +144,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		} catch (final MalformedURLException e) {
 			errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
 		}
-		// if (isTestConnection) {
 		if (testUrl != null) {
 			try {
 				if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {
@@ -167,7 +154,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 				}
 				Proxy proxy = null;
 				if (configPersistenceManager.getConfiguredServer().getProxyInfo() != null) {
-
 					final HubProxyInfo proxyInfo = configPersistenceManager.getConfiguredServer().getProxyInfo();
 
 					if (StringUtils.isNotBlank(proxyInfo.getHost())
@@ -186,7 +172,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 				attemptResetProxyCache();
 
 				if (proxy != null && proxy != Proxy.NO_PROXY) {
-
 					if (StringUtils.isNotBlank(
 							configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyUsername())
 							&& StringUtils.isNotBlank(
@@ -219,7 +204,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 				errors.addError("errorUrl", "Not a valid Hub server. " + e.toString());
 			}
 		}
-		// }
 		return errors;
 	}
 
@@ -251,7 +235,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			final Object authCachImp = authCacheImplConstr.newInstance();
 
 			m.invoke(null, authCachImp);
-
 		} catch (final Exception e) {
 			Loggers.SERVER.error(e);
 		}
@@ -259,7 +242,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private ActionErrors checkProxySettings(final HttpServletRequest request, final HubProxyInfo proxyInfo,
 			final ActionErrors errors) {
-
 		final String proxyServer = request.getParameter("hubProxyServer");
 		if (StringUtils.isNotBlank(proxyServer)) {
 			proxyInfo.setHost(proxyServer);
@@ -346,7 +328,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 		if (errors.hasNoErrors()) {
 			final HubServerLogger serverLogger = new HubServerLogger();
-
 			try {
 				serverLogger.info("Validating the credentials for the Server : " + serverConfig.getHubUrl());
 
@@ -361,8 +342,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 					errors.addError("errorConnection", "The provided credentials are not valid for the Hub server '"
 							+ serverConfig.getHubUrl() + "'");
 				} else if (responseCode != 200 && responseCode != 204 && responseCode != 202) {
-					// return
-					// FormValidation.ok(Messages.HubBuildScan_getCredentialsValidFor_0_(serverUrl));
 					errors.addError("errorConnection", "Connection failed to the Hub server '"
 							+ serverConfig.getHubUrl() + "'. With response code " + responseCode);
 				}
@@ -407,7 +386,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			final String webDecryptedPass = RSACipher.decryptWebRequestData(webEncryptedPass);
 
 			if (StringUtils.isNotBlank(webDecryptedPass)) {
-
 				final String maskedString = webDecryptedPass.replace("*", "");
 
 				if (StringUtils.isBlank(maskedString)) {
@@ -434,8 +412,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			BDRestException, EncryptionException {
+					NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+					BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}
@@ -443,7 +421,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		if (proxyInfo != null) {
 
 			Proxy proxy = null;
-
 			if (StringUtils.isNotBlank(proxyInfo.getHost())
 					&& StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
 				for (final Pattern p : proxyInfo.getNoProxyHostPatterns()) {

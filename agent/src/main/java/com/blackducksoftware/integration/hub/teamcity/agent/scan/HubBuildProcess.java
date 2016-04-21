@@ -403,7 +403,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	 */
 	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 
 		try {
@@ -428,7 +428,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 
 		try {
@@ -449,8 +449,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+					IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
+					IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -603,7 +603,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
+					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException,
+					IOException {
 
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
 

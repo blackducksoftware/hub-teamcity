@@ -28,14 +28,11 @@ import jetbrains.buildServer.serverSide.ServerPaths;
 import jetbrains.buildServer.serverSide.crypt.RSACipher;
 
 public class HubGlobalServerConfigControllerTest {
-
 	private static Properties testProperties;
-
-	private final static String parentDir = "configController";
+	private static final String parentDir = "configController";
 
 	@BeforeClass
 	public static void startup() {
-
 		LogInitializer.setUnitTest(true);
 		LogInitializer.addConsoleAppender();
 		LogInitializer.initServerLogging();
@@ -46,19 +43,16 @@ public class HubGlobalServerConfigControllerTest {
 
 		try {
 			testProperties.load(is);
-
 		} catch (final IOException e) {
 			System.err.println("reading test.properties failed!");
 		}
 	}
 
 	private ServerPaths getMockedServerPaths(final String configDir) {
-
 		return MockServerPaths.getMockedServerPaths(parentDir, configDir);
 	}
 
 	private String getConfigDirectory(final String configDir) {
-
 		return MockServerPaths.getConfigDirectory(parentDir, configDir);
 	}
 
@@ -76,17 +70,13 @@ public class HubGlobalServerConfigControllerTest {
 		final HubGlobalServerConfigController controller = new HubGlobalServerConfigController(persistenceManager);
 
 		final HttpServletRequest req = MockHttpServletRequest.getMockedHttpServletRequest();
-
 		assertTrue(!controller.isTestConnectionRequest(req));
 
 		MockHttpServletRequest.addGetParameter(req, "testConnection", "false");
-
 		assertTrue(!controller.isTestConnectionRequest(req));
 
 		MockHttpServletRequest.addGetParameter(req, "testConnection", "true");
-
 		assertTrue(controller.isTestConnectionRequest(req));
-
 	}
 
 	@Test
@@ -96,17 +86,13 @@ public class HubGlobalServerConfigControllerTest {
 		final HubGlobalServerConfigController controller = new HubGlobalServerConfigController(persistenceManager);
 
 		final HttpServletRequest req = MockHttpServletRequest.getMockedHttpServletRequest();
-
 		assertTrue(!controller.isSavingRequest(req));
 
 		MockHttpServletRequest.addGetParameter(req, "saving", "false");
-
 		assertTrue(!controller.isSavingRequest(req));
 
 		MockHttpServletRequest.addGetParameter(req, "saving", "true");
-
 		assertTrue(controller.isSavingRequest(req));
-
 	}
 
 	@Test
@@ -219,7 +205,6 @@ public class HubGlobalServerConfigControllerTest {
 					&& errorHubNoProxyHost.getText().contains(" : is not a valid regular expression."));
 			assertTrue(errorHubProxyPort.getText(),
 					errorHubProxyPort.getText().contains("Please enter a valid Proxy port. "));
-
 		} finally {
 			final String configPath = getConfigDirectory(configDir);
 			final File config = new File(configPath + File.separator + "hub-config.xml");
@@ -373,7 +358,6 @@ public class HubGlobalServerConfigControllerTest {
 				final Object descendent = iterator.next();
 				if (descendent instanceof Element) {
 					final Element descendentElement = (Element) descendent;
-
 					final String id = descendentElement.getAttributeValue("id");
 					if (StringUtils.isNotBlank(id)) {
 						if (id.equalsIgnoreCase("errorUrl")) {
@@ -383,9 +367,7 @@ public class HubGlobalServerConfigControllerTest {
 				}
 			}
 			assertNotNull(errorUrl);
-
 			assertTrue(errorUrl.getText(), errorUrl.getText().contains("Trouble reaching the Hub server."));
-
 		} finally {
 			final String configPath = getConfigDirectory(configDir);
 			final File config = new File(configPath + File.separator + "hub-config.xml");
@@ -422,7 +404,6 @@ public class HubGlobalServerConfigControllerTest {
 			final Object descendent = iterator.next();
 			if (descendent instanceof Element) {
 				final Element descendentElement = (Element) descendent;
-
 				final String id = descendentElement.getAttributeValue("id");
 				if (StringUtils.isNotBlank(id)) {
 					if (id.equalsIgnoreCase("errorUrl")) {
@@ -475,7 +456,6 @@ public class HubGlobalServerConfigControllerTest {
 				final Object descendent = iterator.next();
 				if (descendent instanceof Element) {
 					final Element descendentElement = (Element) descendent;
-
 					final String id = descendentElement.getAttributeValue("id");
 					if (StringUtils.isNotBlank(id)) {
 						if (id.equalsIgnoreCase("errorUrl")) {
@@ -487,7 +467,6 @@ public class HubGlobalServerConfigControllerTest {
 			assertNotNull(errorUrl);
 
 			assertTrue(errorUrl.getText(), errorUrl.getText().contains("Please specify a valid URL of a Hub server. "));
-
 		} finally {
 			persistenceManager.getConfiguredServer().setGlobalCredentials(new HubCredentialsBean(""));
 			persistenceManager.getConfiguredServer().setHubUrl("");
@@ -528,7 +507,6 @@ public class HubGlobalServerConfigControllerTest {
 			final Object descendent = iterator.next();
 			if (descendent instanceof Element) {
 				final Element descendentElement = (Element) descendent;
-
 				final String id = descendentElement.getAttributeValue("id");
 				if (StringUtils.isNotBlank(id)) {
 					if (id.equalsIgnoreCase("errorUrl")) {
@@ -539,7 +517,6 @@ public class HubGlobalServerConfigControllerTest {
 		}
 		assertNotNull(errorUrl);
 		assertTrue(errorUrl.getText(), errorUrl.getText().contains("Trouble reaching the Hub server. "));
-
 	}
 
 	@Test
@@ -574,7 +551,6 @@ public class HubGlobalServerConfigControllerTest {
 			final Object descendent = iterator.next();
 			if (descendent instanceof Element) {
 				final Element descendentElement = (Element) descendent;
-
 				final String id = descendentElement.getAttributeValue("id");
 				if (StringUtils.isNotBlank(id)) {
 					if (id.equalsIgnoreCase("errorConnection")) {
@@ -585,7 +561,6 @@ public class HubGlobalServerConfigControllerTest {
 		}
 		assertNotNull(errorConnection);
 		assertTrue(errorConnection.getText(), errorConnection.getText().contains("Unauthorized (401)"));
-
 	}
 
 	@Test
@@ -652,7 +627,6 @@ public class HubGlobalServerConfigControllerTest {
 			final Object descendent = iterator.next();
 			if (descendent instanceof Element) {
 				final Element descendentElement = (Element) descendent;
-
 				final String id = descendentElement.getAttributeValue("id");
 				if (StringUtils.isNotBlank(id)) {
 					if (id.equalsIgnoreCase("errorUrl")) {
@@ -662,7 +636,6 @@ public class HubGlobalServerConfigControllerTest {
 			}
 		}
 		assertNotNull(errorUrl);
-
 		assertTrue(errorUrl.getText(), errorUrl.getText().contains("Trouble reaching the Hub server."));
 	}
 
@@ -738,4 +711,5 @@ public class HubGlobalServerConfigControllerTest {
 
 		assertTrue(element.getChildren("errors").isEmpty());
 	}
+
 }

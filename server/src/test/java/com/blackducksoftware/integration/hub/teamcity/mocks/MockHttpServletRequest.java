@@ -10,7 +10,6 @@ import com.intellij.util.enumeration.ArrayEnumeration;
 import com.intellij.util.enumeration.EmptyEnumeration;
 
 public class MockHttpServletRequest {
-
 	public static HttpServletRequest getMockedHttpServletRequest() {
 		final HttpServletRequest mockedHttpServletRequest = Mockito.mock(HttpServletRequest.class);
 
@@ -27,8 +26,6 @@ public class MockHttpServletRequest {
 	public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
 		if (hasParameters) {
 			final Enumeration<?> enumeration = new ArrayEnumeration(new String[] { "" });
-
-			// .getParameterNames().hasMoreElements()
 			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
 		} else {
 			final Enumeration<?> enumeration = EmptyEnumeration.INSTANCE;

@@ -86,7 +86,6 @@ public class HubServerLoggerTest {
 		assertTrue(output, !output.contains("Should not be logged"));
 		assertTrue(output, output.contains("Should be logged"));
 		assertTrue(output, output.contains("Definitely should be logged"));
-
 	}
 
 	@Test
@@ -106,7 +105,6 @@ public class HubServerLoggerTest {
 		assertTrue(output, output.contains("Should be logged"));
 		assertTrue(output, output.contains("Totally got logged"));
 		assertTrue(output, output.contains("Definitely should be logged"));
-
 	}
 
 	@Test
@@ -126,7 +124,6 @@ public class HubServerLoggerTest {
 		assertTrue(output, output.contains("Should be logged"));
 		assertTrue(output, output.contains("Totally got logged"));
 		assertTrue(output, output.contains("Definitely should be logged"));
-
 	}
 
 	@Test
@@ -151,7 +148,6 @@ public class HubServerLoggerTest {
 
 		assertTrue(output, output.contains("Definitely should be logged"));
 		assertTrue(output, output.contains("This error definitely Should be logged"));
-
 	}
 
 	@Test
@@ -171,7 +167,6 @@ public class HubServerLoggerTest {
 		assertTrue(output, !output.contains("Should not be logged"));
 		assertTrue(output, output.contains("Should be logged"));
 		assertTrue(output, output.contains("Definitely should be logged"));
-
 	}
 
 	@Test
@@ -195,7 +190,6 @@ public class HubServerLoggerTest {
 		assertTrue(output, !output.contains("Should not be logged either"));
 		assertTrue(output, output.contains("Should be logged"));
 		assertTrue(output, output.contains("Definitely should be logged"));
-
 	}
 
 	@Test
@@ -226,7 +220,6 @@ public class HubServerLoggerTest {
 
 		assertTrue(output, output.contains("Definitely should be logged"));
 		assertTrue(output, output.contains("This error definitely Should be logged"));
-
 	}
 
 	@Test
@@ -246,7 +239,6 @@ public class HubServerLoggerTest {
 		assertTrue(output, !output.contains("Should not be logged"));
 		assertTrue(output, !output.contains("Should not be logged either"));
 		assertTrue(output, output.contains("Definitely should be logged"));
-
 	}
 
 	@Test
@@ -271,7 +263,6 @@ public class HubServerLoggerTest {
 
 		assertTrue(output, output.contains("Definitely should be logged"));
 		assertTrue(output, output.contains("This error definitely Should be logged"));
-
 	}
 
 }

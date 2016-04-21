@@ -14,26 +14,26 @@ import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 
 public class HubBuildRunnerTest {
 
-    @Test
-    public void testConstructor() {
-        assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
+	@Test
+	public void testConstructor() {
+		assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
 
-    }
+	}
 
-    @Test
-    public void testCreateBuildProcess() throws Exception {
-        HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
-        assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext()));
-    }
+	@Test
+	public void testCreateBuildProcess() throws Exception {
+		HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
+		assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext()));
+	}
 
-    @Test
-    public void testGetRunnerInfo() {
-        HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
-        AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
+	@Test
+	public void testGetRunnerInfo() {
+		HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
+		AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
 
-        assertTrue(runnerInfo.canRun(null));
+		assertTrue(runnerInfo.canRun(null));
 
-        assertEquals(HubBundle.RUNNER_TYPE, runnerInfo.getType());
-    }
+		assertEquals(HubBundle.RUNNER_TYPE, runnerInfo.getType());
+	}
 
 }

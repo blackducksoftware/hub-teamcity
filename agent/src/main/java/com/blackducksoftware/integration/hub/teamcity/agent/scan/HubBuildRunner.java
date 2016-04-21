@@ -14,31 +14,32 @@ import org.jetbrains.annotations.NotNull;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 
 public class HubBuildRunner implements AgentBuildRunner {
-    @NotNull
-    private final ArtifactsWatcher artifactsWatcher;
+	@NotNull
+	private final ArtifactsWatcher artifactsWatcher;
 
-    public HubBuildRunner(@NotNull final ArtifactsWatcher artifactsWatcher) {
-        this.artifactsWatcher = artifactsWatcher;
-    }
+	public HubBuildRunner(@NotNull final ArtifactsWatcher artifactsWatcher) {
+		this.artifactsWatcher = artifactsWatcher;
+	}
 
-    @Override
-    public BuildProcess createBuildProcess(@NotNull final AgentRunningBuild runningBuild, @NotNull final BuildRunnerContext context) throws RunBuildException {
-        return new HubBuildProcess(runningBuild, context, artifactsWatcher);
-    }
+	@Override
+	public BuildProcess createBuildProcess(@NotNull final AgentRunningBuild runningBuild,
+			@NotNull final BuildRunnerContext context) throws RunBuildException {
+		return new HubBuildProcess(runningBuild, context, artifactsWatcher);
+	}
 
-    @Override
-    public AgentBuildRunnerInfo getRunnerInfo() {
-        return new AgentBuildRunnerInfo() {
-            @Override
-            public boolean canRun(BuildAgentConfiguration arg0) {
-                return true;
-            }
+	@Override
+	public AgentBuildRunnerInfo getRunnerInfo() {
+		return new AgentBuildRunnerInfo() {
+			@Override
+			public boolean canRun(BuildAgentConfiguration arg0) {
+				return true;
+			}
 
-            @Override
-            public String getType() {
-                return HubBundle.RUNNER_TYPE;
-            }
-        };
-    }
+			@Override
+			public String getType() {
+				return HubBundle.RUNNER_TYPE;
+			}
+		};
+	}
 
 }

@@ -13,107 +13,89 @@ import jetbrains.buildServer.serverSide.buildLog.LogMessage;
 import jetbrains.buildServer.serverSide.buildLog.LogMessageFilter;
 
 public class TestBuildLog implements BuildLog {
-
 	private final List<LogMessage> messages = new ArrayList<LogMessage>();
 
 	@Override
 	public List<LogMessage> getDefaultFilteredMessages() {
-
 		return null;
 	}
 
 	@Override
 	public List<LogMessage> getErrorMessages() {
-
 		return null;
 	}
 
 	@Override
 	public List<LogMessage> getFilteredMessages(final LogMessageFilter arg0) {
-
 		return null;
 	}
 
 	@Override
 	public Date getLastMessageTimestamp() {
-
 		return null;
 	}
 
 	@Override
 	public List<LogMessage> getMessages() {
-
 		return messages;
 	}
 
 	@Override
 	public Iterator<LogMessage> getMessagesIterator() {
-
 		return null;
 	}
 
 	@Override
 	public boolean isClosed() {
-
 		return false;
 	}
 
 	@Override
 	public void close() {
-
 	}
 
 	@Override
 	public void flush() {
-
 	}
 
 	@Override
 	public BlockLogMessage closeBlock(final String arg0, final String arg1, final Date arg2, final String arg3) {
-
 		return null;
 	}
 
 	@Override
 	public BlockLogMessage closeProgressBlock(final Date arg0, final String arg1) {
-
 		return null;
 	}
 
 	@Override
 	public void dropProgressText(final String arg0) {
-
 	}
 
 	@Override
 	public LogMessage error(final String arg0, final String arg1, final Date arg2, final String arg3,
 			final String arg4) {
-
 		return null;
 	}
 
 	@Override
 	public LogMessage error(final String arg0, final String arg1, final Date arg2, final String arg3, final String arg4,
 			@SuppressWarnings("rawtypes") final Collection arg5) {
-
 		return null;
 	}
 
 	@Override
 	public String getCurrentProgressText() {
-
 		return null;
 	}
 
 	@Override
 	public BlockLogMessage getLastBlockMessage(final String arg0) {
-
 		return null;
 	}
 
 	@Override
 	public LogMessage getLastMessage() {
-
 		return null;
 	}
 
@@ -129,7 +111,6 @@ public class TestBuildLog implements BuildLog {
 	@Override
 	public LogMessage message(final String text, final Status status, final Date date, final String renderingHint,
 			final String arg4, final Collection tags) {
-
 		final LogMessage message = new LogMessage(text, status, date, renderingHint, false, 0, tags);
 		messages.add(message);
 		return message;
@@ -138,7 +119,6 @@ public class TestBuildLog implements BuildLog {
 	@Override
 	public BlockLogMessage openBlock(final String arg0, final String arg1, final Date arg2, final String arg3,
 			final String arg4) {
-
 		return null;
 	}
 
@@ -146,13 +126,11 @@ public class TestBuildLog implements BuildLog {
 	@Override
 	public BlockLogMessage openBlock(final String arg0, final String arg1, final Date arg2, final String arg3,
 			final String arg4, final Collection arg5) {
-
 		return null;
 	}
 
 	@Override
 	public BlockLogMessage openProgressBlock(final String arg0, final Date arg1, final String arg2) {
-
 		return null;
 	}
 
@@ -160,60 +138,50 @@ public class TestBuildLog implements BuildLog {
 	@Override
 	public BlockLogMessage openProgressBlock(final String arg0, final Date arg1, final String arg2,
 			final Collection arg3) {
-
 		return null;
 	}
 
 	@Override
 	public LogMessage progressMessage(final String arg0, final Date arg1, final String arg2) {
-
 		return null;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public LogMessage progressMessage(final String arg0, final Date arg1, final String arg2, final Collection arg3) {
-
 		return null;
 	}
 
 	@Override
 	public void flowFinished(final String arg0) {
-
 	}
 
 	@Override
 	public Integer flowIdToInt(final String arg0) {
-
 		return null;
 	}
 
 	@Override
 	public void flowStarted(final String arg0, final String arg1) {
-
 	}
 
 	@Override
 	public List<String> getFlowWithChildren(final String arg0) {
-
 		return null;
 	}
 
 	@Override
 	public Integer getParentFlow(final Integer arg0) {
-
 		return null;
 	}
 
 	@Override
 	public String getSizeEstimate() {
-
 		return null;
 	}
 
 	@Override
 	public long getSizeEstimateAsLong() {
-
 		return 0;
 	}
 
