@@ -119,7 +119,7 @@ public class ServerHubConfigPersistenceManager {
 	public void persist() throws IOException {
 		FileOutputStream outputStream = null;
 		try {
-			if (!configFile.getParentFile().exists() && configFile.mkdirs()) {
+			if (!configFile.getParentFile().exists() && configFile.getParentFile().mkdirs()) {
 				Loggers.SERVER.info("Directory created for the Hub configuration file at : "
 						+ configFile.getParentFile().getCanonicalPath());
 			} else if (configFile.exists() && configFile.delete()) {
