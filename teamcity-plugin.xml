@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                 xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
-    <info>
-        <name>hub</name>
-        <display-name>Hub</display-name>
-        <version>${plugin.version}</version>
-        <description>
+	xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
+	<info>
+		<name>hub</name>
+		<display-name>Hub</display-name>
+		<version>${plugin.version}</version>
+		<description>
         <![CDATA[Open Source Governance with Black Duck Hub (TM).]]>
 		</description>
-        <download-url></download-url>
-        <vendor>
-            <name>Black Duck Software, Inc.</name>
-            <url>http://www.blackducksoftware.com/</url>
-        </vendor>
-    </info>
-    <deployment use-separate-classloader="true"/>
+		<download-url></download-url>
+		<vendor>
+			<name>Black Duck Software, Inc.</name>
+			<url>http://www.blackducksoftware.com/</url>
+		</vendor>
+	</info>
+	<deployment use-separate-classloader="true" />
 </teamcity-plugin>

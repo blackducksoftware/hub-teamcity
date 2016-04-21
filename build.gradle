@@ -1,7 +1,5 @@
 buildscript{
-	repositories{
-		maven{ url "http://artifactory.blackducksoftware.com/artifactory/blackduck-builder-repos"}
-	}
+	repositories{ maven{ url "http://artifactory.blackducksoftware.com/artifactory/blackduck-builder-repos"} }
 	dependencies{
 		classpath "com.blackducksoftware.gradle.plugins:gradle-management-plugins:1.2.1"
 		classpath("com.blackducksoftware.gradle.plugins:gradle-plugins:1.59"){ exclude module: 'xercesImpl' }
@@ -9,66 +7,68 @@ buildscript{
 }
 
 if (!version || version == 'unspecified'){
-    version = getVersionFromPom()
+	version = getVersionFromPom()
 }
 group = getGroupFromPom()
 description = getNameFromPom()
 
 apply plugin: 'release'
 
-persistVersion{
-    versionPropertiesFile = 'pom.xml' as File
-}
+persistVersion{ versionPropertiesFile = 'pom.xml' as File }
 
 task persistAssemblyVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
-    version = project.version
-    versionPropertiesFile = 'assembly/pom.xml' as File
-    nestedParent = 'parent'
+	version = project.version
+	versionPropertiesFile = 'assembly/pom.xml' as File
+	nestedParent = 'parent'
 }
 task persistCommonVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
-    version = project.version
-    versionPropertiesFile = 'common/pom.xml' as File
-    nestedParent = 'parent'
+	version = project.version
+	versionPropertiesFile = 'common/pom.xml' as File
+	nestedParent = 'parent'
 }
 task persistAgentVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
-    version = project.version
-    versionPropertiesFile = 'agent/pom.xml' as File
-    nestedParent = 'parent'
+	version = project.version
+	versionPropertiesFile = 'agent/pom.xml' as File
+	nestedParent = 'parent'
 }
 task persistServerVersion(type: com.blackducksoftware.gradle.tasks.PersistVersion){
-    version = project.version
-    versionPropertiesFile = 'server/pom.xml' as File
-    nestedParent = 'parent'
+	version = project.version
+	versionPropertiesFile = 'server/pom.xml' as File
+	nestedParent = 'parent'
 }
 
 bumpVersionNumber{
-    versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3], 
-        'server/pom.xml': ['version': 3],
-        'assembly/pom.xml': ['version': 3],
-        'agent/pom.xml': ['version': 3],
-        'common/pom.xml': ['version': 3]]]
+	versionMap = ['int-hub-teamcity': ['pom.xml': ['version': 3],
+			'server/pom.xml': ['version': 3],
+			'assembly/pom.xml': ['version': 3],
+			'agent/pom.xml': ['version': 3],
+			'common/pom.xml': ['version': 3]]]
 }
 
 commitPropertiesFiles{
-    propertyFilesList = ['int-hub-teamcity': ['pom.xml', 'server/pom.xml', 'assembly/pom.xml', 'agent/pom.xml', 'common/pom.xml']]
+	propertyFilesList = ['int-hub-teamcity': [
+			'pom.xml',
+			'server/pom.xml',
+			'assembly/pom.xml',
+			'agent/pom.xml',
+			'common/pom.xml'
+		]]
 }
 
 def getVersionFromPom(){
-  File pom = new File('pom.xml')
-  def project = new XmlSlurper().parse(pom)
-  project.version
+	File pom = new File('pom.xml')
+	def project = new XmlSlurper().parse(pom)
+	project.version
 }
 def getGroupFromPom(){
-  File pom = new File('pom.xml')
-  def project = new XmlSlurper().parse(pom)
-  project.groupId
+	File pom = new File('pom.xml')
+	def project = new XmlSlurper().parse(pom)
+	project.groupId
 }
 def getNameFromPom(){
-  File pom = new File('pom.xml')
-  def project = new XmlSlurper().parse(pom)
-  project.name
+	File pom = new File('pom.xml')
+	def project = new XmlSlurper().parse(pom)
+	project.name
 }
 
-task('wrapper', type: Wrapper){
-  gradleVersion='2.4'
-}
+task('wrapper', type: Wrapper){ gradleVersion='2.4' }

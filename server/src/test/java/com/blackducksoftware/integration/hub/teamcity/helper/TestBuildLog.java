@@ -14,195 +14,207 @@ import jetbrains.buildServer.serverSide.buildLog.LogMessageFilter;
 
 public class TestBuildLog implements BuildLog {
 
-    private List<LogMessage> messages = new ArrayList<LogMessage>();
+	private final List<LogMessage> messages = new ArrayList<LogMessage>();
 
-    @Override
-    public List<LogMessage> getDefaultFilteredMessages() {
+	@Override
+	public List<LogMessage> getDefaultFilteredMessages() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public List<LogMessage> getErrorMessages() {
+	@Override
+	public List<LogMessage> getErrorMessages() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public List<LogMessage> getFilteredMessages(LogMessageFilter arg0) {
+	@Override
+	public List<LogMessage> getFilteredMessages(final LogMessageFilter arg0) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public Date getLastMessageTimestamp() {
+	@Override
+	public Date getLastMessageTimestamp() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public List<LogMessage> getMessages() {
+	@Override
+	public List<LogMessage> getMessages() {
 
-        return messages;
-    }
+		return messages;
+	}
 
-    @Override
-    public Iterator<LogMessage> getMessagesIterator() {
+	@Override
+	public Iterator<LogMessage> getMessagesIterator() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public boolean isClosed() {
+	@Override
+	public boolean isClosed() {
 
-        return false;
-    }
+		return false;
+	}
 
-    @Override
-    public void close() {
+	@Override
+	public void close() {
 
-    }
+	}
 
-    @Override
-    public void flush() {
+	@Override
+	public void flush() {
 
-    }
+	}
 
-    @Override
-    public BlockLogMessage closeBlock(String arg0, String arg1, Date arg2, String arg3) {
+	@Override
+	public BlockLogMessage closeBlock(final String arg0, final String arg1, final Date arg2, final String arg3) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public BlockLogMessage closeProgressBlock(Date arg0, String arg1) {
+	@Override
+	public BlockLogMessage closeProgressBlock(final Date arg0, final String arg1) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public void dropProgressText(String arg0) {
+	@Override
+	public void dropProgressText(final String arg0) {
 
-    }
+	}
 
-    @Override
-    public LogMessage error(String arg0, String arg1, Date arg2, String arg3, String arg4) {
+	@Override
+	public LogMessage error(final String arg0, final String arg1, final Date arg2, final String arg3,
+			final String arg4) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public LogMessage error(String arg0, String arg1, Date arg2, String arg3, String arg4, Collection arg5) {
+	@Override
+	public LogMessage error(final String arg0, final String arg1, final Date arg2, final String arg3, final String arg4,
+			@SuppressWarnings("rawtypes") final Collection arg5) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getCurrentProgressText() {
+	@Override
+	public String getCurrentProgressText() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public BlockLogMessage getLastBlockMessage(String arg0) {
+	@Override
+	public BlockLogMessage getLastBlockMessage(final String arg0) {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public LogMessage getLastMessage() {
+	@Override
+	public LogMessage getLastMessage() {
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public LogMessage message(String text, Status status, Date date, String renderingHint, String arg4) {
-        LogMessage message = new LogMessage(text, status, date, arg4, false, 0);
-        messages.add(message);
-        return message;
-    }
+	@Override
+	public LogMessage message(final String text, final Status status, final Date date, final String renderingHint,
+			final String arg4) {
+		final LogMessage message = new LogMessage(text, status, date, arg4, false, 0);
+		messages.add(message);
+		return message;
+	}
 
-    @Override
-    public LogMessage message(String text, Status status, Date date, String renderingHint, String arg4, Collection tags) {
-        LogMessage message = new LogMessage(text, status, date, renderingHint, false, 0, tags);
-        messages.add(message);
-        return message;
-    }
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public LogMessage message(final String text, final Status status, final Date date, final String renderingHint,
+			final String arg4, final Collection tags) {
 
-    @Override
-    public BlockLogMessage openBlock(String arg0, String arg1, Date arg2, String arg3, String arg4) {
+		final LogMessage message = new LogMessage(text, status, date, renderingHint, false, 0, tags);
+		messages.add(message);
+		return message;
+	}
 
-        return null;
-    }
+	@Override
+	public BlockLogMessage openBlock(final String arg0, final String arg1, final Date arg2, final String arg3,
+			final String arg4) {
 
-    @Override
-    public BlockLogMessage openBlock(String arg0, String arg1, Date arg2, String arg3, String arg4, Collection arg5) {
+		return null;
+	}
 
-        return null;
-    }
+	@SuppressWarnings("rawtypes")
+	@Override
+	public BlockLogMessage openBlock(final String arg0, final String arg1, final Date arg2, final String arg3,
+			final String arg4, final Collection arg5) {
 
-    @Override
-    public BlockLogMessage openProgressBlock(String arg0, Date arg1, String arg2) {
+		return null;
+	}
 
-        return null;
-    }
+	@Override
+	public BlockLogMessage openProgressBlock(final String arg0, final Date arg1, final String arg2) {
 
-    @Override
-    public BlockLogMessage openProgressBlock(String arg0, Date arg1, String arg2, Collection arg3) {
+		return null;
+	}
 
-        return null;
-    }
+	@SuppressWarnings("rawtypes")
+	@Override
+	public BlockLogMessage openProgressBlock(final String arg0, final Date arg1, final String arg2,
+			final Collection arg3) {
 
-    @Override
-    public LogMessage progressMessage(String arg0, Date arg1, String arg2) {
+		return null;
+	}
 
-        return null;
-    }
+	@Override
+	public LogMessage progressMessage(final String arg0, final Date arg1, final String arg2) {
 
-    @Override
-    public LogMessage progressMessage(String arg0, Date arg1, String arg2, Collection arg3) {
+		return null;
+	}
 
-        return null;
-    }
+	@SuppressWarnings("rawtypes")
+	@Override
+	public LogMessage progressMessage(final String arg0, final Date arg1, final String arg2, final Collection arg3) {
 
-    @Override
-    public void flowFinished(String arg0) {
+		return null;
+	}
 
-    }
+	@Override
+	public void flowFinished(final String arg0) {
 
-    @Override
-    public Integer flowIdToInt(String arg0) {
+	}
 
-        return null;
-    }
+	@Override
+	public Integer flowIdToInt(final String arg0) {
 
-    @Override
-    public void flowStarted(String arg0, String arg1) {
+		return null;
+	}
 
-    }
+	@Override
+	public void flowStarted(final String arg0, final String arg1) {
 
-    @Override
-    public List<String> getFlowWithChildren(String arg0) {
+	}
 
-        return null;
-    }
+	@Override
+	public List<String> getFlowWithChildren(final String arg0) {
 
-    @Override
-    public Integer getParentFlow(Integer arg0) {
+		return null;
+	}
 
-        return null;
-    }
+	@Override
+	public Integer getParentFlow(final Integer arg0) {
 
-    @Override
-    public String getSizeEstimate() {
+		return null;
+	}
 
-        return null;
-    }
+	@Override
+	public String getSizeEstimate() {
 
-    @Override
-    public long getSizeEstimateAsLong() {
+		return null;
+	}
 
-        return 0;
-    }
+	@Override
+	public long getSizeEstimateAsLong() {
+
+		return 0;
+	}
 
 }

@@ -13,10 +13,8 @@
 
 	<licenses>
 		<license>
-			<name>Black Duck Commercial License</name>
-			<url>http://www.blackducksoftware.com/</url>
-			<distribution>manual</distribution>
-			<comments>Use of this plugin is governed by the license under which you use Black Duck Software Hub (TM)</comments>
+			<name>GNU General Public License 2 only</name>
+			<url>http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html</url>
 		</license>
 	</licenses>
 
@@ -29,7 +27,6 @@
 		<developer>
 			<id>jrichard</id>
 			<name>James Richard</name>
-			<email>jrichard@blackducksoftware.com</email>
 			<organization>Black Duck Software, Inc.</organization>
 			<organizationUrl>http://www.blackducksoftware.com/</organizationUrl>
 			<roles>
@@ -48,47 +45,30 @@
 
 	<repositories>
 		<repository>
-			<id>repo01</id>
-			<name>repo01-releases</name>
-			<url>http://artifactory.blackducksoftware.com:8081/artifactory/jcenter</url>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com</url>
 		</repository>
 		<repository>
-			<id>integrationRelease</id>
-			<name>bds-artifactory</name>
-			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>integrationSnap</id>
-			<name>bds-artifactory</name>
-			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration-snapshot</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<id>bds-int-public</id>
+			<url>https://updates.suite.blackducksoftware.com/integrations/</url>
 		</repository>
 	</repositories>
 
 	<distributionManagement>
 		<repository>
-			<id>bds-artifactory</id>
-			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration</url>
+			<id>bds-int-public</id>
+			<url>https://updates.suite.blackducksoftware.com/integrations/</url>
 		</repository>
 		<snapshotRepository>
-			<id>artifactory.blackducksoftware.com</id>
-			<url>http://artifactory.blackducksoftware.com:8081/artifactory/integration-snapshot</url>
+			<id>bds-int-public</id>
+			<url>https://updates.suite.blackducksoftware.com/integrations/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.resources.sourceEncoding>UTF-8</project.resources.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<teamcity.version>7.1.0</teamcity.version>
 		<plugin.version>${project.version}</plugin.version>
 	</properties>
@@ -97,18 +77,8 @@
 		<dependencies>
 			<dependency>
 				<groupId>com.blackducksoftware.integration</groupId>
-				<artifactId>int-hub-ci</artifactId>
-				<version>1.2.3</version>
-			</dependency>
-			<dependency>
-				<groupId>com.blackducksoftware.integration</groupId>
-				<artifactId>int-suite-sdk-encryption</artifactId>
-				<version>1.0.2</version>
-			</dependency>
-			<dependency>
-				<groupId>com.blackducksoftware.integration</groupId>
-				<artifactId>int-suite-sdk-shared</artifactId>
-				<version>1.0.2</version>
+				<artifactId>hub-common</artifactId>
+				<version>1.3.2-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -352,20 +322,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>Sonargraph</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<pluginRepositories>
-				<pluginRepository>
-					<id>hello2morrow.maven.repository</id>
-					<url>http://artifactory.blackducksoftware.com:8081/artifactory/hello2morrow</url>
-				</pluginRepository>
-			</pluginRepositories>
-		</profile>
-	</profiles>
 
 </project>
