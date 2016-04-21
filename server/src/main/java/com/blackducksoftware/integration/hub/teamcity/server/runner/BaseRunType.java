@@ -1,20 +1,21 @@
-/*
- * Copyright (C) 2010 JFrog Ltd.
+/*******************************************************************************
+ * Black Duck Software Suite SDK
+ * Copyright (C) 2016 Black Duck Software, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * EDITED BY BLACKDUCKSOFTWARE
- */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *******************************************************************************/
 
 package com.blackducksoftware.integration.hub.teamcity.server.runner;
 
@@ -23,74 +24,71 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager;
+
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 
-import org.jetbrains.annotations.NotNull;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager;
-
 public abstract class BaseRunType extends RunType {
-    private final PluginDescriptor pluginDescriptor;
+	private final PluginDescriptor pluginDescriptor;
+	private final WebControllerManager webControllerManager;
+	private final ServerHubConfigPersistenceManager serverPeristanceManager;
+	private String viewUrl;
+	private String editUrl;
 
-    private final WebControllerManager webControllerManager;
+	public BaseRunType(@NotNull final WebControllerManager webControllerManager,
+			@NotNull final PluginDescriptor pluginDescriptor,
+			@NotNull final ServerHubConfigPersistenceManager serverPeristanceManager) {
+		this.webControllerManager = webControllerManager;
+		this.pluginDescriptor = pluginDescriptor;
+		this.serverPeristanceManager = serverPeristanceManager;
+	}
 
-    private final ServerHubConfigPersistenceManager serverPeristanceManager;
+	@Override
+	public String getEditRunnerParamsJspFilePath() {
+		return editUrl;
+	}
 
-    private String viewUrl;
+	@Override
+	public String getViewRunnerParamsJspFilePath() {
+		return viewUrl;
+	}
 
-    private String editUrl;
+	@Override
+	public Map<String, String> getDefaultRunnerProperties() {
+		return null;
+	}
 
-    public BaseRunType(@NotNull final WebControllerManager webControllerManager,
-            @NotNull final PluginDescriptor pluginDescriptor, @NotNull ServerHubConfigPersistenceManager serverPeristanceManager) {
-        this.webControllerManager = webControllerManager;
-        this.pluginDescriptor = pluginDescriptor;
-        this.serverPeristanceManager = serverPeristanceManager;
-    }
+	protected void registerEdit(@NotNull final String url, @NotNull final String jsp) {
+		editUrl = pluginDescriptor.getPluginResourcesPath(url);
+		final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
+		webControllerManager.registerController(editUrl,
+				new HubRunTypeConfigController(editUrl, actualJsp, serverPeristanceManager));
+	}
 
-    @Override
-    public String getEditRunnerParamsJspFilePath() {
-        return editUrl;
-    }
+	protected void registerView(@NotNull final String url, @NotNull final String jsp) {
+		viewUrl = pluginDescriptor.getPluginResourcesPath(url);
+		final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
 
-    @Override
-    public String getViewRunnerParamsJspFilePath() {
-        return viewUrl;
-    }
+		webControllerManager.registerController(viewUrl, new BaseController() {
+			@Override
+			protected ModelAndView doHandle(final HttpServletRequest request, final HttpServletResponse response) {
+				final ModelAndView modelAndView = new ModelAndView(actualJsp);
+				modelAndView.getModel().put("controllerUrl", viewUrl);
+				return modelAndView;
+			}
+		});
+	}
 
-    @Override
-    public Map<String, String> getDefaultRunnerProperties() {
-        return null;
-    }
-
-    protected void registerEdit(@NotNull final String url, @NotNull final String jsp) {
-        editUrl = pluginDescriptor.getPluginResourcesPath(url);
-        String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
-        webControllerManager.registerController(editUrl,
-                new HubRunTypeConfigController(editUrl, actualJsp, serverPeristanceManager));
-    }
-
-    protected void registerView(@NotNull final String url, @NotNull final String jsp) {
-        viewUrl = pluginDescriptor.getPluginResourcesPath(url);
-        final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
-
-        webControllerManager.registerController(viewUrl, new BaseController() {
-            @Override
-            protected ModelAndView doHandle(HttpServletRequest request, HttpServletResponse response) {
-                ModelAndView modelAndView = new ModelAndView(actualJsp);
-                modelAndView.getModel().put("controllerUrl", viewUrl);
-                return modelAndView;
-            }
-        });
-    }
-
-    @Override
-    public PropertiesProcessor getRunnerPropertiesProcessor() {
-        return null;
-    }
+	@Override
+	public PropertiesProcessor getRunnerPropertiesProcessor() {
+		return null;
+	}
 
 }

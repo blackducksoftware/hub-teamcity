@@ -1,26 +1,43 @@
+/*******************************************************************************
+ * Black Duck Software Suite SDK
+ * Copyright (C) 2016 Black Duck Software, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.mocks;
-
-import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
+
 public class MockPluginDescriptor {
+	public static PluginDescriptor getMockedPluginDescriptor() {
+		final PluginDescriptor mockedPluginDescriptor = Mockito.mock(PluginDescriptor.class);
 
-    public static PluginDescriptor getMockedPluginDescriptor() {
-        PluginDescriptor mockedPluginDescriptor = Mockito.mock(PluginDescriptor.class);
+		Mockito.doAnswer(new Answer<String>() {
+			@Override
+			public String answer(final InvocationOnMock invocation) {
+				final Object[] args = invocation.getArguments();
 
-        Mockito.doAnswer(new Answer<String>() {
-            @Override
-            public String answer(InvocationOnMock invocation) {
-                Object[] args = invocation.getArguments();
+				return (String) args[0];
+			}
+		}).when(mockedPluginDescriptor).getPluginResourcesPath(Mockito.anyString());
 
-                return (String) args[0];
-            }
-        }).when(mockedPluginDescriptor).getPluginResourcesPath(Mockito.anyString());
-
-        return mockedPluginDescriptor;
-    }
+		return mockedPluginDescriptor;
+	}
 
 }

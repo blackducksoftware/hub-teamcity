@@ -1,3 +1,21 @@
+/*******************************************************************************
+ * Black Duck Software Suite SDK
+ * Copyright (C) 2016 Black Duck Software, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
@@ -69,9 +87,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	private final ArtifactsWatcher artifactsWatcher;
 
 	private HubAgentBuildLogger logger;
-
 	private BuildFinishedStatus result;
-
 	private Boolean verbose;
 
 	public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context,
@@ -215,12 +231,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					return result;
 				}
 				final File oneJarFile = installer.getOneJarFile();
-
 				final File javaExec = installer.getProvidedJavaExec();
 
 				ProjectItem project = null;
 				ReleaseItem version = null;
-
 				if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
 					project = ensureProjectExists(restService, logger, projectName);
 					version = ensureVersionExists(restService, logger, projectVersion, project, jobConfig);
@@ -242,9 +256,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
 
 				boolean waitForBom = true;
-
 				if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
-
 					final RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo,
 							hubSupport);
 					// will wait for bom to be updated while generating the
@@ -266,7 +278,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo,
 						version.getLink(ReleaseItem.POLICY_STATUS_LINK), waitForBom);
-
 			} else {
 				logger.info("Skipping Hub Build Step");
 				result = BuildFinishedStatus.FINISHED_FAILED;
@@ -274,7 +285,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		} catch (final Exception e) {
 			logger.error(e);
 			result = BuildFinishedStatus.FINISHED_FAILED;
-
 		}
 		logger.targetFinished("Hub Build Step");
 		return result;
@@ -296,7 +306,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		}
 		final String result = value.trim();
 		return result;
-
 	}
 
 	public boolean isGlobalConfigValid(final ServerHubConfigBean globalConfig) throws IOException {
@@ -340,13 +349,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			return;
 		}
 		logger.info("Working directory : " + jobConfig.getWorkingDirectory());
-
 		logger.info("--> Project : " + jobConfig.getProjectName());
 		logger.info("--> Version : " + jobConfig.getVersion());
-
 		logger.info("--> Version Phase : " + jobConfig.getPhase());
 		logger.info("--> Version Distribution : " + jobConfig.getDistribution());
-
 		logger.info("--> Hub scan memory : " + jobConfig.getScanMemory() + " MB");
 
 		if (jobConfig.getScanTargetPaths().size() > 0) {
@@ -362,7 +368,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		ProjectItem project = null;
 		try {
 			project = service.getProjectByName(projectName);
-
 		} catch (final NullPointerException npe) {
 			project = createProject(service, logger, projectName);
 		} catch (final ProjectDoesNotExistException e) {
@@ -403,9 +408,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	 */
 	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
-
 		try {
 			version = service.getVersion(project, projectVersion);
 			if (!version.getPhase().equals(jobConfig.getPhase())) {
@@ -428,7 +432,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 
 		try {
@@ -449,8 +453,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+					IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
+					IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -578,7 +582,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					if (policyViolationFound) {
 						build.stopBuild("Policy Violations found");
 					}
-
 				} catch (final MissingPolicyStatusException e) {
 					logger.warn(e.getMessage());
 				} catch (final IOException e) {
@@ -603,14 +606,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
-
+					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException,
+					IOException {
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
-
 		if (supportHelper.isCliStatusDirOptionSupport()) {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
 		} else {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo);
 		}
 	}
+
 }

@@ -1,4 +1,24 @@
+/*******************************************************************************
+ * Black Duck Software Suite SDK
+ * Copyright (C) 2016 Black Duck Software, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.server.global;
+
+import org.jetbrains.annotations.NotNull;
 
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.BuildServerAdapter;
@@ -7,31 +27,27 @@ import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerPaths;
 import jetbrains.buildServer.util.EventDispatcher;
 
-import org.jetbrains.annotations.NotNull;
-
 public class HubServerListener extends BuildServerAdapter {
-    private final SBuildServer server;
+	private final SBuildServer server;
+	private final ServerHubConfigPersistenceManager configPersistenceManager;
 
-    private final ServerHubConfigPersistenceManager configPersistenceManager;
+	public HubServerListener(@NotNull final EventDispatcher<BuildServerListener> dispatcher,
+			@NotNull final SBuildServer server, @NotNull final ServerPaths serverPaths) {
+		this.server = server;
 
-    public HubServerListener(@NotNull final EventDispatcher<BuildServerListener> dispatcher,
-            @NotNull final SBuildServer server, @NotNull ServerPaths serverPaths) {
-        this.server = server;
+		dispatcher.addListener(this);
 
-        dispatcher.addListener(this);
+		configPersistenceManager = new ServerHubConfigPersistenceManager(serverPaths);
+	}
 
-        configPersistenceManager = new ServerHubConfigPersistenceManager(serverPaths);
-    }
+	@Override
+	public void serverStartup() {
+		Loggers.SERVER.info("The Black Duck Software Hub Plugin is running on server version '"
+				+ server.getFullServerVersion() + "'.");
+	}
 
-    @Override
-    public void serverStartup() {
-        Loggers.SERVER.info("The Black Duck Software Hub Plugin is running on server version '" +
-                server.getFullServerVersion()
-                + "'.");
-    }
-
-    public ServerHubConfigPersistenceManager getConfigManager() {
-        return configPersistenceManager;
-    }
+	public ServerHubConfigPersistenceManager getConfigManager() {
+		return configPersistenceManager;
+	}
 
 }

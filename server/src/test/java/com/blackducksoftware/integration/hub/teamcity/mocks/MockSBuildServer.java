@@ -1,16 +1,33 @@
+/*******************************************************************************
+ * Black Duck Software Suite SDK
+ * Copyright (C) 2016 Black Duck Software, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.mocks;
-
-import jetbrains.buildServer.serverSide.SBuildServer;
 
 import org.mockito.Mockito;
 
+import jetbrains.buildServer.serverSide.SBuildServer;
+
 public class MockSBuildServer {
+	public static SBuildServer getMockedSBuildServer(final String serverVersion) {
+		final SBuildServer mockedSBuildServer = Mockito.mock(SBuildServer.class);
 
-    public static SBuildServer getMockedSBuildServer(final String serverVersion) {
-        SBuildServer mockedSBuildServer = Mockito.mock(SBuildServer.class);
-
-        Mockito.when(mockedSBuildServer.getFullServerVersion()).thenReturn(serverVersion);
-        return mockedSBuildServer;
-    }
+		Mockito.when(mockedSBuildServer.getFullServerVersion()).thenReturn(serverVersion);
+		return mockedSBuildServer;
+	}
 
 }
