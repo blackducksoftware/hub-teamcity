@@ -2,12 +2,12 @@ package com.blackducksoftware.integration.hub.teamcity.common.beans;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.blackducksoftware.integration.hub.encryption.PasswordDecrypter;
+import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("globalHubCredentials")
@@ -61,8 +61,8 @@ public class HubCredentialsBean implements Serializable {
 		this.actualPasswordLength = actualPasswordLength;
 	}
 
-	public String getMaskedPassword()
-			throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+	public String getMaskedPassword() throws IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
+			InvocationTargetException, EncryptionException {
 		if (StringUtils.isBlank(hubPass)) {
 			return null;
 		}
@@ -82,8 +82,8 @@ public class HubCredentialsBean implements Serializable {
 		}
 	}
 
-	public String getDecryptedPassword()
-			throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public String getDecryptedPassword() throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, EncryptionException {
 		final String encryptedPassword = hubPass;
 		if (StringUtils.isBlank(encryptedPassword)) {
 			return null;
@@ -96,14 +96,7 @@ public class HubCredentialsBean implements Serializable {
 				Thread.currentThread().setContextClassLoader(PasswordDecrypter.class.getClassLoader());
 			}
 
-			final Method method = PasswordDecrypter.class.getDeclaredMethod("decrypt", String.class);
-			method.setAccessible(true);
-			final Object result = method.invoke(null, encryptedPassword);
-			if (result != null) {
-				return String.valueOf(result);
-			} else {
-				return null;
-			}
+			return PasswordDecrypter.decrypt(encryptedPassword);
 		} finally {
 			if (changed) {
 				Thread.currentThread().setContextClassLoader(originalClassLoader);

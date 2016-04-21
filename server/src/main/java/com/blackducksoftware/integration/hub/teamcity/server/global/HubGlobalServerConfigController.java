@@ -385,8 +385,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			// new one
 			final String decryptedWebPassword = getDecryptedWebPassword(password);
 			if (StringUtils.isNotBlank(decryptedWebPassword)) {
-				credentialsBean
-						.setEncryptedPassword(PasswordEncrypter.encrypt(new HubServerLogger(), decryptedWebPassword));
+				credentialsBean.setEncryptedPassword(PasswordEncrypter.encrypt(decryptedWebPassword));
 				credentialsBean.setActualPasswordLength(decryptedWebPassword.length());
 			}
 		} else {
@@ -434,9 +433,9 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 	}
 
 	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
-			final boolean isTestConnection)
-					throws HubIntegrationException, URISyntaxException, IOException, NoSuchMethodException,
-					IllegalAccessException, IllegalArgumentException, InvocationTargetException, BDRestException {
+			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}

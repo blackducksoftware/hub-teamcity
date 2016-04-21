@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.restlet.data.Cookie;
 import org.restlet.data.Method;
 import org.restlet.resource.ClientResource;
-import org.restlet.resource.ResourceException;
 import org.restlet.util.Series;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
@@ -24,47 +23,65 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 	/**
 	 * Delete HubProject. For test purposes only!
 	 *
-	 * @param projectId
-	 *            String
-	 * @return boolean true if deleted successfully
-	 * @throws BDRestException
 	 */
-	public boolean deleteHubProject(final String projectId) {
-		if (StringUtils.isEmpty(projectId)) {
+	public boolean deleteHubProject(final ProjectItem project) throws BDRestException {
+		if (project == null) {
 			return false;
 		}
-		try {
-			final Series<Cookie> cookies = getCookies();
-			final String url = getBaseUrl() + "/api/v1/projects/" + projectId;
-			final ClientResource resource = new ClientResource(url);
 
-			resource.getRequest().setCookies(cookies);
-			resource.setMethod(Method.DELETE);
+		final Series<Cookie> cookies = getCookies();
+		final ClientResource resource = new ClientResource(project.get_meta().getHref());
+		resource.getRequest().setCookies(cookies);
+		resource.setMethod(Method.DELETE);
+		resource.delete();
+		final int responseCode = resource.getResponse().getStatus().getCode();
 
-			resource.delete();
-			final int responseCode = resource.getResponse().getStatus().getCode();
-
-			if (responseCode != 204) {
-				System.out.println("Could not connect to Hub server. Response Code : " + responseCode);
-			} else {
-				return true;
-			}
-		} catch (final ResourceException e) {
-			e.printStackTrace();
+		if (responseCode != 204) {
+			throw new BDRestException(
+					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "
+							+ responseCode,
+					resource);
+		} else {
+			return true;
 		}
-		return false;
+	}
+
+	/**
+	 * Delete HubProject. For test purposes only!
+	 *
+	 */
+	public boolean deleteHubProject(final String projectUrl) throws BDRestException {
+		if (StringUtils.isBlank(projectUrl)) {
+			return false;
+		}
+
+		final Series<Cookie> cookies = getCookies();
+		final ClientResource resource = new ClientResource(projectUrl);
+		resource.getRequest().setCookies(cookies);
+		resource.setMethod(Method.DELETE);
+		resource.delete();
+		final int responseCode = resource.getResponse().getStatus().getCode();
+
+		if (responseCode != 204) {
+			throw new BDRestException(
+					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "
+							+ responseCode,
+					resource);
+		} else {
+			return true;
+		}
 	}
 
 	@Override
-	public ProjectItem getProjectByName(final String projectName)
-			throws IOException, BDRestException, URISyntaxException, ProjectDoesNotExistException {
+	public ProjectItem getProjectByName(final String projectName) throws IOException, URISyntaxException {
 		try {
 			return super.getProjectByName(projectName);
+		} catch (final ProjectDoesNotExistException e) {
+			System.out.println(e.getMessage());
 		} catch (final BDRestException e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
-
-		return null;
+		return new ProjectItem(projectName, null, null);
 	}
 
 }

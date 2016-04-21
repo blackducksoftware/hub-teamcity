@@ -11,29 +11,30 @@ import com.intellij.util.enumeration.EmptyEnumeration;
 
 public class MockHttpServletRequest {
 
-    public static HttpServletRequest getMockedHttpServletRequest() {
-        HttpServletRequest mockedHttpServletRequest = Mockito.mock(HttpServletRequest.class);
+	public static HttpServletRequest getMockedHttpServletRequest() {
+		final HttpServletRequest mockedHttpServletRequest = Mockito.mock(HttpServletRequest.class);
 
-        Mockito.when(mockedHttpServletRequest.getParameter(Mockito.anyString())).thenReturn("");
+		Mockito.when(mockedHttpServletRequest.getParameter(Mockito.anyString())).thenReturn("");
 
-        return mockedHttpServletRequest;
-    }
+		return mockedHttpServletRequest;
+	}
 
-    public static void addGetParameter(final HttpServletRequest mockedRequest, final String parameterName, final String parameterValue) {
-        Mockito.when(mockedRequest.getParameter(parameterName)).thenReturn(parameterValue);
-    }
+	public static void addGetParameter(final HttpServletRequest mockedRequest, final String parameterName,
+			final String parameterValue) {
+		Mockito.when(mockedRequest.getParameter(parameterName)).thenReturn(parameterValue);
+	}
 
-    public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
-        if (hasParameters) {
-            Enumeration enumeration = new ArrayEnumeration(new String[] { "" });
+	public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
+		if (hasParameters) {
+			final Enumeration<?> enumeration = new ArrayEnumeration(new String[] { "" });
 
-            // .getParameterNames().hasMoreElements()
-            Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
-        } else {
-            Enumeration enumeration = EmptyEnumeration.INSTANCE;
+			// .getParameterNames().hasMoreElements()
+			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
+		} else {
+			final Enumeration<?> enumeration = EmptyEnumeration.INSTANCE;
 
-            Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
-        }
+			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
+		}
 
-    }
+	}
 }

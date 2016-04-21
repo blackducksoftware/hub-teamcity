@@ -21,6 +21,7 @@ import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
+import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
@@ -45,6 +46,8 @@ import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredential
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
+import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
+import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
 import com.blackducksoftware.integration.hub.version.api.ReleaseItem;
 import com.google.gson.Gson;
 
@@ -163,8 +166,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			final HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder();
 			hubScanJobConfigBuilder.setProjectName(projectName);
 			hubScanJobConfigBuilder.setVersion(projectVersion);
-			hubScanJobConfigBuilder.setPhase(phase);
-			hubScanJobConfigBuilder.setDistribution(distribution);
+			hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
+			hubScanJobConfigBuilder
+					.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
 			hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
@@ -241,12 +245,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
 
-					waitForBomToBeUpdated(hubLogger, restService, hubSupport, hubReportGenerationInfo);
-					waitForBom = false;
 					final RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo,
 							hubSupport);
+					// will wait for bom to be updated while generating the
+					// report.
 					final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger);
-
+					waitForBom = false;
 					final String reportPath = workingDirectoryPath + File.separator
 							+ HubConstantValues.HUB_RISK_REPORT_FILENAME;
 
@@ -444,9 +448,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
-			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper)
-			throws HubIntegrationException, IOException, URISyntaxException, NumberFormatException,
-			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
+			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -537,7 +541,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			} else {
 				try {
 					if (waitForBom) {
-						logger.info("About to wait for BOM update");
+						logger.debug("Waiting for the bom to be updated with the scan results.");
 						waitForBomToBeUpdated(logger, restService, hubSupport, bomUpdateInfo);
 					}
 					// We use this conditional in case there are other failure
@@ -547,9 +551,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 						build.stopBuild("Could not find any information about the Policy status of the bom.");
 						return;
 					}
+					boolean policyViolationFound = false;
 					if (policyStatus.getOverallStatusEnum() == PolicyStatusEnum.IN_VIOLATION) {
-						build.stopBuild("Policy Violations found");
-						return;
+						policyViolationFound = true;
 					}
 
 					if (policyStatus.getCountInViolation() == null) {
@@ -569,6 +573,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					} else {
 						logger.info("Found " + policyStatus.getCountNotInViolation().getValue()
 								+ " bom entries to be Not In Violation of a defined Policy.");
+					}
+
+					if (policyViolationFound) {
+						build.stopBuild("Policy Violations found");
 					}
 
 				} catch (final MissingPolicyStatusException e) {

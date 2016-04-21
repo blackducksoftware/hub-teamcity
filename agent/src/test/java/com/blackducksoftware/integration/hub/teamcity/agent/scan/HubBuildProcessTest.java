@@ -22,8 +22,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.blackducksoftware.integration.hub.encryption.PasswordEncrypter;
+import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.project.api.ProjectItem;
@@ -508,7 +508,7 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-					PasswordEncrypter.encrypt(logger, testProperties.getProperty("TEST_PASSWORD")));
+					PasswordEncrypter.encrypt(testProperties.getProperty("TEST_PASSWORD")));
 
 			context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
 			context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION,
@@ -585,27 +585,21 @@ public class HubBuildProcessTest {
 			assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
 			assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
-			// assertTrue(progressOutput,
-			// progressOutput.contains("Waiting a few seconds for the scans to
-			// be recognized by the Hub server."));
-			// assertTrue(progressOutput, progressOutput.contains("Checking for
-			// the scan location with Host name"));
-			// assertTrue(progressOutput, progressOutput.contains("MATCHED"));
-			// assertTrue(progressOutput, progressOutput.contains("These scan
-			// Id's were found for the scan targets."));
-			// assertTrue(progressOutput, progressOutput.contains("Mapping the
-			// scan location with id:"));
-			// assertTrue(progressOutput, progressOutput.contains("Asset
-			// reference mapping object :"));
-			// assertTrue(progressOutput, progressOutput.contains("Successfully
-			// mapped the scan with id"));
+			assertTrue(progressOutput,
+					progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
+			assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
+			assertTrue(progressOutput, progressOutput.contains("MATCHED"));
+			assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
+			assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
+			assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
+			assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-				// if (project != null && project.getId() != null) {
-				// restHelper.deleteHubProject(project.getId());
-				// }
-			} catch (final ProjectDoesNotExistException e) {
+				if (project != null) {
+					restHelper.deleteHubProject(project);
+				}
+			} catch (final BDRestException e) {
 				// ignore this one
 			}
 		}
@@ -621,7 +615,7 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-					PasswordEncrypter.encrypt(logger, testProperties.getProperty("TEST_PASSWORD")));
+					PasswordEncrypter.encrypt(testProperties.getProperty("TEST_PASSWORD")));
 
 			context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST,
 					testProperties.getProperty("TEST_PROXY_HOST_PASSTHROUGH"));
@@ -705,27 +699,21 @@ public class HubBuildProcessTest {
 			assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
 			assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
-			// assertTrue(progressOutput,
-			// progressOutput.contains("Waiting a few seconds for the scans to
-			// be recognized by the Hub server."));
-			// assertTrue(progressOutput, progressOutput.contains("Checking for
-			// the scan location with Host name"));
-			// assertTrue(progressOutput, progressOutput.contains("MATCHED"));
-			// assertTrue(progressOutput, progressOutput.contains("These scan
-			// Id's were found for the scan targets."));
-			// assertTrue(progressOutput, progressOutput.contains("Mapping the
-			// scan location with id:"));
-			// assertTrue(progressOutput, progressOutput.contains("Asset
-			// reference mapping object :"));
-			// assertTrue(progressOutput, progressOutput.contains("Successfully
-			// mapped the scan with id"));
+			assertTrue(progressOutput,
+					progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
+			assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
+			assertTrue(progressOutput, progressOutput.contains("MATCHED"));
+			assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
+			assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
+			assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
+			assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-				// if (project != null && project.getId() != null) {
-				// restHelper.deleteHubProject(project.getId());
-				// }
-			} catch (final ProjectDoesNotExistException e) {
+				if (project != null) {
+					restHelper.deleteHubProject(project);
+				}
+			} catch (final BDRestException e) {
 				// ignore this one
 			}
 
@@ -745,7 +733,7 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-					PasswordEncrypter.encrypt(logger, testProperties.getProperty("TEST_PASSWORD")));
+					PasswordEncrypter.encrypt(testProperties.getProperty("TEST_PASSWORD")));
 
 			context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST,
 					testProperties.getProperty("TEST_PROXY_HOST_PASSTHROUGH"));
@@ -824,27 +812,21 @@ public class HubBuildProcessTest {
 			assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
 			assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
-			// assertTrue(progressOutput,
-			// progressOutput.contains("Waiting a few seconds for the scans to
-			// be recognized by the Hub server."));
-			// assertTrue(progressOutput, progressOutput.contains("Checking for
-			// the scan location with Host name"));
-			// assertTrue(progressOutput, progressOutput.contains("MATCHED"));
-			// assertTrue(progressOutput, progressOutput.contains("These scan
-			// Id's were found for the scan targets."));
-			// assertTrue(progressOutput, progressOutput.contains("Mapping the
-			// scan location with id:"));
-			// assertTrue(progressOutput, progressOutput.contains("Asset
-			// reference mapping object :"));
-			// assertTrue(progressOutput, progressOutput.contains("Successfully
-			// mapped the scan with id"));
+			assertTrue(progressOutput,
+					progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
+			assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
+			assertTrue(progressOutput, progressOutput.contains("MATCHED"));
+			assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
+			assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
+			assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
+			assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-				// if (project != null && project.getId() != null) {
-				// restHelper.deleteHubProject(project.getId());
-				// }
-			} catch (final ProjectDoesNotExistException e) {
+				if (project != null) {
+					restHelper.deleteHubProject(project);
+				}
+			} catch (final BDRestException e) {
 				// ignore this one
 			}
 
@@ -854,19 +836,19 @@ public class HubBuildProcessTest {
 	// @Test
 	// public void testCallFullyConfiguredBasicAuthProxy() throws Exception {
 	// try {
-	// TestBuildRunnerContext context = new TestBuildRunnerContext();
+	// final TestBuildRunnerContext context = new TestBuildRunnerContext();
 	// context.setWorkingDirectory(workingDirectory);
 	//
-	// context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR, (new
-	// File(workingDirectory,
-	// "scan.cli-2.1.2")).getAbsolutePath());
+	// context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR,
+	// (new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
 	//
 	// context.addRunnerParameter(HubConstantValues.HUB_URL,
 	// testProperties.getProperty("TEST_HUB_SERVER_URL"));
 	// context.addRunnerParameter(HubConstantValues.HUB_USERNAME,
 	// testProperties.getProperty("TEST_USERNAME"));
 	// context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
-	// PasswordEncrypter.publicEncrypt(testProperties.getProperty("TEST_PASSWORD")));
+	// PasswordEncrypter.encrypt(logger,
+	// testProperties.getProperty("TEST_PASSWORD")));
 	//
 	// context.addRunnerParameter(HubConstantValues.HUB_PROXY_HOST,
 	// testProperties.getProperty("TEST_PROXY_HOST_BASIC"));
@@ -879,9 +861,6 @@ public class HubBuildProcessTest {
 	// context.addRunnerParameter(HubConstantValues.HUB_PROXY_PASS,
 	// testProperties.getProperty("TEST_PROXY_PASSWORD_BASIC"));
 	//
-	// context.addRunnerParameter(HubConstantValues.HUB_CLI_PATH, (new
-	// File(workingDirectory,
-	// "scan.cli-2.1.2")).getAbsolutePath());
 	// context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME,
 	// testProperties.getProperty("TEST_PROJECT"));
 	// context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION,
@@ -895,15 +874,16 @@ public class HubBuildProcessTest {
 	// context.addEnvironmentVariable("JAVA_HOME",
 	// System.getProperty("java.home"));
 	//
-	// TestAgentRunningBuild build = new TestAgentRunningBuild();
+	// final TestAgentRunningBuild build = new TestAgentRunningBuild();
 	// context.setBuild(build);
 	// build.setLogger(testLogger);
 	//
-	// HubBuildProcess process = new HubBuildProcess(build, context);
+	// final HubBuildProcess process = new HubBuildProcess(build, context, new
+	// TestArtifactsWatcher());
 	//
 	// assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, process.call());
 	//
-	// String output = testLogger.getErrorMessagesString();
+	// final String output = testLogger.getErrorMessagesString();
 	//
 	// assertTrue(output, !output.contains("There is no Server URL specified"));
 	// assertTrue(output, !output.contains("There is no Hub username
@@ -911,18 +891,19 @@ public class HubBuildProcessTest {
 	// assertTrue(output, !output.contains("There is no Hub password
 	// specified."));
 	//
-	// assertTrue(output,
-	// !output.contains("There is no memory specified for the Hub scan. The scan
-	// requires a minimum of 4096 MB."));
+	// assertTrue(output, !output.contains(
+	// "There is no memory specified for the Hub scan. The scan requires a
+	// minimum of 4096 MB."));
 	// assertTrue(output, !output.contains("The Hub CLI path has not been
 	// set."));
 	//
-	// String progressOutput = testLogger.getProgressMessagesString();
+	// final String progressOutput = testLogger.getProgressMessagesString();
 	//
-	// assertTrue(progressOutput, progressOutput.contains("--> Hub Server Url :
-	// " +
+	// assertTrue(progressOutput, progressOutput
+	// .contains("--> Hub Server Url :" +
 	// testProperties.getProperty("TEST_HUB_SERVER_URL")));
-	// assertTrue(progressOutput, progressOutput.contains("--> Hub User : " +
+	// assertTrue(progressOutput,
+	// progressOutput.contains("--> Hub User : " +
 	// testProperties.getProperty("TEST_USERNAME")));
 	// assertTrue(progressOutput, progressOutput.contains("--> Proxy Host :"));
 	// assertTrue(progressOutput, progressOutput.contains("--> Proxy Port :"));
@@ -933,14 +914,16 @@ public class HubBuildProcessTest {
 	//
 	// assertTrue(progressOutput, progressOutput.contains("Working directory :
 	// "));
-	// assertTrue(progressOutput, progressOutput.contains("--> Project : " +
+	// assertTrue(progressOutput,
+	// progressOutput.contains("--> Project : " +
 	// testProperties.getProperty("TEST_PROJECT")));
-	// assertTrue(progressOutput, progressOutput.contains("--> Version : " +
+	// assertTrue(progressOutput,
+	// progressOutput.contains("--> Version : " +
 	// testProperties.getProperty("TEST_VERSION")));
 	// assertTrue(progressOutput, progressOutput.contains("--> Version Phase : "
 	// + PhaseEnum.DEVELOPMENT.name()));
-	// assertTrue(progressOutput, progressOutput.contains("--> Version
-	// Distribution : " +
+	// assertTrue(progressOutput,
+	// progressOutput.contains("--> Version Distribution : " +
 	// DistributionEnum.INTERNAL.name()));
 	// assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory :
 	// 4096"));
@@ -948,10 +931,10 @@ public class HubBuildProcessTest {
 	// : "));
 	// assertTrue(progressOutput, progressOutput.contains("--> CLI Path : "));
 	// } finally {
-	// ProjectItem project =
+	// final ProjectItem project =
 	// restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
-	// if (project != null && project.getId() != null) {
-	// restHelper.deleteHubProject(project.getId());
+	// if (project != null) {
+	// restHelper.deleteHubProject(project);
 	// }
 	// }
 	// }
