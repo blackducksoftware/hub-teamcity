@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -65,11 +66,11 @@ public class HubGlobalServerConfigControllerTest {
 		}
 	}
 
-	private ServerPaths getMockedServerPaths(final String configDir) {
+	private ServerPaths getMockedServerPaths(final String configDir) throws UnsupportedEncodingException {
 		return MockServerPaths.getMockedServerPaths(parentDir, configDir);
 	}
 
-	private String getConfigDirectory(final String configDir) {
+	private String getConfigDirectory(final String configDir) throws UnsupportedEncodingException {
 		return MockServerPaths.getConfigDirectory(parentDir, configDir);
 	}
 
