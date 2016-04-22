@@ -63,7 +63,8 @@ public class ServerHubConfigPersistenceManagerTest {
 	public static void tearDown() {
 		String persistedConfig = MockServerPaths.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		persistedConfig = persistedConfig.substring(0, persistedConfig.indexOf("/target"));
-		persistedConfig = persistedConfig + "/test-workspace/config/PersistConfig/hub-config.xml";
+		persistedConfig = persistedConfig + File.separator + "test-workspace" + File.separator + "config"
+				+ File.separator + "PersistConfig" + File.separator + "hub-config.xml";
 		final File persistedFile = new File(persistedConfig);
 		persistedFile.delete();
 	}
@@ -82,7 +83,8 @@ public class ServerHubConfigPersistenceManagerTest {
 
 		final File configFile = persistenceManager.getConfigFile();
 
-		assertTrue(configFile.getCanonicalPath().contains("/test-workspace/config"));
+		assertTrue(
+				configFile.getCanonicalPath().contains(File.separator + "test-workspace" + File.separator + "config"));
 	}
 
 	@Test
