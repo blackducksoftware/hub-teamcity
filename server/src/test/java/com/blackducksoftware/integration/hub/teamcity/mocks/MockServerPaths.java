@@ -17,7 +17,6 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.mocks;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
@@ -41,15 +40,15 @@ public class MockServerPaths {
 			throws UnsupportedEncodingException {
 		String confDir = URLDecoder
 				.decode(MockServerPaths.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
-		confDir = confDir.substring(0, confDir.indexOf(File.separator + "target"));
-		confDir = confDir + File.separator + "test-workspace";
+		confDir = confDir.substring(0, confDir.indexOf("/target"));
+		confDir = confDir + "/test-workspace";
 
 		if (StringUtils.isNotBlank(parentDir)) {
-			confDir = confDir + File.separator + parentDir;
+			confDir = confDir + "/" + parentDir;
 		}
 
 		if (StringUtils.isNotBlank(configDir)) {
-			confDir = confDir + File.separator + configDir;
+			confDir = confDir + "/" + configDir;
 		}
 		return confDir;
 	}
