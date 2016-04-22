@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import org.junit.AfterClass;
@@ -100,7 +101,7 @@ public class HubServerListenerTest {
 		return MockSBuildServer.getMockedSBuildServer(serverVersion);
 	}
 
-	private ServerPaths getMockedServerPaths(final String configDir) {
+	private ServerPaths getMockedServerPaths(final String configDir) throws UnsupportedEncodingException {
 		return MockServerPaths.getMockedServerPaths(parentDir, configDir);
 	}
 
@@ -119,7 +120,8 @@ public class HubServerListenerTest {
 
 		final ServerHubConfigPersistenceManager persistenceManager = listener.getConfigManager();
 		final File config = persistenceManager.getConfigFile();
-		assertTrue(config.getCanonicalPath(), config.getCanonicalPath().contains("test-workspace/config/ValidConfig"));
+		assertTrue(config.getCanonicalPath(), config.getCanonicalPath()
+				.contains("test-workspace" + File.separator + "config" + File.separator + "ValidConfig"));
 
 		final ServerHubConfigBean globalConfig = persistenceManager.getConfiguredServer();
 
