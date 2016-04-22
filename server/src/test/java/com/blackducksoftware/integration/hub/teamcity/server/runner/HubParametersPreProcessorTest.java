@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ import jetbrains.buildServer.util.EventDispatcher;
 
 public class HubParametersPreProcessorTest {
 	private final static String parentDir = "runner";
-	
+
 	@Mock
 	private EventDispatcher<BuildServerListener> mockedEventDispatcher;
 
@@ -60,12 +61,12 @@ public class HubParametersPreProcessorTest {
 	public void testSetup() throws Exception {
 		MockitoAnnotations.initMocks(this);
 	}
-	
+
 	private SBuildServer getMockedBuildServer(final String serverVersion) {
 		return MockSBuildServer.getMockedSBuildServer(serverVersion);
 	}
 
-	private ServerPaths getMockedServerPaths(final String configDir) {
+	private ServerPaths getMockedServerPaths(final String configDir) throws UnsupportedEncodingException {
 		return MockServerPaths.getMockedServerPaths(parentDir, configDir);
 	}
 
@@ -78,7 +79,7 @@ public class HubParametersPreProcessorTest {
 		return mockedEventDispatcher;
 	}
 
-	private HubServerListener getHubServerListener() {
+	private HubServerListener getHubServerListener() throws UnsupportedEncodingException {
 		final ServerPaths serverPaths = getMockedServerPaths("NoConfig");
 		final SBuildServer buildServer = getMockedBuildServer("TestVersion");
 		final EventDispatcher<BuildServerListener> dispatcher = getEventDispatcher();
@@ -87,13 +88,13 @@ public class HubParametersPreProcessorTest {
 	}
 
 	@Test
-	public void testConstructor() {
+	public void testConstructor() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		assertNotNull(new HubParametersPreprocessor(listener));
 	}
 
 	@Test
-	public void testFixRunBuildParametersNoParameters() {
+	public void testFixRunBuildParametersNoParameters() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		final HubParametersPreprocessor preprocessor = new HubParametersPreprocessor(listener);
 
@@ -109,7 +110,7 @@ public class HubParametersPreProcessorTest {
 	}
 
 	@Test
-	public void testFixRunBuildParametersBlankPhaseAndDistribution() {
+	public void testFixRunBuildParametersBlankPhaseAndDistribution() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		final HubParametersPreprocessor preprocessor = new HubParametersPreprocessor(listener);
 
@@ -127,7 +128,7 @@ public class HubParametersPreProcessorTest {
 	}
 
 	@Test
-	public void testFixRunBuildParametersOnlyPhaseAndDistribution() {
+	public void testFixRunBuildParametersOnlyPhaseAndDistribution() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		final HubParametersPreprocessor preprocessor = new HubParametersPreprocessor(listener);
 
@@ -161,7 +162,7 @@ public class HubParametersPreProcessorTest {
 	}
 
 	@Test
-	public void testFixRunBuildParametersNoProxy() {
+	public void testFixRunBuildParametersNoProxy() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		final HubParametersPreprocessor preprocessor = new HubParametersPreprocessor(listener);
 
@@ -212,7 +213,7 @@ public class HubParametersPreProcessorTest {
 	}
 
 	@Test
-	public void testFixRunBuildParametersPassThroughProxy() {
+	public void testFixRunBuildParametersPassThroughProxy() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		final HubParametersPreprocessor preprocessor = new HubParametersPreprocessor(listener);
 
@@ -269,7 +270,7 @@ public class HubParametersPreProcessorTest {
 	}
 
 	@Test
-	public void testFixRunBuildParametersAuthenticatedProxy() {
+	public void testFixRunBuildParametersAuthenticatedProxy() throws UnsupportedEncodingException {
 		final HubServerListener listener = getHubServerListener();
 		final HubParametersPreprocessor preprocessor = new HubParametersPreprocessor(listener);
 

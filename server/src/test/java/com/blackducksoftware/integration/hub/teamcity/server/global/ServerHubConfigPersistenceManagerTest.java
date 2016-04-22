@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +69,8 @@ public class ServerHubConfigPersistenceManagerTest {
 		persistedFile.delete();
 	}
 
-	private ServerHubConfigPersistenceManager getPersistenceManager(final String configDir) {
+	private ServerHubConfigPersistenceManager getPersistenceManager(final String configDir)
+			throws UnsupportedEncodingException {
 		final ServerPaths mockedPaths = MockServerPaths.getMockedServerPaths(parentDir, configDir);
 		return new ServerHubConfigPersistenceManager(mockedPaths);
 	}
