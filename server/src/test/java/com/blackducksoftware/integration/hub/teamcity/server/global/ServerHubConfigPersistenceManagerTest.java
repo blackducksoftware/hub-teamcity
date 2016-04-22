@@ -63,7 +63,7 @@ public class ServerHubConfigPersistenceManagerTest {
 	@AfterClass
 	public static void tearDown() {
 		String persistedConfig = MockServerPaths.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		persistedConfig = persistedConfig.substring(0, persistedConfig.indexOf("/target"));
+		persistedConfig = persistedConfig.substring(0, persistedConfig.indexOf(File.separator + "target"));
 		persistedConfig = persistedConfig + File.separator + "test-workspace" + File.separator + "config"
 				+ File.separator + "PersistConfig" + File.separator + "hub-config.xml";
 		final File persistedFile = new File(persistedConfig);
