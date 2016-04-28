@@ -183,7 +183,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			hubScanJobConfigBuilder.setVersion(projectVersion);
 			hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
 			hubScanJobConfigBuilder
-					.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
+			.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
 			hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
@@ -274,9 +274,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 					artifactsWatcher.addNewArtifactsPath(reportPath);
 				}
-
 				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo,
-						version.getLink(ReleaseItem.POLICY_STATUS_LINK), waitForBom);
+						version, waitForBom);
 			} else {
 				logger.info("Skipping Hub Build Step");
 				result = BuildFinishedStatus.FINISHED_FAILED;
@@ -452,8 +451,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-					IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
-					IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
+	IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
+	IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -529,7 +528,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
 			final HubSupportHelper hubSupport, final HubIntRestService restService,
-			final HubReportGenerationInfo bomUpdateInfo, final String policyStatusUrl, final boolean waitForBom) {
+			final HubReportGenerationInfo bomUpdateInfo, final ReleaseItem version, final boolean waitForBom) {
 		// Check if User specified our Failure Condition on policy
 		final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
 		// The feature is only allowed to have a single instance in the
@@ -542,6 +541,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				final String message = "This version of the Hub does not have support for Policies.";
 				build.stopBuild(message);
 			} else {
+				if (version == null) {
+					logger.error("Can not check policy violations if you have not specified a Project and Version.");
+					return;
+				}
+				final String policyStatusLink = version.getLink(ReleaseItem.POLICY_STATUS_LINK);
 				try {
 					if (waitForBom) {
 						logger.debug("Waiting for the bom to be updated with the scan results.");
@@ -549,7 +553,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					}
 					// We use this conditional in case there are other failure
 					// conditions in the future
-					final PolicyStatus policyStatus = restService.getPolicyStatus(policyStatusUrl);
+					final PolicyStatus policyStatus = restService.getPolicyStatus(policyStatusLink);
 					if (policyStatus == null) {
 						build.stopBuild("Could not find any information about the Policy status of the bom.");
 						return;
