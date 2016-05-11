@@ -46,7 +46,6 @@ import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistExcept
 import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.logging.IntLogger;
-import com.blackducksoftware.integration.hub.logging.LogLevel;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.polling.HubEventPolling;
@@ -115,7 +114,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public BuildFinishedStatus call() throws IOException {
 		final BuildProgressLogger buildLogger = build.getBuildLogger();
 		final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
-		hubLogger.setLogLevel(LogLevel.DEBUG);
+		String logLevel = getParameter(HubConstantValues.HUB_LOG_LEVEL);
+		if (logLevel == null) {
+			logLevel = getEnvironmentVariable(HubConstantValues.HUB_LOG_LEVEL);
+		}
+		hubLogger.setLogLevel(logLevel);
 		setHubLogger(hubLogger);
 
 		if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {

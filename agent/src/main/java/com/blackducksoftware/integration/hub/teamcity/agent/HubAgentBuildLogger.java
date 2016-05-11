@@ -20,6 +20,8 @@ package com.blackducksoftware.integration.hub.teamcity.agent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.blackducksoftware.integration.hub.logging.IntLogger;
 import com.blackducksoftware.integration.hub.logging.LogLevel;
 
@@ -40,6 +42,17 @@ public class HubAgentBuildLogger implements IntLogger {
 	@Override
 	public void setLogLevel(final LogLevel level) {
 		loggerLevel = level;
+	}
+
+	public void setLogLevel(final String level) {
+		if (StringUtils.isNotBlank(level)) {
+			try {
+				setLogLevel(LogLevel.valueOf(level.toUpperCase()));
+				return;
+			} catch (final IllegalArgumentException e) {
+			}
+		}
+		setLogLevel(LogLevel.INFO);
 	}
 
 	@Override
