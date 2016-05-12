@@ -351,25 +351,26 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		if (globalConfig == null) {
 			return;
 		}
+		logger.alwaysLog("--> Log Level " + logger.getLogLevel().name());
 
-		logger.info("--> Hub Server Url : " + globalConfig.getHubUrl());
+		logger.alwaysLog("--> Hub Server Url : " + globalConfig.getHubUrl());
 		if (globalConfig.getGlobalCredentials() != null
 				&& StringUtils.isNotBlank(globalConfig.getGlobalCredentials().getHubUser())) {
-			logger.info("--> Hub User : " + globalConfig.getGlobalCredentials().getHubUser());
+			logger.alwaysLog("--> Hub User : " + globalConfig.getGlobalCredentials().getHubUser());
 		}
 
 		if (globalConfig.getProxyInfo() != null) {
 			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getHost())) {
-				logger.info("--> Proxy Host : " + globalConfig.getProxyInfo().getHost());
+				logger.alwaysLog("--> Proxy Host : " + globalConfig.getProxyInfo().getHost());
 			}
 			if (globalConfig.getProxyInfo().getPort() != null) {
-				logger.info("--> Proxy Port : " + globalConfig.getProxyInfo().getPort());
+				logger.alwaysLog("--> Proxy Port : " + globalConfig.getProxyInfo().getPort());
 			}
 			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getIgnoredProxyHosts())) {
-				logger.info("--> No Proxy Hosts : " + globalConfig.getProxyInfo().getIgnoredProxyHosts());
+				logger.alwaysLog("--> No Proxy Hosts : " + globalConfig.getProxyInfo().getIgnoredProxyHosts());
 			}
 			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getProxyUsername())) {
-				logger.info("--> Proxy Username : " + globalConfig.getProxyInfo().getProxyUsername());
+				logger.alwaysLog("--> Proxy Username : " + globalConfig.getProxyInfo().getProxyUsername());
 			}
 		}
 	}
@@ -378,17 +379,17 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		if (jobConfig == null) {
 			return;
 		}
-		logger.info("Working directory : " + jobConfig.getWorkingDirectory());
-		logger.info("--> Project : " + jobConfig.getProjectName());
-		logger.info("--> Version : " + jobConfig.getVersion());
-		logger.info("--> Version Phase : " + jobConfig.getPhase());
-		logger.info("--> Version Distribution : " + jobConfig.getDistribution());
-		logger.info("--> Hub scan memory : " + jobConfig.getScanMemory() + " MB");
+		logger.alwaysLog("Working directory : " + jobConfig.getWorkingDirectory());
+		logger.alwaysLog("--> Project : " + jobConfig.getProjectName());
+		logger.alwaysLog("--> Version : " + jobConfig.getVersion());
+		logger.alwaysLog("--> Version Phase : " + jobConfig.getPhase());
+		logger.alwaysLog("--> Version Distribution : " + jobConfig.getDistribution());
+		logger.alwaysLog("--> Hub scan memory : " + jobConfig.getScanMemory() + " MB");
 
 		if (jobConfig.getScanTargetPaths().size() > 0) {
-			logger.info("--> Hub scan targets : ");
+			logger.alwaysLog("--> Hub scan targets : ");
 			for (final String absolutePath : jobConfig.getScanTargetPaths()) {
-				logger.info("    --> " + absolutePath);
+				logger.alwaysLog("    --> " + absolutePath);
 			}
 		}
 	}
@@ -488,8 +489,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
-				Integer.valueOf(context.getBuild().getBuildNumber()), supportHelper);
-		scan.setLogger(logger);
+				Integer.valueOf(context.getBuild().getBuildNumber()), supportHelper, logger);
 
 		if (globalConfig.getProxyInfo() != null) {
 			final URL hubUrl = new URL(globalConfig.getHubUrl());

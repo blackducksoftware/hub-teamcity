@@ -68,6 +68,13 @@ public class HubAgentBuildLogger implements IntLogger {
 		logger.targetFinished(txt);
 	}
 
+	/**
+	 * Prints the message regardless of the log level
+	 */
+	public void alwaysLog(final String txt) {
+		logger.progressMessage(txt);
+	}
+
 	@Override
 	public void info(final String txt) {
 		if (LogLevel.isLoggable(loggerLevel, LogLevel.INFO)) {
@@ -147,5 +154,4 @@ public class HubAgentBuildLogger implements IntLogger {
 			}
 		}
 	}
-
 }
