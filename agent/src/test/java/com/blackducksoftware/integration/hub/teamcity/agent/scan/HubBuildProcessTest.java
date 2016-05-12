@@ -34,7 +34,6 @@ import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -329,7 +328,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testIsJobConfigValidInvalid() throws Exception {
 		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
 				new TestArtifactsWatcher());
@@ -352,7 +350,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testIsJobConfigValidTargetNotExisting() throws Exception {
 		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
 				new TestArtifactsWatcher());
@@ -371,7 +368,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testIsJobConfigValidTargetValid() throws Exception {
 		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
 				new TestArtifactsWatcher());
@@ -387,7 +383,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCallNothingConfigured() throws Exception {
 		final TestBuildRunnerContext context = new TestBuildRunnerContext();
 		context.setWorkingDirectory(workingDirectory);
@@ -414,7 +409,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCallGlobalPartiallyConfigured() throws Exception {
 		final TestBuildRunnerContext context = new TestBuildRunnerContext();
 		context.setWorkingDirectory(workingDirectory);
@@ -444,7 +438,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCallGlobalConfigured() throws Exception {
 		final TestBuildRunnerContext context = new TestBuildRunnerContext();
 		context.setWorkingDirectory(workingDirectory);
@@ -475,7 +468,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCallJobPartiallyConfiguredCLIEnvVarSet() throws Exception {
 		final TestBuildRunnerContext context = new TestBuildRunnerContext();
 		context.setWorkingDirectory(workingDirectory);
@@ -509,18 +501,88 @@ public class HubBuildProcessTest {
 		assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
 	}
 
+
 	@Test
-	@Ignore
-	public void testCallFullyConfigured() throws Exception {
+	public void testCallFullyConfiguredSilentFromEnvironmentVariable()
+			throws Exception {
+		final TestBuildRunnerContext context = new TestBuildRunnerContext();
+		context.addEnvironmentVariable("HUB_LOG_LEVEL", "off");
+		final String output = testCallFullyConfigured(context);
+		assertSilentLogs(output);
+	}
+
+	@Test
+	public void testCallFullyConfiguredSilentFromSystemVariable() throws Exception {
+		final TestBuildRunnerContext context = new TestBuildRunnerContext();
+		context.addSystemProperty("HUB_LOG_LEVEL", "off");
+		final String output = testCallFullyConfigured(context);
+		assertSilentLogs(output);
+	}
+
+	@Test
+	public void testCallFullyConfiguredSilentFromConfigVariable() throws Exception {
+		final TestBuildRunnerContext context = new TestBuildRunnerContext();
+		context.addConfigParameter("HUB_LOG_LEVEL", "off");
+		final String output = testCallFullyConfigured(context);
+		assertSilentLogs(output);
+	}
+
+	@Test
+	public void testCallFullyConfiguredSilentFromRunnerVariable() throws Exception {
+		final TestBuildRunnerContext context = new TestBuildRunnerContext();
+		context.addRunnerParameter("HUB_LOG_LEVEL", "off");
+		final String output = testCallFullyConfigured(context);
+		assertSilentLogs(output);
+	}
+
+	private void assertSilentLogs(final String progressOutput) {
+		assertTrue(progressOutput, progressOutput.contains("--> Log Level "));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Hub Server Url : " + testProperties.getProperty("TEST_HUB_SERVER_URL")));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Hub User : " + testProperties.getProperty("TEST_USERNAME")));
+		assertTrue(progressOutput, !progressOutput.contains("--> Proxy Host :"));
+		assertTrue(progressOutput, !progressOutput.contains("--> Proxy Port :"));
+		assertTrue(progressOutput, !progressOutput.contains("--> No Proxy Hosts :"));
+		assertTrue(progressOutput, !progressOutput.contains("--> Proxy Username :"));
+
+		assertTrue(progressOutput, progressOutput.contains("Working directory : "));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Project : " + testProperties.getProperty("TEST_PROJECT")));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Version : " + testProperties.getProperty("TEST_VERSION")));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.getDisplayValue()));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
+		assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
+		assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
+
+		assertTrue(progressOutput, progressOutput.contains("Hub CLI command"));
+		assertTrue(progressOutput, progressOutput.contains("-Done-jar.silent"));
+		assertTrue(progressOutput, progressOutput.contains("-Done-jar.jar.path"));
+		assertTrue(progressOutput, progressOutput.contains("-Xmx"));
+		assertTrue(progressOutput, progressOutput.contains("-jar"));
+		assertTrue(progressOutput, progressOutput.contains("--scheme"));
+		assertTrue(progressOutput, progressOutput.contains("--host"));
+		assertTrue(progressOutput, progressOutput.contains("--username"));
+		assertTrue(progressOutput, progressOutput.contains("--password"));
+		assertTrue(progressOutput, progressOutput.contains("--port"));
+		assertTrue(progressOutput, progressOutput.contains("--logDir"));
+		assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
+		assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
+	}
+
+	private String testCallFullyConfigured(final TestBuildRunnerContext context) throws Exception {
 		try {
-			final TestBuildRunnerContext context = new TestBuildRunnerContext();
+			final TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+
 			context.setWorkingDirectory(workingDirectory);
 
 			context.addRunnerParameter(HubConstantValues.HUB_URL, testProperties.getProperty("TEST_HUB_SERVER_URL"));
 			context.addRunnerParameter(HubConstantValues.HUB_USERNAME, testProperties.getProperty("TEST_USERNAME"));
 			context.addRunnerParameter(HubConstantValues.HUB_PASSWORD,
 					PasswordEncrypter.encrypt(testProperties.getProperty("TEST_PASSWORD")));
-
 			context.addRunnerParameter(HubConstantValues.HUB_PROJECT_NAME, testProperties.getProperty("TEST_PROJECT"));
 			context.addRunnerParameter(HubConstantValues.HUB_PROJECT_VERSION,
 					testProperties.getProperty("TEST_VERSION"));
@@ -532,8 +594,6 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS,
 					"directory/emptyFile.txt" + System.getProperty("line.separator") + "directory/secondEmptyFile.txt");
 
-			context.addEnvironmentVariable("JAVA_HOME", System.getProperty("java.home"));
-
 			final TestBuildAgentConfiguration agentConfig = new TestBuildAgentConfiguration();
 			agentConfig.setAgentToolsDirectory(new File(workingDirectory, "tools"));
 
@@ -544,7 +604,7 @@ public class HubBuildProcessTest {
 
 			final HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
 
-			final BuildFinishedStatus result = process.call();
+			process.call();
 
 			final String output = testLogger.getErrorMessagesString();
 
@@ -558,52 +618,7 @@ public class HubBuildProcessTest {
 
 			final String progressOutput = testLogger.getProgressMessagesString();
 
-			assertTrue(progressOutput, progressOutput
-					.contains("--> Hub Server Url : " + testProperties.getProperty("TEST_HUB_SERVER_URL")));
-			assertTrue(progressOutput,
-					progressOutput.contains("--> Hub User : " + testProperties.getProperty("TEST_USERNAME")));
-			assertTrue(progressOutput, !progressOutput.contains("--> Proxy Host :"));
-			assertTrue(progressOutput, !progressOutput.contains("--> Proxy Port :"));
-			assertTrue(progressOutput, !progressOutput.contains("--> No Proxy Hosts :"));
-			assertTrue(progressOutput, !progressOutput.contains("--> Proxy Username :"));
-
-			assertTrue(progressOutput, progressOutput.contains("Working directory : "));
-			assertTrue(progressOutput,
-					progressOutput.contains("--> Project : " + testProperties.getProperty("TEST_PROJECT")));
-			assertTrue(progressOutput,
-					progressOutput.contains("--> Version : " + testProperties.getProperty("TEST_VERSION")));
-			assertTrue(progressOutput,
-					progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.getDisplayValue()));
-			assertTrue(progressOutput, progressOutput
-					.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
-			assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
-			assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
-
-			assertTrue(progressOutput, progressOutput.contains("Hub CLI command"));
-			assertTrue(progressOutput, progressOutput.contains("-Done-jar.silent"));
-			assertTrue(progressOutput, progressOutput.contains("-Done-jar.jar.path"));
-			assertTrue(progressOutput, progressOutput.contains("-Xmx"));
-			assertTrue(progressOutput, progressOutput.contains("-jar"));
-			assertTrue(progressOutput, progressOutput.contains("--scheme"));
-			assertTrue(progressOutput, progressOutput.contains("--host"));
-			assertTrue(progressOutput, progressOutput.contains("--username"));
-			assertTrue(progressOutput, progressOutput.contains("--password"));
-			assertTrue(progressOutput, progressOutput.contains("--port"));
-			assertTrue(progressOutput, progressOutput.contains("--logDir"));
-			assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
-			assertTrue(progressOutput,
-					progressOutput.contains("Finished in") && progressOutput.contains("with status SUCCESS"));
-			assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
-
-			assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
-			assertTrue(progressOutput,
-					progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
-			assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
-			assertTrue(progressOutput, progressOutput.contains("MATCHED"));
-			assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
-			assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
-			assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
-			assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
+			return progressOutput;
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
@@ -617,7 +632,50 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
+	public void testCallFullyConfiguredNotSilent() throws Exception {
+		final TestBuildRunnerContext context = new TestBuildRunnerContext();
+		final String progressOutput = testCallFullyConfigured(context);
+		assertTrue(progressOutput, progressOutput.contains("--> Log Level "));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Hub Server Url : " + testProperties.getProperty("TEST_HUB_SERVER_URL")));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Hub User : " + testProperties.getProperty("TEST_USERNAME")));
+		assertTrue(progressOutput, !progressOutput.contains("--> Proxy Host :"));
+		assertTrue(progressOutput, !progressOutput.contains("--> Proxy Port :"));
+		assertTrue(progressOutput, !progressOutput.contains("--> No Proxy Hosts :"));
+		assertTrue(progressOutput, !progressOutput.contains("--> Proxy Username :"));
+
+		assertTrue(progressOutput, progressOutput.contains("Working directory : "));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Project : " + testProperties.getProperty("TEST_PROJECT")));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Version : " + testProperties.getProperty("TEST_VERSION")));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Version Phase : " + PhaseEnum.DEVELOPMENT.getDisplayValue()));
+		assertTrue(progressOutput,
+				progressOutput.contains("--> Version Distribution : " + DistributionEnum.INTERNAL.getDisplayValue()));
+		assertTrue(progressOutput, progressOutput.contains("--> Hub scan memory : 4096"));
+		assertTrue(progressOutput, progressOutput.contains("--> Hub scan targets : "));
+
+		assertTrue(progressOutput, progressOutput.contains("Hub CLI command"));
+		assertTrue(progressOutput, progressOutput.contains("-Done-jar.silent"));
+		assertTrue(progressOutput, progressOutput.contains("-Done-jar.jar.path"));
+		assertTrue(progressOutput, progressOutput.contains("-Xmx"));
+		assertTrue(progressOutput, progressOutput.contains("-jar"));
+		assertTrue(progressOutput, progressOutput.contains("--scheme"));
+		assertTrue(progressOutput, progressOutput.contains("--host"));
+		assertTrue(progressOutput, progressOutput.contains("--username"));
+		assertTrue(progressOutput, progressOutput.contains("--password"));
+		assertTrue(progressOutput, progressOutput.contains("--port"));
+		assertTrue(progressOutput, progressOutput.contains("--logDir"));
+		assertTrue(progressOutput, progressOutput.contains("INFO:"));
+		assertTrue(progressOutput, progressOutput.contains("AUTH OK..."));
+		assertTrue(progressOutput, progressOutput.contains("Persist ScanSummary to file..."));
+		assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
+		assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
+	}
+
+	@Test
 	public void testCallFullyConfiguredPassThroughProxyProxyIgnored() throws Exception {
 		try {
 			final TestBuildRunnerContext context = new TestBuildRunnerContext();
@@ -731,7 +789,6 @@ public class HubBuildProcessTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCallFullyConfiguredPassThroughProxy() throws Exception {
 		try {
 			final TestBuildRunnerContext context = new TestBuildRunnerContext();

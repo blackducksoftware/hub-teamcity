@@ -74,6 +74,25 @@ public class HubAgentBuildLoggerTest {
 	}
 
 	@Test
+	public void testAlwaysLog() {
+		final TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
+		final HubAgentBuildLogger logger = new HubAgentBuildLogger(testLogger);
+		logger.setLogLevel(LogLevel.OFF);
+		logger.error("Should not be logged");
+		logger.warn("Should not be logged");
+		logger.info("Should not be logged");
+		logger.debug("Should not be logged");
+		logger.trace("Should not be logged");
+
+		logger.alwaysLog("Should be logged");
+
+		final String output = testLogger.getProgressMessagesString();
+
+		assertTrue(output, !output.contains("Should not be logged"));
+		assertTrue(output, output.contains("Should be logged"));
+	}
+
+	@Test
 	public void testInfo() {
 		final TestBuildProgressLogger testLogger = new TestBuildProgressLogger();
 		final HubAgentBuildLogger logger = new HubAgentBuildLogger(testLogger);

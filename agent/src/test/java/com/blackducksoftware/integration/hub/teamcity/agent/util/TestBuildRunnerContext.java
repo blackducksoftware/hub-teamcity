@@ -119,7 +119,7 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
 
 	@Override
 	public Map<String, String> getConfigParameters() {
-		return null;
+		return configParameters;
 	}
 
 	@Override

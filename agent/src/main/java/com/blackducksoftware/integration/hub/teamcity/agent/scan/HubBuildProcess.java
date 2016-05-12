@@ -186,8 +186,17 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
-			hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
-			hubScanJobConfigBuilder.setScanMemory(scanMemory);
+			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
+				hubScanJobConfigBuilder
+				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_REPORT_WAIT_TIME_IN_MINUTES);
+			} else {
+				hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
+			}
+			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
+				hubScanJobConfigBuilder.setScanMemory(HubScanJobConfigBuilder.DEFAULT_MEMORY_IN_MEGABYTES);
+			} else {
+				hubScanJobConfigBuilder.setScanMemory(scanMemory);
+			}
 			hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 
 			final HubScanJobConfig jobConfig = hubScanJobConfigBuilder.build(logger);
@@ -382,8 +391,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		logger.alwaysLog("Working directory : " + jobConfig.getWorkingDirectory());
 		logger.alwaysLog("--> Project : " + jobConfig.getProjectName());
 		logger.alwaysLog("--> Version : " + jobConfig.getVersion());
-		logger.alwaysLog("--> Version Phase : " + jobConfig.getPhase());
-		logger.alwaysLog("--> Version Distribution : " + jobConfig.getDistribution());
+		logger.alwaysLog("--> Version Phase : " + PhaseEnum.valueOf(jobConfig.getPhase()).getDisplayValue());
+		logger.alwaysLog("--> Version Distribution : "
+				+ DistributionEnum.valueOf(jobConfig.getDistribution()).getDisplayValue());
 		logger.alwaysLog("--> Hub scan memory : " + jobConfig.getScanMemory() + " MB");
 
 		if (jobConfig.getScanTargetPaths().size() > 0) {

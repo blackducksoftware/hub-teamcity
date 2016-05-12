@@ -199,13 +199,13 @@ public class TeamCityScanExecutor extends ScanExecutor {
 				logger.info(readStream(hubCliProcess.getInputStream()));
 			}
 
-			logger.info("Hub CLI return code : " + returnCode);
+			logger.alwaysLog("Hub CLI return code : " + returnCode);
 			if (logDirectoryPath != null) {
 				final File logDirectory = new File(logDirectoryPath);
 				if (logDirectory.exists()) {
-					logger.info(
+					logger.alwaysLog(
 							"You can view the BlackDuck Scan CLI logs at : '" + logDirectory.getAbsolutePath() + "'");
-					logger.info("");
+					logger.alwaysLog("");
 				}
 			}
 
