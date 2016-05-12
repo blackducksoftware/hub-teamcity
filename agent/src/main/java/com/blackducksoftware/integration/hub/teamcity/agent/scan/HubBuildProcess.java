@@ -114,10 +114,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public BuildFinishedStatus call() throws IOException {
 		final BuildProgressLogger buildLogger = build.getBuildLogger();
 		final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
-		String logLevel = getParameter(HubConstantValues.HUB_LOG_LEVEL);
-		if (logLevel == null) {
-			logLevel = getEnvironmentVariable(HubConstantValues.HUB_LOG_LEVEL);
-		}
+		final String logLevel = getAnyParameterType(HubConstantValues.HUB_LOG_LEVEL);
 		hubLogger.setLogLevel(logLevel);
 		setHubLogger(hubLogger);
 
@@ -300,6 +297,24 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		return result;
 	}
 
+	private String getConfigParameter(@NotNull final String parameterName) {
+		final String value = context.getConfigParameters().get(parameterName);
+		if (value == null || value.trim().length() == 0) {
+			return null;
+		}
+		final String result = value.trim();
+		return result;
+	}
+
+	private String getSystemVariable(@NotNull final String parameterName) {
+		final String value = context.getBuildParameters().getSystemProperties().get(parameterName);
+		if (value == null || value.trim().length() == 0) {
+			return null;
+		}
+		final String result = value.trim();
+		return result;
+	}
+
 	private String getEnvironmentVariable(@NotNull final String parameterName) {
 		final String value = context.getBuildParameters().getEnvironmentVariables().get(parameterName);
 		if (value == null || value.trim().length() == 0) {
@@ -307,6 +322,20 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		}
 		final String result = value.trim();
 		return result;
+	}
+
+	private String getAnyParameterType(@NotNull final String parameterName) {
+		String value = getParameter(parameterName);
+		if (value == null) {
+			value = getConfigParameter(parameterName);
+		}
+		if (value == null) {
+			value = getSystemVariable(parameterName);
+		}
+		if (value == null) {
+			value = getEnvironmentVariable(parameterName);
+		}
+		return value;
 	}
 
 	public boolean isGlobalConfigValid(final ServerHubConfigBean globalConfig) throws IOException {
