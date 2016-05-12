@@ -670,7 +670,7 @@ public class HubBuildProcessTest {
 		assertTrue(progressOutput, progressOutput.contains("--logDir"));
 		assertTrue(progressOutput, progressOutput.contains("INFO:"));
 		assertTrue(progressOutput, progressOutput.contains("AUTH OK..."));
-		assertTrue(progressOutput, progressOutput.contains("Persist ScanSummary to file..."));
+		assertTrue(progressOutput, progressOutput.contains("Scan loop done."));
 		assertTrue(progressOutput, progressOutput.contains("Hub CLI return code"));
 		assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 	}
