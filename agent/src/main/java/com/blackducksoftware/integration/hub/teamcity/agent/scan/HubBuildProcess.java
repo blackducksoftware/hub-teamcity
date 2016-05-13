@@ -298,39 +298,37 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	private String getParameter(@NotNull final String parameterName) {
-		final String value = context.getRunnerParameters().get(parameterName);
-		if (value == null || value.trim().length() == 0) {
+		final String value = StringUtils.trimToNull(context.getRunnerParameters().get(parameterName));
+		if (value == null) {
 			return null;
 		}
-		final String result = value.trim();
-		return result;
+		return value;
 	}
 
 	private String getConfigParameter(@NotNull final String parameterName) {
-		final String value = context.getConfigParameters().get(parameterName);
-		if (value == null || value.trim().length() == 0) {
+		final String value = StringUtils.trimToNull(context.getConfigParameters().get(parameterName));
+		if (value == null) {
 			return null;
 		}
-		final String result = value.trim();
-		return result;
+		return value;
 	}
 
 	private String getSystemVariable(@NotNull final String parameterName) {
-		final String value = context.getBuildParameters().getSystemProperties().get(parameterName);
-		if (value == null || value.trim().length() == 0) {
+		final String value = StringUtils
+				.trimToNull(context.getBuildParameters().getSystemProperties().get(parameterName));
+		if (value == null) {
 			return null;
 		}
-		final String result = value.trim();
-		return result;
+		return value;
 	}
 
 	private String getEnvironmentVariable(@NotNull final String parameterName) {
-		final String value = context.getBuildParameters().getEnvironmentVariables().get(parameterName);
-		if (value == null || value.trim().length() == 0) {
+		final String value = StringUtils
+				.trimToNull(context.getBuildParameters().getEnvironmentVariables().get(parameterName));
+		if (value == null) {
 			return null;
 		}
-		final String result = value.trim();
-		return result;
+		return value;
 	}
 
 	private String getAnyParameterType(@NotNull final String parameterName) {
