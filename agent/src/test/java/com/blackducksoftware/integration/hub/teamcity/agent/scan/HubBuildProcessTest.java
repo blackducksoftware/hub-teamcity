@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -88,11 +87,9 @@ public class HubBuildProcessTest {
 		testLogger = new TestBuildProgressLogger();
 		logger = new HubAgentBuildLogger(testLogger);
 
-		String workingDirPath = HubBuildProcessTest.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		workingDirPath = workingDirPath.substring(0, workingDirPath.indexOf("/target"));
-		workingDirPath = URLDecoder.decode(workingDirPath + "/test-workspace", "UTF-8");
-
-		workingDirectory = new File(workingDirPath);
+		final URL url = Thread.currentThread().getContextClassLoader().getResource("/test-workspace");
+		workingDirectory = new File(url.getFile());
+		final String workingDirPath = workingDirectory.getAbsolutePath();
 
 		final String testEmptyPath = workingDirPath + "/emptyDirectory";
 		testEmptyDirectory = new File(testEmptyPath);

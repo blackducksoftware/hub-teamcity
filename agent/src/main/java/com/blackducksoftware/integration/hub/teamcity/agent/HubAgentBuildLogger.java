@@ -45,6 +45,7 @@ public class HubAgentBuildLogger implements IntLogger {
 	}
 
 	public void setLogLevel(final String level) {
+		// TODO update this code when this logic is moved into LogLevel
 		if (StringUtils.isNotBlank(level)) {
 			try {
 				setLogLevel(LogLevel.valueOf(level.toUpperCase()));

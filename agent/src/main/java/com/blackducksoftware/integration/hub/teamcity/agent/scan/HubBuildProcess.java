@@ -298,28 +298,16 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	private String getParameter(@NotNull final String parameterName) {
-		final String value = StringUtils.trimToNull(context.getRunnerParameters().get(parameterName));
-		if (value == null) {
-			return null;
-		}
-		return value;
+		return StringUtils.trimToNull(context.getRunnerParameters().get(parameterName));
 	}
 
 	private String getConfigParameter(@NotNull final String parameterName) {
-		final String value = StringUtils.trimToNull(context.getConfigParameters().get(parameterName));
-		if (value == null) {
-			return null;
-		}
-		return value;
+		return StringUtils.trimToNull(context.getConfigParameters().get(parameterName));
 	}
 
 	private String getSystemVariable(@NotNull final String parameterName) {
-		final String value = StringUtils
+		return StringUtils
 				.trimToNull(context.getBuildParameters().getSystemProperties().get(parameterName));
-		if (value == null) {
-			return null;
-		}
-		return value;
 	}
 
 	private String getEnvironmentVariable(@NotNull final String parameterName) {
