@@ -27,7 +27,6 @@ public final class HubConstantValues {
 	public static final String HUB_VERSION_DISTRIBUTION = PLUGIN_PREFIX + "distribution";
 	public static final String HUB_GENERATE_RISK_REPORT = PLUGIN_PREFIX + "generateRiskReport";
 	public static final String HUB_MAX_WAIT_TIME_FOR_RISK_REPORT = PLUGIN_PREFIX + "maxWaitTimeForRiskReport";
-	public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
 	public static final String HUB_SCAN_MEMORY = PLUGIN_PREFIX + "scanMemory";
 	public static final String HUB_SCAN_TARGETS = PLUGIN_PREFIX + "targets";
 	public static final String HUB_URL = PLUGIN_PREFIX + "hubUrl";
@@ -43,5 +42,7 @@ public final class HubConstantValues {
 	public static final String PLUGIN_LOG = "[Hub Plugin] ";
 	public static final String HUB_BUILD_INFO = "build-info.json";
 	public static final String HUB_RISK_REPORT_FILENAME = "hub_risk_report.json";
+	public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
+	public static final String HUB_LOG_LEVEL = "HUB_LOG_LEVEL";
 
 }

@@ -34,11 +34,23 @@ import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScannerSplitStream;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.logging.IntLogger;
+import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 
 public class TeamCityScanExecutor extends ScanExecutor {
+	private final HubAgentBuildLogger logger;
+
 	protected TeamCityScanExecutor(final String hubUrl, final String hubUsername, final String hubPassword,
-			final List<String> scanTargets, final Integer buildNumber, final HubSupportHelper supportHelper) {
+			final List<String> scanTargets, final Integer buildNumber, final HubSupportHelper supportHelper,
+			final HubAgentBuildLogger logger) {
 		super(hubUrl, hubUsername, hubPassword, scanTargets, buildNumber, supportHelper);
+		this.logger = logger;
+		setLogger(logger);
+	}
+
+	@Override
+	public IntLogger getLogger() {
+		return logger;
 	}
 
 	@Override
@@ -77,16 +89,16 @@ public class TeamCityScanExecutor extends ScanExecutor {
 				maskIndex(cmdToOutput, index);
 			}
 
-			getLogger().info("Hub CLI command :");
+			logger.alwaysLog("Hub CLI command :");
 			for (final String current : cmdToOutput) {
-				getLogger().info(current);
+				logger.alwaysLog(current);
 			}
 
 			// Should use the split stream for the process
 			final FileOutputStream outputFileStream = new FileOutputStream(standardOutFile);
 
 			String outputString = "";
-			ScannerSplitStream splitOutputStream = new ScannerSplitStream(getLogger(), outputFileStream);
+			ScannerSplitStream splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
 			Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
 
@@ -109,14 +121,14 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			if (splitOutputStream.hasOutput()) {
 				outputString = splitOutputStream.getOutput();
 			}
-			getLogger().info(readStream(hubCliProcess.getInputStream()));
+			logger.info(readStream(hubCliProcess.getInputStream()));
 
 			if (outputString.contains("Illegal character in path")
 					&& (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
 				standardOutFile.delete();
 				standardOutFile.createNewFile();
 
-				splitOutputStream = new ScannerSplitStream(getLogger(), outputFileStream);
+				splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
 				// This version of the CLI can not handle spaces in the log
 				// directory
@@ -147,13 +159,13 @@ public class TeamCityScanExecutor extends ScanExecutor {
 				if (splitOutputStream.hasOutput()) {
 					outputString = splitOutputStream.getOutput();
 				}
-				getLogger().info(readStream(hubCliProcess.getInputStream()));
+				logger.info(readStream(hubCliProcess.getInputStream()));
 			} else if (outputString.contains("Illegal character in opaque")
 					&& (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
 				standardOutFile.delete();
 				standardOutFile.createNewFile();
 
-				splitOutputStream = new ScannerSplitStream(getLogger(), outputFileStream);
+				splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
 				final int indexOfLogOption = cmd.indexOf("--logDir") + 1;
 
@@ -184,16 +196,16 @@ public class TeamCityScanExecutor extends ScanExecutor {
 				if (splitOutputStream.hasOutput()) {
 					outputString = splitOutputStream.getOutput();
 				}
-				getLogger().info(readStream(hubCliProcess.getInputStream()));
+				logger.info(readStream(hubCliProcess.getInputStream()));
 			}
 
-			getLogger().info("Hub CLI return code : " + returnCode);
+			logger.alwaysLog("Hub CLI return code : " + returnCode);
 			if (logDirectoryPath != null) {
 				final File logDirectory = new File(logDirectoryPath);
 				if (logDirectory.exists()) {
-					getLogger().info(
+					logger.alwaysLog(
 							"You can view the BlackDuck Scan CLI logs at : '" + logDirectory.getAbsolutePath() + "'");
-					getLogger().info("");
+					logger.alwaysLog("");
 				}
 			}
 
