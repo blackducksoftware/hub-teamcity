@@ -87,7 +87,7 @@ public class HubBuildProcessTest {
 		testLogger = new TestBuildProgressLogger();
 		logger = new HubAgentBuildLogger(testLogger);
 
-		final URL url = Thread.currentThread().getContextClassLoader().getResource("/test-workspace");
+		final URL url = Thread.currentThread().getContextClassLoader().getResource("test-workspace");
 		workingDirectory = new File(url.getFile());
 		final String workingDirPath = workingDirectory.getAbsolutePath();
 
