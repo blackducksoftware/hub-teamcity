@@ -1,57 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.blackducksoftware.integration</groupId>
-		<artifactId>hub-teamcity</artifactId>
-		<version>1.4.0-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <artifactId>hub-teamcity</artifactId>
+    <groupId>com.blackducksoftware.integration</groupId>
+    <version>1.4.0-SNAPSHOT</version>
+  </parent>
 
-	<artifactId>hub-teamcity-common</artifactId>
-	<packaging>jar</packaging>
-	<name>Black Duck Hub Plug-In for TeamCity Common</name>
-	<inceptionYear>2015</inceptionYear>
+  <artifactId>hub-teamcity-common</artifactId>
+  <packaging>jar</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.blackducksoftware.integration</groupId>
-			<artifactId>hub-common</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.thoughtworks.xstream</groupId>
-			<artifactId>xstream</artifactId>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
+  <name>Black Duck Hub Plug-In for TeamCity Common</name>
+  <inceptionYear>2015</inceptionYear>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-eclipse-plugin</artifactId>
-				<configuration>
-					<classpathContainers>
-						<classpathContainer>
-							org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7
-						</classpathContainer>
-					</classpathContainers>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+  <dependencies>
+    <dependency>
+      <groupId>com.blackducksoftware.integration</groupId>
+      <artifactId>hub-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
