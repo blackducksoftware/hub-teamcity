@@ -12,10 +12,10 @@
 	<inceptionYear>2015</inceptionYear>
 
 	<licenses>
-		<license>
-			<name>GNU General Public License 2 only</name>
-			<url>http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html</url>
-		</license>
+	    <license>
+	      <name>Apache 2.0</name>
+	      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+	    </license>
 	</licenses>
 
 	<organization>
