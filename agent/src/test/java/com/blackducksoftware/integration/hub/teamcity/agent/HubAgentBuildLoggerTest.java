@@ -42,6 +42,41 @@ public class HubAgentBuildLoggerTest {
 	}
 
 	@Test
+	public void testSetLogLevelWithVariables() {
+		final HubAgentBuildLogger logger = new HubAgentBuildLogger(new TestBuildProgressLogger());
+
+		logger.setLogLevel("");
+		assertEquals(LogLevel.INFO, logger.getLogLevel());
+
+		logger.setLogLevel("FAKE");
+		assertEquals(LogLevel.INFO, logger.getLogLevel());
+
+		logger.setLogLevel("error");
+		assertEquals(LogLevel.ERROR, logger.getLogLevel());
+
+		logger.setLogLevel("erRor");
+		assertEquals(LogLevel.ERROR, logger.getLogLevel());
+
+		logger.setLogLevel("OFF");
+		assertEquals(LogLevel.OFF, logger.getLogLevel());
+
+		logger.setLogLevel("ERROR");
+		assertEquals(LogLevel.ERROR, logger.getLogLevel());
+
+		logger.setLogLevel("WARN");
+		assertEquals(LogLevel.WARN, logger.getLogLevel());
+
+		logger.setLogLevel("INFO");
+		assertEquals(LogLevel.INFO, logger.getLogLevel());
+
+		logger.setLogLevel("DEBUG");
+		assertEquals(LogLevel.DEBUG, logger.getLogLevel());
+
+		logger.setLogLevel("TRACE");
+		assertEquals(LogLevel.TRACE, logger.getLogLevel());
+	}
+
+	@Test
 	public void testSetLoggerLevel() {
 		final HubAgentBuildLogger logger = new HubAgentBuildLogger(new TestBuildProgressLogger());
 		logger.setLogLevel(LogLevel.WARN);
