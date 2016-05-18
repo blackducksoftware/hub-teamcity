@@ -42,7 +42,7 @@ public class HubAgentBuildLoggerTest {
 	}
 
 	@Test
-	public void testSetLogLevelWithVariables() {
+	public void testSetLogLevelWithString() {
 		final HubAgentBuildLogger logger = new HubAgentBuildLogger(new TestBuildProgressLogger());
 
 		logger.setLogLevel("");
