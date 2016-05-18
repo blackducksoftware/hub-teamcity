@@ -26,8 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URLDecoder;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -87,17 +86,20 @@ public class HubBuildProcessTest {
 		testLogger = new TestBuildProgressLogger();
 		logger = new HubAgentBuildLogger(testLogger);
 
-		final URL url = Thread.currentThread().getContextClassLoader().getResource("test-workspace");
-		workingDirectory = new File(url.getFile());
-		final String workingDirPath = workingDirectory.getAbsolutePath();
+		final URL testWorkspace = Thread.currentThread().getContextClassLoader().getResource("test-workspace");
 
-		final String testEmptyPath = workingDirPath + "/emptyDirectory";
+		final String workingDirPath = URLDecoder
+				.decode(testWorkspace.getPath(),
+						"UTF-8");
+		workingDirectory = new File(workingDirPath);
+
+		final String testEmptyPath = workingDirPath + File.separator + "emptyDirectory";
 		testEmptyDirectory = new File(testEmptyPath);
 		if (!testEmptyDirectory.exists()) {
 			testEmptyDirectory.mkdirs();
 		}
 
-		final String sourcePath = workingDirPath + "/directory";
+		final String sourcePath = workingDirPath + File.separator + "directory";
 		testSourceFile = new File(sourcePath);
 		if (!testSourceFile.exists()) {
 			testSourceFile.mkdirs();
@@ -213,15 +215,16 @@ public class HubBuildProcessTest {
 		process.setHubLogger(logger);
 
 		final String workingDir = new File("").getAbsolutePath();
-		final String testTargetPath = workingDir + "/test-workspace";
+		final String testTargetPath = workingDir + File.separator + "test-workspace";
 		final HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
 		builder.setProjectName("testProject");
 		builder.setVersion("testVersion");
-		builder.setPhase("testPhase");
-		builder.setDistribution("testDistribution");
+		builder.setPhase(PhaseEnum.ARCHIVED.name());
+		builder.setDistribution(DistributionEnum.INTERNAL.name());
 		builder.addScanTargetPath(testTargetPath);
 		builder.setWorkingDirectory(workingDir);
 		builder.setScanMemory(256);
+		builder.disableScanTargetPathExistenceCheck();
 
 		final HubScanJobConfig jobConfig = builder.build(logger);
 
@@ -245,7 +248,8 @@ public class HubBuildProcessTest {
 				new TestArtifactsWatcher());
 		process.setHubLogger(logger);
 
-		final HubScanJobConfig jobConfig = new HubScanJobConfig(null, null, null, null, null, 0, false, 0,
+		final HubScanJobConfig jobConfig = new HubScanJobConfig(null, null, PhaseEnum.ARCHIVED.name(),
+				DistributionEnum.INTERNAL.name(), null, 0, false, 0,
 				new ImmutableList.Builder<String>().build());
 
 		process.printJobConfiguration(jobConfig);
@@ -314,70 +318,6 @@ public class HubBuildProcessTest {
 		}
 	}
 
-	@Test
-	public void testIsJobConfigValidEmpty() throws Exception {
-		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
-				new TestArtifactsWatcher());
-		process.setHubLogger(logger);
-
-		final HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
-		builder.build(logger);
-	}
-
-	@Test
-	public void testIsJobConfigValidInvalid() throws Exception {
-		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
-				new TestArtifactsWatcher());
-		process.setHubLogger(logger);
-
-		exception.expect(HubIntegrationException.class);
-		final List<String> scanTargetPaths = new ArrayList<String>();
-
-		scanTargetPaths.add(new File(testSourceFile, "emptyFile.txt").getAbsolutePath());
-		scanTargetPaths.add(new File("fakeOutsideWorkspace").getAbsolutePath());
-
-		final HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
-		builder.addAllScanTargetPaths(scanTargetPaths);
-		builder.setWorkingDirectory(workingDirectory.getAbsolutePath());
-		builder.setScanMemory("23");
-		builder.build(logger);
-
-		final String output = testLogger.getErrorMessagesString();
-		assertTrue(output, output.contains("Can not scan targets outside the working directory."));
-	}
-
-	@Test
-	public void testIsJobConfigValidTargetNotExisting() throws Exception {
-		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
-				new TestArtifactsWatcher());
-		process.setHubLogger(logger);
-
-		final HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
-		builder.addScanTargetPath(new File(testSourceFile, "fakeFile").getAbsolutePath());
-		builder.setWorkingDirectory(workingDirectory.getAbsolutePath());
-		builder.setScanMemory("4096");
-
-		builder.build(logger);
-
-		final String output = testLogger.getErrorMessagesString();
-		assertTrue(output, output.contains("The scan target '"));
-		assertTrue(output, output.contains("' does not exist."));
-	}
-
-	@Test
-	public void testIsJobConfigValidTargetValid() throws Exception {
-		final HubBuildProcess process = new HubBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext(),
-				new TestArtifactsWatcher());
-		process.setHubLogger(logger);
-
-		final HubScanJobConfigBuilder builder = new HubScanJobConfigBuilder();
-		builder.addScanTargetPath(new File(testSourceFile, "emptyFile.txt").getAbsolutePath());
-		builder.setWorkingDirectory(workingDirectory.getAbsolutePath());
-		builder.setScanMemory("4096");
-		builder.build(logger);
-
-		assertTrue(testLogger.getErrorMessages().size() == 0);
-	}
 
 	@Test
 	public void testCallNothingConfigured() throws Exception {
@@ -434,69 +374,6 @@ public class HubBuildProcessTest {
 		assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
 	}
 
-	@Test
-	public void testCallGlobalConfigured() throws Exception {
-		final TestBuildRunnerContext context = new TestBuildRunnerContext();
-		context.setWorkingDirectory(workingDirectory);
-
-		context.addRunnerParameter(HubConstantValues.HUB_URL, "http://testUrl");
-		context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
-		context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
-
-		final TestAgentRunningBuild build = new TestAgentRunningBuild();
-		build.setLogger(testLogger);
-
-		final HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
-
-		assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
-
-		final String output = testLogger.getErrorMessagesString();
-
-		assertTrue(output, !output.contains("There is no Server URL specified"));
-		assertTrue(output, !output.contains("There is no Hub username specified"));
-		assertTrue(output, !output.contains("There is no Hub password specified."));
-
-		assertTrue(output, output
-				.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-
-		final String progressOutput = testLogger.getProgressMessagesString();
-
-		assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
-	}
-
-	@Test
-	public void testCallJobPartiallyConfiguredCLIEnvVarSet() throws Exception {
-		final TestBuildRunnerContext context = new TestBuildRunnerContext();
-		context.setWorkingDirectory(workingDirectory);
-
-		context.addEnvironmentVariable(HubConstantValues.HUB_CLI_ENV_VAR,
-				(new File(workingDirectory, "scan.cli-2.1.2")).getAbsolutePath());
-
-		context.addRunnerParameter(HubConstantValues.HUB_URL, "http://testUrl");
-		context.addRunnerParameter(HubConstantValues.HUB_USERNAME, "testUser");
-		context.addRunnerParameter(HubConstantValues.HUB_PASSWORD, "testPassword");
-
-		final TestAgentRunningBuild build = new TestAgentRunningBuild();
-		build.setLogger(testLogger);
-
-		final HubBuildProcess process = new HubBuildProcess(build, context, new TestArtifactsWatcher());
-
-		assertEquals(BuildFinishedStatus.FINISHED_FAILED, process.call());
-
-		final String output = testLogger.getErrorMessagesString();
-
-		assertTrue(output, !output.contains("There is no Server URL specified"));
-		assertTrue(output, !output.contains("There is no Hub username specified"));
-		assertTrue(output, !output.contains("There is no Hub password specified."));
-
-		assertTrue(output, output
-				.contains("There is no memory specified for the Hub scan. The scan requires a minimum of 4096 MB."));
-		assertTrue(output, !output.contains("The Hub CLI path has not been set."));
-
-		final String progressOutput = testLogger.getProgressMessagesString();
-
-		assertTrue(progressOutput, progressOutput.contains("Skipping Hub Build Step"));
-	}
 
 
 	@Test
@@ -589,7 +466,8 @@ public class HubBuildProcessTest {
 			context.addRunnerParameter(HubConstantValues.HUB_SCAN_MEMORY, "4096");
 
 			context.addRunnerParameter(HubConstantValues.HUB_SCAN_TARGETS,
-					"directory/emptyFile.txt" + System.getProperty("line.separator") + "directory/secondEmptyFile.txt");
+					"directory" + File.separator + "emptyFile.txt" + System.getProperty("line.separator") + "directory"
+							+ File.separator + "secondEmptyFile.txt");
 
 			final TestBuildAgentConfiguration agentConfig = new TestBuildAgentConfiguration();
 			agentConfig.setAgentToolsDirectory(new File(workingDirectory, "tools"));
@@ -765,14 +643,6 @@ public class HubBuildProcessTest {
 			assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
 			assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
-			assertTrue(progressOutput,
-					progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
-			assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
-			assertTrue(progressOutput, progressOutput.contains("MATCHED"));
-			assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
-			assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
-			assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
-			assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));
@@ -876,14 +746,6 @@ public class HubBuildProcessTest {
 			assertTrue(progressOutput, progressOutput.contains("You can view the BlackDuck Scan CLI logs at"));
 
 			assertEquals(BuildFinishedStatus.FINISHED_SUCCESS, result);
-			assertTrue(progressOutput,
-					progressOutput.contains("Waiting a few seconds for the scans to be recognized by the Hub server."));
-			assertTrue(progressOutput, progressOutput.contains("Checking for the scan location with Host name"));
-			assertTrue(progressOutput, progressOutput.contains("MATCHED"));
-			assertTrue(progressOutput, progressOutput.contains("These scan Id's were found for the scan targets."));
-			assertTrue(progressOutput, progressOutput.contains("Mapping the scan location with id:"));
-			assertTrue(progressOutput, progressOutput.contains("Asset reference mapping object :"));
-			assertTrue(progressOutput, progressOutput.contains("Successfully mapped the scan with id"));
 		} finally {
 			try {
 				final ProjectItem project = restHelper.getProjectByName(testProperties.getProperty("TEST_PROJECT"));

@@ -56,7 +56,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 			throw new BDRestException(
 					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "
 							+ responseCode,
-					resource);
+							resource);
 		} else {
 			return true;
 		}
@@ -81,7 +81,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 			throw new BDRestException(
 					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "
 							+ responseCode,
-					resource);
+							resource);
 		} else {
 			return true;
 		}
@@ -96,7 +96,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 		} catch (final BDRestException e) {
 			System.out.println(e.getMessage());
 		}
-		return new ProjectItem(projectName, null, null);
+		return null;
 	}
 
 }

@@ -188,7 +188,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
 			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
 				hubScanJobConfigBuilder
-				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_REPORT_WAIT_TIME_IN_MINUTES);
+				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
 			} else {
 				hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
 			}
@@ -202,9 +202,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			final HubScanJobConfig jobConfig = hubScanJobConfigBuilder.build(logger);
 
 			printJobConfiguration(jobConfig);
-			final URL hubUrl = new URL(globalConfig.getHubUrl());
 
 			if (isGlobalConfigValid(globalConfig)) {
+				final URL hubUrl = new URL(globalConfig.getHubUrl());
 				final HubIntRestService restService = new HubIntRestService(serverUrl);
 				restService.setLogger(logger);
 				if (proxyInfo != null) {
