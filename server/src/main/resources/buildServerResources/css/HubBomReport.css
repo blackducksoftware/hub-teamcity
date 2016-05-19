@@ -89,15 +89,6 @@
 	padding-bottom: 5px;
 }
 
-.riskSummaryLabel, .riskSummaryCount {
-	vertical-align: top;
-	min-width: 72px;
-	width: 72px;
-	display: inline-block;
-	background-color: #fff;
-	padding-left: 10px;
-}
-
 .filterSelected {
 	color: darkRed;
 	background-color: rgba(255, 238, 0, .4);
@@ -109,9 +100,21 @@
 	display: none;
 }
 
+.riskSummaryLabel, .riskSummaryCount {
+	vertical-align: top;
+	display: inline-block;
+	background-color: #fff;
+	padding-left: 10px;
+}
+
+.riskSummaryLabel{
+	min-width: 72px;
+	width: 15%;
+}
+
 .riskSummaryCount {
-	width: 35px;
 	min-width: 35px;
+	width: 20%;
 	text-align: center;
 }
 
@@ -123,7 +126,7 @@
 
 .horizontal .progress-track {
 	display: inline-block;
-	width: 65%;
+	width: 55%;
 	height: 20px;
 }
 
