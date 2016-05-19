@@ -21,14 +21,13 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.mocks;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.mockito.Mockito;
-
-import com.intellij.util.enumeration.ArrayEnumeration;
-import com.intellij.util.enumeration.EmptyEnumeration;
 
 public class MockHttpServletRequest {
 	public static HttpServletRequest getMockedHttpServletRequest() {
@@ -46,13 +45,13 @@ public class MockHttpServletRequest {
 
 	public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
 		if (hasParameters) {
-			final Enumeration<?> enumeration = new ArrayEnumeration(new String[] { "" });
+			final Enumeration<?> enumeration = Collections.enumeration(Arrays.asList(""));
 			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
 		} else {
-			final Enumeration<?> enumeration = EmptyEnumeration.INSTANCE;
+			final Enumeration<?> enumeration = Collections.emptyEnumeration();
 
 			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
 		}
-
 	}
+
 }
