@@ -186,8 +186,15 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 						}
 					}
 					if (proxy == null && StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != null) {
-						proxy = new Proxy(Proxy.Type.HTTP,
-								new InetSocketAddress(proxyInfo.getHost(), proxyInfo.getPort()));
+						InetSocketAddress address = null;
+						try {
+							address = InetSocketAddress.createUnresolved(proxyInfo.getHost(), proxyInfo.getPort());
+						} catch (final IllegalArgumentException e) {
+							errors.addError("errorHubProxyPort", "Not a valid Proxy Port. " + e.getMessage());
+						}
+						if (address != null) {
+							proxy = new Proxy(Proxy.Type.HTTP, address);
+						}
 					}
 				}
 				attemptResetProxyCache();
@@ -202,9 +209,9 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 							public PasswordAuthentication getPasswordAuthentication() {
 								return new PasswordAuthentication(
 										configPersistenceManager.getConfiguredServer().getProxyInfo()
-												.getProxyUsername(),
+										.getProxyUsername(),
 										configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword()
-												.toCharArray());
+										.toCharArray());
 							}
 						});
 					} else {
@@ -433,8 +440,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-					NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-					BDRestException, EncryptionException {
+	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+	BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}
