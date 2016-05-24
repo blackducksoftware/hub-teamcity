@@ -48,7 +48,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
 
 	public HubRiskReportTab(@NotNull final WebControllerManager webControllerManager, final SBuildServer server) {
 		super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "hubRiskReportTab.jsp",
-				"Black Duck HUB Risk Report");
+				"Black Duck Hub Risk Report");
 
 		this.server = server;
 
