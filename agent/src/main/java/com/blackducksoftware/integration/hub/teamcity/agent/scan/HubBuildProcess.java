@@ -286,6 +286,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					writer.close();
 
 					artifactsWatcher.addNewArtifactsPath(reportPath);
+					// If we do not wait, the report tab will not be added and
+					// it will appear that the report was unsuccessful
+					Thread.sleep(2000);
 				}
 				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo,
 						version, waitForBom);
@@ -388,6 +391,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				logger.alwaysLog("    --> " + absolutePath);
 			}
 		}
+
+		logger.alwaysLog("-> Generate Hub report : " + jobConfig.isShouldGenerateRiskReport());
+		final String formattedTime = String.format("%d minutes", jobConfig.getMaxWaitTimeForBomUpdate());
+		logger.alwaysLog("-> Maximum wait time for the BOM Update : " + formattedTime);
 	}
 
 	private ProjectItem ensureProjectExists(final HubIntRestService service, final IntLogger logger,
