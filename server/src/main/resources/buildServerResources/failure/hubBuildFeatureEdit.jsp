@@ -7,22 +7,27 @@
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean" />
+<c:set var="failureConditions" value="<%= HubFailureType.values() %>" />
 
 <script type="text/javascript">
     BS.hub = {
-        var descriptions = {},
-
-        var addDescription: fuction(failureConditionString, failureConditionDescription) {
-            descriptions[failureConditionString] = failureConditionDescription;
+        descriptions: {},
+        addDescription: function(failureConditionString, failureConditionDescription) {
+            this.descriptions[failureConditionString] = failureConditionDescription;
         },
-
-        var toggleDescription: function(select) {
+        toggleDescription: function(select) {
             var options = select.options;
             var index = select.selectedIndex;
             var selectedValue = options[index].value;
-            $('failureTypeDescription').html(descriptions[selectedValue]);
+            jQuery("span#failureTypeDescription").html(this.descriptions[selectedValue]);
         }
     };
+
+    <c:forEach var="failureCondition" items="${failureConditions}">
+        <c:set var="failureConditionString" value="${failureCondition}" />
+        <c:set var="failureConditionDescription" value="${failureCondition.description}" />
+        BS.hub.addDescription("${failureConditionString}", "${failureConditionDescription}");
+    </c:forEach>
 </script>
 
 <tr class="noBorder">
@@ -33,14 +38,11 @@
     </th>
     <td>
         <props:selectProperty name="com.blackducksoftware.integration.hub.hubFailureType" className="tabIndex" multiple="false" onchange="BS.hub.toggleDescription(this)">
-            <c:set var="failureConditions" value="<%= HubFailureType.values() %>" />
             <c:forEach var="failureCondition" items="${failureConditions}">
                 <c:set var="selected" value="false" />
                 <c:set var="failureConditionString" value="${failureCondition}" />
                 <c:set var="failureConditionDisplayName" value="${failureCondition.displayName}" />
                 <c:set var="failureConditionDescription" value="${failureCondition.description}" />
-
-                <script>BS.hub.addDescription(failureConditionString, failureConditionDescription);</script>
 
                 <c:if test="${failureConditionString == propertiesBean.properties['com.blackducksoftware.integration.hub.hubFailureType']}">
                     <c:set var="selected" value="true" />

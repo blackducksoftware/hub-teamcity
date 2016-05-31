@@ -4,15 +4,7 @@ public enum HubFailureType {
 	POLICY_VIOLATIONS(
 			"Project has Hub Policy Violations",
 			"If the specified Hub Project has policy violations after the Hub scan then the build will fail.",
-			"Fail the build if there are any policy violations"),
-	LICENSE_VIOLATIONS(
-			"Project has Hub License Violations",
-			"If the specified Hub Project has license violations after the Hub scan then the build will fail.",
-			"Fail the build if there are any license violations"),
-	SECURITY_VIOLATIONS(
-			"Project has Hub Security Violations",
-			"If the specified Hub Project has security violations after the Hub scan then the build will fail.",
-			"Fail the build if there are any security violations");
+			"Fail the build if there are any policy violations");
 
 	private String displayName;
 	private String description;

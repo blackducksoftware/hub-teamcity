@@ -22,8 +22,8 @@
 package com.blackducksoftware.integration.hub.teamcity.failure;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -78,7 +78,7 @@ public class HubBuildFeatureTest {
 	@Test
 	public void testMultipleFeaturesPerBuildTypeAllowed() {
 		final HubBuildFeature buildFeature = new HubBuildFeature(null);
-		assertTrue(buildFeature.isMultipleFeaturesPerBuildTypeAllowed());
+		assertFalse(buildFeature.isMultipleFeaturesPerBuildTypeAllowed());
 	}
 
 }

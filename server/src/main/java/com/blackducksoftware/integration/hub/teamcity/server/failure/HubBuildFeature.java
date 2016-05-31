@@ -21,6 +21,7 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.server.failure;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
@@ -80,8 +81,16 @@ public class HubBuildFeature extends BuildFeature {
 	}
 
 	@Override
+	public Map<String, String> getDefaultParameters() {
+		final Map<String, String> defaultParams = new HashMap<String, String>();
+		defaultParams.put(HubConstantValues.HUB_FAILURE_TYPE, HubFailureType.POLICY_VIOLATIONS.getDescription());
+
+		return defaultParams;
+	}
+
+	@Override
 	public boolean isMultipleFeaturesPerBuildTypeAllowed() {
-		return true;
+		return false;
 	}
 
 }
