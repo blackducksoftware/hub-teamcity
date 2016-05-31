@@ -21,23 +21,24 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.server.failure;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
+import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 
 import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
-public class BDPolicyViolationBuildFeature extends BuildFeature {
-	public final static String DISPLAY_NAME = "Fail Build on Black Duck Hub Policy Violations";
-	public final static String DESCRIPTION = "Fail the build if there are any policy violations";
+public class HubBuildFeature extends BuildFeature {
+	public final static String DISPLAY_NAME = "Fail build on Black Duck Hub Failure Conditions";
 
 	private final PluginDescriptor pluginDescriptor;
 
-	public BDPolicyViolationBuildFeature(@NotNull final PluginDescriptor pluginDescriptor) {
+	public HubBuildFeature(@NotNull final PluginDescriptor pluginDescriptor) {
 		this.pluginDescriptor = pluginDescriptor;
 	}
 
@@ -50,7 +51,7 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
 	@Override
 	@Nullable
 	public String getEditParametersUrl() {
-		return pluginDescriptor.getPluginResourcesPath();
+		return pluginDescriptor.getPluginResourcesPath("hubBuildFeatureEdit.html");
 	}
 
 	@Override
@@ -66,7 +67,25 @@ public class BDPolicyViolationBuildFeature extends BuildFeature {
 
 	@Override
 	public String describeParameters(final Map<String, String> params) {
-		return DESCRIPTION;
+		String output = "";
+
+		if (null != params && params.containsKey(HubConstantValues.HUB_FAILURE_TYPE)) {
+			final String status = params.get(HubConstantValues.HUB_FAILURE_TYPE);
+			final HubFailureType hubFailureType = HubFailureType.getHubFailureType(status);
+			if (null != hubFailureType) {
+				output = hubFailureType.getParameterDescription();
+			}
+		}
+
+		return output;
+	}
+
+	@Override
+	public Map<String, String> getDefaultParameters() {
+		final Map<String, String> defaultParams = new HashMap<String, String>();
+		defaultParams.put(HubConstantValues.HUB_FAILURE_TYPE, HubFailureType.POLICY_VIOLATIONS.toString());
+
+		return defaultParams;
 	}
 
 	@Override

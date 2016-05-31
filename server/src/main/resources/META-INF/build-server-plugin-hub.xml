@@ -15,24 +15,20 @@
 
 	<bean id="hubServerListener"
 		class="com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener" />
-
 	<bean id="hubConfigPersistenceManager"
 		class="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" />
-
 	<bean id="serverHubConfigTab"
 		class="com.blackducksoftware.integration.hub.teamcity.server.global.HubGlobalServerConfigTab" />
-
 	<bean id="hubRiskReportTab"
 		class="com.blackducksoftware.integration.hub.teamcity.server.report.HubRiskReportTab" />
-
 	<bean id="hubRunnerRunType"
 		class="com.blackducksoftware.integration.hub.teamcity.server.runner.scan.HubRunner" />
-
 	<bean id="hubParametersPreprocessor"
 		class="com.blackducksoftware.integration.hub.teamcity.server.runner.HubParametersPreprocessor"
 		depends-on="hubServerListener" />
-
 	<bean id="policyViolationFailure"
-		class="com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature" />
+		class="com.blackducksoftware.integration.hub.teamcity.server.failure.HubBuildFeature" />
+	<bean id="hubBuildFeatureController"
+		class="com.blackducksoftware.integration.hub.teamcity.server.failure.HubBuildFeatureController" />
 
 </beans>

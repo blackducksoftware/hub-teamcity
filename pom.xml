@@ -26,7 +26,6 @@
 
   <properties>
     <plugin.version>${project.version}</plugin.version>
-    <surefire.reports.directory>${project.build.directory}/../../assembly/target/surefire-reports</surefire.reports.directory>
     <teamcity.version>7.1.0</teamcity.version>
   </properties>
 
