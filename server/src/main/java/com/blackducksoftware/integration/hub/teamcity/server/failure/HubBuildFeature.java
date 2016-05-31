@@ -83,7 +83,7 @@ public class HubBuildFeature extends BuildFeature {
 	@Override
 	public Map<String, String> getDefaultParameters() {
 		final Map<String, String> defaultParams = new HashMap<String, String>();
-		defaultParams.put(HubConstantValues.HUB_FAILURE_TYPE, HubFailureType.POLICY_VIOLATIONS.getDescription());
+		defaultParams.put(HubConstantValues.HUB_FAILURE_TYPE, HubFailureType.POLICY_VIOLATIONS.toString());
 
 		return defaultParams;
 	}

@@ -37,14 +37,15 @@
         </label>
     </th>
     <td>
+        <c:set var="selectedFailureConditionString" value="${propertiesBean.properties['com.blackducksoftware.integration.hub.hubFailureType']}" />
         <props:selectProperty name="com.blackducksoftware.integration.hub.hubFailureType" className="tabIndex" multiple="false" onchange="BS.hub.toggleDescription(this)">
             <c:forEach var="failureCondition" items="${failureConditions}">
                 <c:set var="selected" value="false" />
-                <c:set var="failureConditionString" value="${failureCondition}" />
+                <c:set var="failureConditionString">${failureCondition}</c:set>
                 <c:set var="failureConditionDisplayName" value="${failureCondition.displayName}" />
                 <c:set var="failureConditionDescription" value="${failureCondition.description}" />
 
-                <c:if test="${failureConditionString == propertiesBean.properties['com.blackducksoftware.integration.hub.hubFailureType']}">
+                <c:if test="${failureConditionString == selectedFailureConditionString}">
                     <c:set var="selected" value="true" />
                     <c:set var="initialDescriptionToShow" value="${failureConditionDescription}" />
                 </c:if>
