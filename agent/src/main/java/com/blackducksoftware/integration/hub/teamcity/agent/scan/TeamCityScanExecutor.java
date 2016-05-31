@@ -76,6 +76,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			final File standardOutFile = new File(logBaseDirectory, "CLI_Output.txt");
 			standardOutFile.createNewFile();
 
+			final int hubPasswordIndex = cmd.indexOf("--password") + 1;
 			// ////////////////////// Code to mask the password in the logs
 			final List<String> cmdToOutput = new ArrayList<String>();
 			cmdToOutput.addAll(cmd);
@@ -104,7 +105,11 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			String outputString = "";
 			ScannerSplitStream splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
-			Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+			final ProcessBuilder processBuilder = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE);
+
+			processBuilder.environment().put("BD_HUB_PASSWORD", cmd.get(hubPasswordIndex));
+
+			Process hubCliProcess = processBuilder.start();
 
 			// The Cli logs go the error stream for some reason
 			StreamRedirectThread redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(),
