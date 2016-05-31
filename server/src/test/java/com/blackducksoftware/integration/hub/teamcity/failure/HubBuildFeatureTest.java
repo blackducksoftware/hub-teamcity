@@ -22,63 +22,63 @@
 package com.blackducksoftware.integration.hub.teamcity.failure;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.mocks.MockPluginDescriptor;
-import com.blackducksoftware.integration.hub.teamcity.server.failure.BDPolicyViolationBuildFeature;
+import com.blackducksoftware.integration.hub.teamcity.server.failure.HubBuildFeature;
 
 import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
-public class BDPolicyViolationBuildFeatureTest {
+public class HubBuildFeatureTest {
 	private PluginDescriptor getMockedPluginDescriptor() {
 		return MockPluginDescriptor.getMockedPluginDescriptor();
 	}
 
 	@Test
 	public void testConstructor() {
-		final BDPolicyViolationBuildFeature feature = new BDPolicyViolationBuildFeature(getMockedPluginDescriptor());
+		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
 		assertNotNull(feature);
 	}
 
 	@Test
 	public void testDisplayName() {
-		final BDPolicyViolationBuildFeature feature = new BDPolicyViolationBuildFeature(getMockedPluginDescriptor());
-		assertEquals(BDPolicyViolationBuildFeature.DISPLAY_NAME, feature.getDisplayName());
+		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+		assertEquals(HubBuildFeature.DISPLAY_NAME, feature.getDisplayName());
 	}
 
 	@Test
 	public void testEditParametersUrl() {
-		final BDPolicyViolationBuildFeature feature = new BDPolicyViolationBuildFeature(getMockedPluginDescriptor());
+		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
 		assertEquals(feature.getEditParametersUrl(), feature.getEditParametersUrl());
 	}
 
 	@Test
 	public void testType() {
-		final BDPolicyViolationBuildFeature feature = new BDPolicyViolationBuildFeature(getMockedPluginDescriptor());
+		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
 		assertEquals(HubBundle.POLICY_FAILURE_CONDITION, feature.getType());
 	}
 
 	@Test
 	public void testPlaceToShow() {
-		final BDPolicyViolationBuildFeature feature = new BDPolicyViolationBuildFeature(getMockedPluginDescriptor());
+		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
 		assertEquals(BuildFeature.PlaceToShow.FAILURE_REASON, feature.getPlaceToShow());
 	}
 
 	@Test
 	public void testDescribeParameters() {
-		final BDPolicyViolationBuildFeature feature = new BDPolicyViolationBuildFeature(getMockedPluginDescriptor());
-		assertEquals(BDPolicyViolationBuildFeature.DESCRIPTION, feature.describeParameters(null));
+		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+		assertEquals("", feature.describeParameters(null));
 	}
 
 	@Test
 	public void testMultipleFeaturesPerBuildTypeAllowed() {
-		final BDPolicyViolationBuildFeature buildFeature = new BDPolicyViolationBuildFeature(null);
-		assertFalse(buildFeature.isMultipleFeaturesPerBuildTypeAllowed());
+		final HubBuildFeature buildFeature = new HubBuildFeature(null);
+		assertTrue(buildFeature.isMultipleFeaturesPerBuildTypeAllowed());
 	}
 
 }
