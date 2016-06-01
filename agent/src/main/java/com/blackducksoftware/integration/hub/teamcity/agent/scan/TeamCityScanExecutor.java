@@ -104,7 +104,11 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			String outputString = "";
 			ScannerSplitStream splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
-			Process hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+			final ProcessBuilder processBuilder = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE);
+
+			processBuilder.environment().put("BD_HUB_PASSWORD", getHubPassword());
+
+			Process hubCliProcess = processBuilder.start();
 
 			// The Cli logs go the error stream for some reason
 			StreamRedirectThread redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(),
