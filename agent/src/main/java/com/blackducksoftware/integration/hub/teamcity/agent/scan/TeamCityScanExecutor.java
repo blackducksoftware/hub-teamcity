@@ -81,8 +81,10 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			cmdToOutput.addAll(cmd);
 
 			final ArrayList<Integer> indexToMask = new ArrayList<Integer>();
-			// The User's password will be at the next index
-			indexToMask.add(cmdToOutput.indexOf("--password") + 1);
+			if (cmdToOutput.indexOf("--password") != -1) {
+				// The User's password will be at the next index
+				indexToMask.add(cmdToOutput.indexOf("--password") + 1);
+			}
 
 			for (int i = 0; i < cmdToOutput.size(); i++) {
 				if (cmdToOutput.get(i).contains("-Dhttp") && cmdToOutput.get(i).contains("proxyPassword")) {
