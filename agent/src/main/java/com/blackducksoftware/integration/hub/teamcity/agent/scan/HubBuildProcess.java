@@ -31,12 +31,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.CIEnvironmentVariables;
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
@@ -45,6 +47,7 @@ import com.blackducksoftware.integration.hub.builder.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.hub.builder.ValidationResults;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
+import com.blackducksoftware.integration.hub.cli.CLILocation;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
@@ -241,8 +244,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				}
 				restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
 
+				final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
+						.getEnvironmentVariables();
+				final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
+				ciEnvironmentVariables.putAll(teamCityEnvironmentVariables);
+
 				final File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
-				final CLIInstaller installer = new CLIInstaller(hubToolDir);
+				final CLILocation cliLocation = new CLILocation(hubToolDir);
+				final CLIInstaller installer = new CLIInstaller(cliLocation, ciEnvironmentVariables);
 				if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(),
 						proxyInfo.getNoProxyHostPatterns())) {
 					final Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
@@ -254,15 +263,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				installer.performInstallation(logger, restService, localHostName);
 
 				File hubCLI = null;
-				if (installer.getCLIExists(hubLogger)) {
-					hubCLI = installer.getCLI();
+				if (cliLocation.getCLIExists(hubLogger)) {
+					hubCLI = cliLocation.getCLI(hubLogger);
 				} else {
 					hubLogger.error("Could not find the Hub scan CLI.");
 					result = BuildFinishedStatus.FINISHED_FAILED;
 					return result;
 				}
-				final File oneJarFile = installer.getOneJarFile();
-				final File javaExec = installer.getProvidedJavaExec();
+				final File oneJarFile = cliLocation.getOneJarFile();
+				final File javaExec = cliLocation.getProvidedJavaExec();
 
 				ProjectItem project = null;
 				ReleaseItem version = null;
@@ -459,7 +468,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	 */
 	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 		try {
 			version = service.getVersion(project, projectVersion);
@@ -483,7 +492,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 
 		try {
@@ -504,8 +513,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+					IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
+					IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -661,7 +670,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
+					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException,
+					IOException {
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
 		if (supportHelper.isCliStatusDirOptionSupport()) {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
