@@ -36,7 +36,7 @@ import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistExcept
 import com.blackducksoftware.integration.hub.project.api.ProjectItem;
 
 public class TeamCityHubIntTestHelper extends HubIntRestService {
-	public TeamCityHubIntTestHelper(final String baseUrl) {
+	public TeamCityHubIntTestHelper(final String baseUrl) throws URISyntaxException {
 		super(baseUrl);
 	}
 
@@ -60,7 +60,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 			throw new BDRestException(
 					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "
 							+ responseCode,
-							resource);
+					resource);
 		} else {
 			return true;
 		}
@@ -85,7 +85,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 			throw new BDRestException(
 					"Could not connect to the Hub server with the Given Url and credentials. Error Code: "
 							+ responseCode,
-							resource);
+					resource);
 		} else {
 			return true;
 		}
