@@ -31,6 +31,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -40,6 +41,9 @@ import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
+import com.blackducksoftware.integration.hub.builder.HubScanJobConfigBuilder;
+import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
+import com.blackducksoftware.integration.hub.builder.ValidationResults;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.EncryptionException;
@@ -48,7 +52,7 @@ import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusExcept
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistException;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
-import com.blackducksoftware.integration.hub.job.HubScanJobConfigBuilder;
+import com.blackducksoftware.integration.hub.job.HubScanJobFieldEnum;
 import com.blackducksoftware.integration.hub.logging.IntLogger;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatus;
 import com.blackducksoftware.integration.hub.policy.api.PolicyStatusEnum;
@@ -182,17 +186,17 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		logger.info("Running on machine : " + localHostName);
 
 		try {
-			final HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder();
+			final HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder(true);
 			hubScanJobConfigBuilder.setProjectName(projectName);
 			hubScanJobConfigBuilder.setVersion(projectVersion);
 			hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
 			hubScanJobConfigBuilder
-			.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
+					.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
 			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
 				hubScanJobConfigBuilder
-				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
+						.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
 			} else {
 				hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
 			}
@@ -203,7 +207,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			}
 			hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 
-			final HubScanJobConfig jobConfig = hubScanJobConfigBuilder.build(logger);
+			final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> builderResults = hubScanJobConfigBuilder
+					.build();
+			if (!builderResults.isSuccess()) {
+				result = BuildFinishedStatus.FINISHED_FAILED;
+				final Set<HubScanJobFieldEnum> keys = builderResults.getResultMap().keySet();
+				for (final HubScanJobFieldEnum fieldKey : keys) {
+					if (builderResults.hasErrors(fieldKey)) {
+						logger.error(builderResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
+					}
+					if (builderResults.hasWarnings(fieldKey)) {
+						logger.warn(builderResults.getResultString(fieldKey, ValidationResultEnum.WARN));
+					}
+				}
+				return result;
+			}
+			final HubScanJobConfig jobConfig = results.getConstructedObject();
 
 			printJobConfiguration(jobConfig);
 
@@ -290,8 +309,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					// it will appear that the report was unsuccessful
 					Thread.sleep(2000);
 				}
-				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo,
-						version, waitForBom);
+				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo, version,
+						waitForBom);
 			} else {
 				logger.info("Skipping Hub Build Step");
 				result = BuildFinishedStatus.FINISHED_FAILED;
@@ -313,13 +332,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	private String getSystemVariable(@NotNull final String parameterName) {
-		return StringUtils
-				.trimToNull(context.getBuildParameters().getSystemProperties().get(parameterName));
+		return StringUtils.trimToNull(context.getBuildParameters().getSystemProperties().get(parameterName));
 	}
 
 	private String getEnvironmentVariable(@NotNull final String parameterName) {
-		return StringUtils
-				.trimToNull(context.getBuildParameters().getEnvironmentVariables().get(parameterName));
+		return StringUtils.trimToNull(context.getBuildParameters().getEnvironmentVariables().get(parameterName));
 	}
 
 	private String getAnyParameterType(@NotNull final String parameterName) {
@@ -442,7 +459,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	 */
 	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-					throws IOException, URISyntaxException, TeamCityHubPluginException {
+			throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 		try {
 			version = service.getVersion(project, projectVersion);
@@ -466,7 +483,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-					throws IOException, URISyntaxException, TeamCityHubPluginException {
+			throws IOException, URISyntaxException, TeamCityHubPluginException {
 		ReleaseItem version = null;
 
 		try {
@@ -487,8 +504,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-	IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
-	IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
+			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
 				globalConfig.getGlobalCredentials().getHubUser(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -644,8 +661,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException,
-					IOException {
+			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
 		if (supportHelper.isCliStatusDirOptionSupport()) {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
