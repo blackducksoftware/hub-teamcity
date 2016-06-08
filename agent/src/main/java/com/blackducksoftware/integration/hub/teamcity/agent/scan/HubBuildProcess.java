@@ -44,6 +44,7 @@ import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.builder.HubScanJobConfigBuilder;
+import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.hub.builder.ValidationResults;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
@@ -54,6 +55,9 @@ import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistException;
+import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
+import com.blackducksoftware.integration.hub.global.HubProxyInfo;
+import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobFieldEnum;
 import com.blackducksoftware.integration.hub.logging.IntLogger;
@@ -65,13 +69,9 @@ import com.blackducksoftware.integration.hub.report.api.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
 import com.blackducksoftware.integration.hub.report.api.RiskReportGenerator;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
-import com.blackducksoftware.integration.hub.teamcity.agent.HubParameterValidator;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
 import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
@@ -140,25 +140,20 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 		logger.targetStarted("Hub Build Step");
 
-		final ServerHubConfigBean globalConfig = new ServerHubConfigBean();
+		final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
 		final String serverUrl = getParameter(HubConstantValues.HUB_URL);
-		globalConfig.setHubUrl(serverUrl);
+		configBuilder.setHubUrl(serverUrl);
+		configBuilder.setUsername(getParameter(HubConstantValues.HUB_USERNAME));
+		configBuilder.setPassword(getParameter(HubConstantValues.HUB_PASSWORD));
+		configBuilder.setProxyHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
+		configBuilder.setProxyPort(getParameter(HubConstantValues.HUB_PROXY_PORT));
+		configBuilder.setIgnoredProxyHosts(getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS));
+		configBuilder.setProxyUsername(getParameter(HubConstantValues.HUB_PROXY_USER));
+		configBuilder.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
+		final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.build();
 
-		final HubCredentialsBean credential = new HubCredentialsBean(getParameter(HubConstantValues.HUB_USERNAME),
-				getParameter(HubConstantValues.HUB_PASSWORD));
-		globalConfig.setGlobalCredentials(credential);
-
-		final HubProxyInfo proxyInfo = new HubProxyInfo();
-		proxyInfo.setHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
-		if (getParameter(HubConstantValues.HUB_PROXY_PORT) != null) {
-			proxyInfo.setPort(Integer.valueOf(getParameter(HubConstantValues.HUB_PROXY_PORT)));
-		}
-		proxyInfo.setIgnoredProxyHosts(getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS));
-		proxyInfo.setProxyUsername(getParameter(HubConstantValues.HUB_PROXY_USER));
-		proxyInfo.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
-
-		globalConfig.setProxyInfo(proxyInfo);
+		final HubServerConfig globalConfig = builderResults.getConstructedObject();
 		printGlobalConfiguration(globalConfig);
 
 		final String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
@@ -210,39 +205,37 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			}
 			hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 
-			final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> builderResults = hubScanJobConfigBuilder
+			final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> globalResults = hubScanJobConfigBuilder
 					.build();
 			if (!builderResults.isSuccess()) {
 				result = BuildFinishedStatus.FINISHED_FAILED;
-				final Set<HubScanJobFieldEnum> keys = builderResults.getResultMap().keySet();
+				final Set<HubScanJobFieldEnum> keys = globalResults.getResultMap().keySet();
 				for (final HubScanJobFieldEnum fieldKey : keys) {
-					if (builderResults.hasErrors(fieldKey)) {
-						logger.error(builderResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
+					if (globalResults.hasErrors(fieldKey)) {
+						logger.error(globalResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
 					}
-					if (builderResults.hasWarnings(fieldKey)) {
-						logger.warn(builderResults.getResultString(fieldKey, ValidationResultEnum.WARN));
+					if (globalResults.hasWarnings(fieldKey)) {
+						logger.warn(globalResults.getResultString(fieldKey, ValidationResultEnum.WARN));
 					}
 				}
 				return result;
 			}
-			final HubScanJobConfig jobConfig = builderResults.getConstructedObject();
+			final HubScanJobConfig jobConfig = globalResults.getConstructedObject();
 
 			printJobConfiguration(jobConfig);
 
-			if (isGlobalConfigValid(globalConfig)) {
-				final URL hubUrl = new URL(globalConfig.getHubUrl());
+			if (globalResults.isSuccess()) {
+				final URL hubUrl = globalConfig.getHubUrl();
 				final HubIntRestService restService = new HubIntRestService(serverUrl);
 				restService.setLogger(logger);
+				final HubProxyInfo proxyInfo = globalConfig.getProxyInfo();
 				if (proxyInfo != null) {
-					if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(),
-							proxyInfo.getNoProxyHostPatterns())) {
-						final Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
-
-						restService.setProxyProperties(proxyInfo.getHost(), port, proxyInfo.getNoProxyHostPatterns(),
-								proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
+					if (!globalConfig.getProxyInfo().shouldUseProxyForUrl(hubUrl)) {
+						restService.setProxyProperties(proxyInfo);
 					}
 				}
-				restService.setCookies(credential.getHubUser(), credential.getDecryptedPassword());
+				restService.setCookies(globalConfig.getGlobalCredentials().getUsername(),
+						globalConfig.getGlobalCredentials().getDecryptedPassword());
 
 				final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
 						.getEnvironmentVariables();
@@ -252,13 +245,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				final File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
 				final CLILocation cliLocation = new CLILocation(hubToolDir);
 				final CLIInstaller installer = new CLIInstaller(cliLocation, ciEnvironmentVariables);
-				if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(),
-						proxyInfo.getNoProxyHostPatterns())) {
-					final Integer port = (proxyInfo.getPort() == null) ? 0 : proxyInfo.getPort();
+				if (proxyInfo.shouldUseProxyForUrl(hubUrl)) {
 					installer.setProxyHost(proxyInfo.getHost());
-					installer.setProxyPort(port);
-					installer.setProxyUserName(proxyInfo.getProxyUsername());
-					installer.setProxyPassword(proxyInfo.getProxyPassword());
+					installer.setProxyPort(proxyInfo.getPort());
+					installer.setProxyUserName(proxyInfo.getUsername());
+					installer.setProxyPassword(proxyInfo.getDecryptedPassword());
 				}
 				installer.performInstallation(logger, restService, localHostName);
 
@@ -362,16 +353,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		return value;
 	}
 
-	public boolean isGlobalConfigValid(final ServerHubConfigBean globalConfig) throws IOException {
-		final HubParameterValidator validator = new HubParameterValidator(logger);
-
-		final boolean isUrlValid = validator.isServerUrlValid(globalConfig.getHubUrl());
-		final boolean credentialsConfigured = validator.isHubCredentialConfigured(globalConfig.getGlobalCredentials());
-
-		return isUrlValid && credentialsConfigured;
-	}
-
-	public void printGlobalConfiguration(final ServerHubConfigBean globalConfig) {
+	public void printGlobalConfiguration(final HubServerConfig globalConfig) {
 		if (globalConfig == null) {
 			return;
 		}
@@ -379,22 +361,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 		logger.alwaysLog("--> Hub Server Url : " + globalConfig.getHubUrl());
 		if (globalConfig.getGlobalCredentials() != null
-				&& StringUtils.isNotBlank(globalConfig.getGlobalCredentials().getHubUser())) {
-			logger.alwaysLog("--> Hub User : " + globalConfig.getGlobalCredentials().getHubUser());
+				&& StringUtils.isNotBlank(globalConfig.getGlobalCredentials().getUsername())) {
+			logger.alwaysLog("--> Hub User : " + globalConfig.getGlobalCredentials().getUsername());
 		}
 
 		if (globalConfig.getProxyInfo() != null) {
 			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getHost())) {
 				logger.alwaysLog("--> Proxy Host : " + globalConfig.getProxyInfo().getHost());
 			}
-			if (globalConfig.getProxyInfo().getPort() != null) {
+			if (globalConfig.getProxyInfo().getPort() > 0) {
 				logger.alwaysLog("--> Proxy Port : " + globalConfig.getProxyInfo().getPort());
 			}
 			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getIgnoredProxyHosts())) {
 				logger.alwaysLog("--> No Proxy Hosts : " + globalConfig.getProxyInfo().getIgnoredProxyHosts());
 			}
-			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getProxyUsername())) {
-				logger.alwaysLog("--> Proxy Username : " + globalConfig.getProxyInfo().getProxyUsername());
+			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getUsername())) {
+				logger.alwaysLog("--> Proxy Username : " + globalConfig.getProxyInfo().getUsername());
 			}
 		}
 	}
@@ -511,19 +493,18 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
-			final File oneJarFile, final File scanExec, File javaExec, final ServerHubConfigBean globalConfig,
+			final File oneJarFile, final File scanExec, File javaExec, final HubServerConfig globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
 			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, EncryptionException {
-		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl(),
-				globalConfig.getGlobalCredentials().getHubUser(),
+		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl().toString(),
+				globalConfig.getGlobalCredentials().getUsername(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
 				Integer.valueOf(context.getBuild().getBuildNumber()), supportHelper, logger);
 
 		if (globalConfig.getProxyInfo() != null) {
-			final URL hubUrl = new URL(globalConfig.getHubUrl());
-			if (!HubProxyInfo.checkMatchingNoProxyHostPatterns(hubUrl.getHost(),
-					globalConfig.getProxyInfo().getNoProxyHostPatterns())) {
+			final URL hubUrl = globalConfig.getHubUrl();
+			if (globalConfig.getProxyInfo().shouldUseProxyForUrl(hubUrl)) {
 				addProxySettingsToScanner(logger, scan, globalConfig.getProxyInfo());
 			}
 		}
@@ -567,15 +548,16 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	public void addProxySettingsToScanner(final IntLogger logger, final TeamCityScanExecutor scan,
-			final HubProxyInfo proxyInfo) throws HubIntegrationException, URISyntaxException, MalformedURLException {
+			final HubProxyInfo proxyInfo) throws HubIntegrationException, URISyntaxException, MalformedURLException,
+			IllegalArgumentException, EncryptionException {
 		if (proxyInfo != null) {
 			if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
-				if (StringUtils.isNotBlank(proxyInfo.getProxyUsername())
-						&& StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
+				if (StringUtils.isNotBlank(proxyInfo.getUsername())
+						&& StringUtils.isNotBlank(proxyInfo.getMaskedPassword())) {
 					scan.setProxyHost(proxyInfo.getHost());
 					scan.setProxyPort(proxyInfo.getPort());
-					scan.setProxyUsername(proxyInfo.getProxyUsername());
-					scan.setProxyPassword(proxyInfo.getProxyPassword());
+					scan.setProxyUsername(proxyInfo.getUsername());
+					scan.setProxyPassword(proxyInfo.getDecryptedPassword());
 				} else {
 					scan.setProxyHost(proxyInfo.getHost());
 					scan.setProxyPort(proxyInfo.getPort());
