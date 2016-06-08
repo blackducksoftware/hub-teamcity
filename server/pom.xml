@@ -16,6 +16,15 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.blackducksoftware.integration</groupId>
+      <artifactId>hub-teamcity-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.blackducksoftware.integration</groupId>
+      <artifactId>hub-common</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jdom</groupId>
       <artifactId>jdom</artifactId>
     </dependency>
@@ -26,15 +35,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.blackducksoftware.integration</groupId>
-      <artifactId>hub-teamcity-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.blackducksoftware.integration</groupId>
-      <artifactId>hub-common</artifactId>
     </dependency>
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
@@ -92,16 +92,6 @@
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
