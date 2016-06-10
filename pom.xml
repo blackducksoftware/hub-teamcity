@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>hub-teamcity</artifactId>
-  <version>1.4.1-SNAPSHOT</version>
+  <version>1.4.1</version>
   <packaging>pom</packaging>
 
   <name>Black Duck Hub Plugin for TeamCity</name>
@@ -34,7 +34,6 @@
       <id>jcenter</id>
       <url>https://jcenter.bintray.com</url>
     </repository>
-    <!-- ekerwin(2016-05-26): this is included only to acquire the parent pom, where this information is sadly duplicated. -->
     <repository>
       <snapshots>
         <updatePolicy>always</updatePolicy>
