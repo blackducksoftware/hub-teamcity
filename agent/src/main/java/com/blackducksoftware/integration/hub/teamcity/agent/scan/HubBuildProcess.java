@@ -72,6 +72,7 @@ import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.hub.version.api.DistributionEnum;
 import com.blackducksoftware.integration.hub.version.api.PhaseEnum;
@@ -122,7 +123,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	}
 
 	@Override
-	public BuildFinishedStatus call() throws IOException {
+	public BuildFinishedStatus call() throws IOException, NoSuchMethodException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final BuildProgressLogger buildLogger = build.getBuildLogger();
 		final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
 		final String logLevel = getAnyParameterType(HubConstantValues.HUB_LOG_LEVEL);
@@ -142,15 +144,32 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 		final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
+		// read the credentials and proxy info using the existing objects.
+		final HubCredentialsBean credential = new HubCredentialsBean(getParameter(HubConstantValues.HUB_USERNAME),
+				getParameter(HubConstantValues.HUB_PASSWORD));
+
+		final com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo originalProxyInfo = new com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo();
+		;
+		originalProxyInfo.setHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
+		if (getParameter(HubConstantValues.HUB_PROXY_PORT) != null) {
+			originalProxyInfo.setPort(Integer.valueOf(getParameter(HubConstantValues.HUB_PROXY_PORT)));
+		}
+		originalProxyInfo.setIgnoredProxyHosts(getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS));
+		originalProxyInfo.setProxyUsername(getParameter(HubConstantValues.HUB_PROXY_USER));
+		originalProxyInfo.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
+
 		final String serverUrl = getParameter(HubConstantValues.HUB_URL);
 		configBuilder.setHubUrl(serverUrl);
-		configBuilder.setUsername(getParameter(HubConstantValues.HUB_USERNAME));
-		configBuilder.setPassword(getParameter(HubConstantValues.HUB_PASSWORD));
-		configBuilder.setProxyHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
-		configBuilder.setProxyPort(getParameter(HubConstantValues.HUB_PROXY_PORT));
-		configBuilder.setIgnoredProxyHosts(getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS));
-		configBuilder.setProxyUsername(getParameter(HubConstantValues.HUB_PROXY_USER));
-		configBuilder.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
+		configBuilder.setUsername(credential.getHubUser());
+		configBuilder.setPassword(credential.getDecryptedPassword());
+		configBuilder.setProxyHost(originalProxyInfo.getHost());
+		if (originalProxyInfo.getPort() != null) {
+			configBuilder.setProxyPort(originalProxyInfo.getPort());
+		}
+		configBuilder.setIgnoredProxyHosts(originalProxyInfo.getIgnoredProxyHosts());
+		configBuilder.setProxyUsername(originalProxyInfo.getProxyUsername());
+		configBuilder.setProxyPassword(originalProxyInfo.getProxyPassword());
+		configBuilder.setTimeout(HubServerConfigBuilder.DEFAULT_TIMEOUT);
 		final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.build();
 
 		final HubServerConfig globalConfig = builderResults.getConstructedObject();

@@ -131,6 +131,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		builder.setProxyPort(proxyPort);
 		builder.setIgnoredProxyHosts(noProxyHosts);
 		builder.setProxyUsername(proxyUser);
+		builder.setTimeout(HubServerConfigBuilder.DEFAULT_TIMEOUT);
 
 		String proxyPass = getDecryptedWebPassword(encProxyPassword);
 		if (StringUtils.isBlank(proxyPass)) {
