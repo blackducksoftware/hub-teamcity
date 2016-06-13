@@ -1,40 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?><project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>com.blackducksoftware.integration</groupId>
     <artifactId>common-maven-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <relativePath>../common-maven-parent</relativePath>
   </parent>
-
   <artifactId>hub-teamcity</artifactId>
-  <version>1.4.1-SNAPSHOT</version>
+  <version>1.4.2-SNAPSHOT</version>
   <packaging>pom</packaging>
-
   <name>Black Duck Hub Plugin for TeamCity</name>
   <description>Open Source Governance with Black Duck Hub (TM).</description>
   <inceptionYear>2015</inceptionYear>
-
   <modules>
     <module>common</module>
     <module>server</module>
     <module>agent</module>
     <module>assembly</module>
   </modules>
-
   <properties>
     <plugin.version>${project.version}</plugin.version>
     <teamcity.version>7.1.0</teamcity.version>
   </properties>
-
   <repositories>
     <repository>
       <id>jcenter</id>
       <url>https://jcenter.bintray.com</url>
     </repository>
-    <!-- ekerwin(2016-05-26): this is included only to acquire the parent pom, where this information is sadly duplicated. -->
     <repository>
       <snapshots>
         <updatePolicy>always</updatePolicy>
@@ -43,7 +35,6 @@
       <url>https://updates.suite.blackducksoftware.com/integrations/</url>
     </repository>
   </repositories>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -166,21 +157,8 @@
         <version>${teamcity.version}</version>
         <scope>provided</scope>
       </dependency>
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.10</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>1.8.4</version>
-        <scope>test</scope>
-      </dependency>
     </dependencies>
   </dependencyManagement>
-
   <build>
     <pluginManagement>
       <plugins>
