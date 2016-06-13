@@ -131,6 +131,7 @@
                 	${'hubUrl'}.value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
                 	${'hubUser'}.value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
                 	${'hubPass'}.value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
+                	${'hubTimeout'}.value = "${hubConfigPersistenceManager.configuredServer.getHubTimeout()}";
                 	${'hubProxyServer'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
                 	${'hubProxyPort'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
                 	${'hubNoProxyHost'}.value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
@@ -249,6 +250,24 @@
             	<td/>
                 <td>
                     <span class="error" id="errorPassword" style="margin-left: 0;"></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="200px" >
+                    <label class="label" for="hubTimeout">Timeout (secs):
+                    <span class="mandatoryAsterix" title="Mandatory field">*</span>
+                        <bs:helpIcon
+                                iconTitle="Hub connection timeout."/>
+                    </label>
+                </td>
+                <td>
+                    <forms:textField className="textFieldLong" name="hubTimeout" id="hubTimeout" value=""/>
+                </td>
+            </tr>
+             <tr>
+                <td/>
+                <td>
+                    <span class="error" id="errorTimeout" style="margin-left: 0;"></span>
                 </td>
             </tr>
         </table>

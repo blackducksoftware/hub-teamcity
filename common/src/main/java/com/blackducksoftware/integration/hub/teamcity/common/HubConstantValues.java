@@ -49,5 +49,6 @@ public final class HubConstantValues {
 	public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
 	public static final String HUB_LOG_LEVEL = "HUB_LOG_LEVEL";
 	public static final String HUB_FAILURE_TYPE = PLUGIN_PREFIX + "hubFailureType";
+	public static final String HUB_CONNECTION_TIMEOUT = "hubTimeout";
 
 }

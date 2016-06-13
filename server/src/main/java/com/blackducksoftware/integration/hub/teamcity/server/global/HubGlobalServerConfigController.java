@@ -122,6 +122,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		final String noProxyHosts = request.getParameter("hubNoProxyHost");
 		final String proxyUser = request.getParameter("hubProxyUser");
 		final String encProxyPassword = request.getParameter("encryptedHubProxyPass");
+		final String hubConnectionTimeout = request.getParameter("hubTimeout");
 
 		final HubServerConfigBuilder builder = new HubServerConfigBuilder();
 		builder.setHubUrl(url);
@@ -131,7 +132,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		builder.setProxyPort(proxyPort);
 		builder.setIgnoredProxyHosts(noProxyHosts);
 		builder.setProxyUsername(proxyUser);
-		builder.setTimeout(HubServerConfigBuilder.DEFAULT_TIMEOUT);
+		builder.setTimeout(hubConnectionTimeout);
 
 		String proxyPass = getDecryptedWebPassword(encProxyPassword);
 		if (StringUtils.isBlank(proxyPass)) {
@@ -145,8 +146,9 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			final HubServerConfig config = results.getConstructedObject();
 			configPersistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
 			configPersistenceManager.getConfiguredServer().setHubUrl(url);
+			configPersistenceManager.getConfiguredServer().setHubTimeout(Integer.valueOf(hubConnectionTimeout));
 			HubProxyInfo proxyInfo = null;
-			if (config.getProxyInfo() != null) {
+			if (config.getProxyInfo() != null && StringUtils.isNotBlank(config.getProxyInfo().getHost())) {
 				proxyInfo = new HubProxyInfo(config.getProxyInfo().getHost(), config.getProxyInfo().getPort(),
 						config.getProxyInfo().getIgnoredProxyHosts(), config.getProxyInfo().getUsername(),
 						config.getProxyInfo().getDecryptedPassword());
@@ -287,6 +289,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			return null;
 		}
 		final HubIntRestService service = new HubIntRestService(serverConfig.getHubUrl());
+		service.setTimeout(serverConfig.getHubTimeout());
 		if (proxyInfo != null) {
 
 			Proxy proxy = null;

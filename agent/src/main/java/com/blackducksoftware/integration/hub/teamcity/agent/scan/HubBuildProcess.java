@@ -159,6 +159,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		originalProxyInfo.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
 
 		final String serverUrl = getParameter(HubConstantValues.HUB_URL);
+		final String timeout = getParameter(HubConstantValues.HUB_CONNECTION_TIMEOUT);
 		configBuilder.setHubUrl(serverUrl);
 		configBuilder.setUsername(credential.getHubUser());
 		configBuilder.setPassword(credential.getDecryptedPassword());
@@ -169,7 +170,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		configBuilder.setIgnoredProxyHosts(originalProxyInfo.getIgnoredProxyHosts());
 		configBuilder.setProxyUsername(originalProxyInfo.getProxyUsername());
 		configBuilder.setProxyPassword(originalProxyInfo.getProxyPassword());
-		configBuilder.setTimeout(HubServerConfigBuilder.DEFAULT_TIMEOUT);
+		configBuilder.setTimeout(timeout);
 		final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.build();
 
 		final HubServerConfig globalConfig = builderResults.getConstructedObject();
@@ -246,6 +247,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			if (globalResults.isSuccess()) {
 				final URL hubUrl = globalConfig.getHubUrl();
 				final HubIntRestService restService = new HubIntRestService(serverUrl);
+				restService.setTimeout(Integer.valueOf(timeout));
 				restService.setLogger(logger);
 				final HubProxyInfo proxyInfo = globalConfig.getProxyInfo();
 				if (proxyInfo != null) {
@@ -383,6 +385,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				&& StringUtils.isNotBlank(globalConfig.getGlobalCredentials().getUsername())) {
 			logger.alwaysLog("--> Hub User : " + globalConfig.getGlobalCredentials().getUsername());
 		}
+		logger.alwaysLog("--> Hub Connection Timeout : " + globalConfig.getTimeout());
 
 		if (globalConfig.getProxyInfo() != null) {
 			if (StringUtils.isNotBlank(globalConfig.getProxyInfo().getHost())) {

@@ -73,6 +73,10 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
 				runParameters.put(HubConstantValues.HUB_PASSWORD,
 						StringUtils.trimToEmpty(credentials.getEncryptedPassword()));
 			}
+			if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
+				runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
+						String.valueOf(serverPeristanceManager.getConfiguredServer().getHubTimeout()));
+			}
 			if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS)
 					&& StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
 				runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS,
