@@ -31,6 +31,8 @@ public class ServerHubConfigBean implements Serializable {
 
 	private String hubUrl = "";
 
+	private int hubTimeout = 5;
+
 	@XStreamAlias("globalHubCredentials")
 	private HubCredentialsBean globalCredentials = new HubCredentialsBean("", "");
 
@@ -64,6 +66,14 @@ public class ServerHubConfigBean implements Serializable {
 		this.proxyInfo = proxyInfo;
 	}
 
+	public int getHubTimeout() {
+		return hubTimeout;
+	}
+
+	public void setHubTimeout(final int timeout) {
+		this.hubTimeout = timeout;
+	}
+
 	@Override
 	public String toString() {
 		return "ServerHubConfigBean [hubUrl=" + hubUrl + ", globalCredentials=" + globalCredentials + ", proxyInfo="
@@ -75,6 +85,7 @@ public class ServerHubConfigBean implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((hubUrl == null) ? 0 : hubUrl.hashCode());
+		result = prime * result + hubTimeout;
 		result = prime * result + ((globalCredentials == null) ? 0 : globalCredentials.hashCode());
 		result = prime * result + ((proxyInfo == null) ? 0 : proxyInfo.hashCode());
 		return result;
@@ -99,6 +110,9 @@ public class ServerHubConfigBean implements Serializable {
 		} else if (!hubUrl.equals(other.hubUrl)) {
 			return false;
 		}
+		if (hubTimeout != other.getHubTimeout()) {
+			return false;
+		}
 		if (globalCredentials == null) {
 			if (other.globalCredentials != null) {
 				return false;
@@ -115,5 +129,4 @@ public class ServerHubConfigBean implements Serializable {
 		}
 		return true;
 	}
-
 }

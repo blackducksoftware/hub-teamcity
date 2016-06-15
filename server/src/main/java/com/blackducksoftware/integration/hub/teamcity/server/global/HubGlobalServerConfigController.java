@@ -22,23 +22,12 @@
 package com.blackducksoftware.integration.hub.teamcity.server.global;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.Authenticator;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -51,10 +40,18 @@ import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
+import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
+import com.blackducksoftware.integration.hub.builder.ValidationResults;
 import com.blackducksoftware.integration.hub.encryption.PasswordEncrypter;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
+import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
+import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
+import com.blackducksoftware.integration.hub.global.HubProxyInfoFieldEnum;
+import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.global.HubServerConfigFieldEnum;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
@@ -115,240 +112,86 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		}
 	}
 
-	public void checkInput(final HttpServletRequest request, final ActionErrors errors)
-			throws IllegalArgumentException, EncryptionException {
+	public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
+			EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final HubCredentialsBean credentials = getCredentialsFromRequest(request, "hubUser");
-		if (StringUtils.isBlank(credentials.getHubUser())) {
-			errors.addError("errorUserName", "Please specify a UserName.");
-		}
-		if (StringUtils.isBlank(credentials.getEncryptedPassword())) {
-			errors.addError("errorPassword", "There is no saved Password. Please specify a Password.");
-		}
 
-		HubProxyInfo proxyInfo = null;
-		if (configPersistenceManager.getConfiguredServer().getProxyInfo() != null) {
-			proxyInfo = configPersistenceManager.getConfiguredServer().getProxyInfo();
-		} else {
-			proxyInfo = new HubProxyInfo();
+		final String url = request.getParameter("hubUrl");
+		final String proxyServer = request.getParameter("hubProxyServer");
+		final String proxyPort = request.getParameter("hubProxyPort");
+		final String noProxyHosts = request.getParameter("hubNoProxyHost");
+		final String proxyUser = request.getParameter("hubProxyUser");
+		final String encProxyPassword = request.getParameter("encryptedHubProxyPass");
+		final String hubConnectionTimeout = request.getParameter("hubTimeout");
+
+		final HubServerConfigBuilder builder = new HubServerConfigBuilder();
+		builder.setHubUrl(url);
+		builder.setUsername(credentials.getHubUser());
+		builder.setPassword(credentials.getDecryptedPassword());
+		builder.setProxyHost(proxyServer);
+		builder.setProxyPort(proxyPort);
+		builder.setIgnoredProxyHosts(noProxyHosts);
+		builder.setProxyUsername(proxyUser);
+		builder.setTimeout(hubConnectionTimeout);
+
+		String proxyPass = getDecryptedWebPassword(encProxyPassword);
+		if (StringUtils.isBlank(proxyPass)) {
+			proxyPass = configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword();
 		}
+		builder.setProxyPassword(proxyPass);
 
-		checkProxySettings(request, proxyInfo, errors);
+		final ValidationResults<GlobalFieldKey, HubServerConfig> results = builder.build();
 
-		if (errors.hasNoErrors()) {
+		if (results.isSuccess()) {
+			final HubServerConfig config = results.getConstructedObject();
+			configPersistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
+			configPersistenceManager.getConfiguredServer().setHubUrl(url);
+			configPersistenceManager.getConfiguredServer().setHubTimeout(Integer.valueOf(hubConnectionTimeout));
+			HubProxyInfo proxyInfo = null;
+			if (config.getProxyInfo() != null && StringUtils.isNotBlank(config.getProxyInfo().getHost())) {
+				proxyInfo = new HubProxyInfo(config.getProxyInfo().getHost(), config.getProxyInfo().getPort(),
+						config.getProxyInfo().getIgnoredProxyHosts(), config.getProxyInfo().getUsername(),
+						config.getProxyInfo().getDecryptedPassword());
+			} else {
+				proxyInfo = new HubProxyInfo();
+			}
 			// Need to add this here to make sure the proxy settings are used in
 			// the checkUrl
 			configPersistenceManager.getConfiguredServer().setProxyInfo(proxyInfo);
-		}
-
-		final String url = request.getParameter("hubUrl");
-		if (StringUtils.isBlank(url)) {
-			errors.addError("errorUrl", "Please specify a URL.");
 		} else {
-			checkUrl(url, errors);
-		}
 
-		if (errors.hasNoErrors()) {
-			configPersistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
-			configPersistenceManager.getConfiguredServer().setHubUrl(url);
+			checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
+			checkForErrors(HubServerConfigFieldEnum.HUBTIMEOUT, "errorTimeout", results, errors);
+
+			if (results.hasErrors(HubServerConfigFieldEnum.CREDENTIALS)) {
+				checkForErrors(HubCredentialsFieldEnum.USERNAME, "errorUserName", results, errors);
+				checkForErrors(HubCredentialsFieldEnum.PASSWORD, "errorPassword", results, errors);
+			}
+
+			if (results.hasErrors(HubServerConfigFieldEnum.PROXYINFO)) {
+				checkForErrors(HubProxyInfoFieldEnum.PROXYHOST, "errorHubProxyServer", results, errors);
+				checkForErrors(HubProxyInfoFieldEnum.PROXYPORT, "errorHubProxyPort", results, errors);
+				checkForErrors(HubProxyInfoFieldEnum.NOPROXYHOSTS, "errorHubNoProxyHost", results, errors);
+				checkForErrors(HubProxyInfoFieldEnum.PROXYUSERNAME, "errorHubProxyUser", results, errors);
+				checkForErrors(HubProxyInfoFieldEnum.PROXYPASSWORD, "errorHubProxyPass", results, errors);
+			}
 		}
 	}
 
-	private ActionErrors checkUrl(final String url, final ActionErrors errors) {
-		URL testUrl = null;
-		try {
-			testUrl = new URL(url);
-			try {
-				testUrl.toURI();
-			} catch (final URISyntaxException e) {
-				errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
-			}
-		} catch (final MalformedURLException e) {
-			errors.addError("errorUrl", "Please specify a valid URL of a Hub server. " + e.toString());
+	private void checkForErrors(final GlobalFieldKey key, final String fieldId,
+			final ValidationResults<GlobalFieldKey, HubServerConfig> results, final ActionErrors errors) {
+
+		if (results.hasErrors(key)) {
+			errors.addError(fieldId, results.getResultString(key, ValidationResultEnum.ERROR));
+		} else if (results.hasWarnings(key)) {
+			errors.addError(fieldId, results.getResultString(key, ValidationResultEnum.WARN));
 		}
-		if (testUrl != null) {
-			try {
-				if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {
-					// If this property is not set the default is 20
-					// When not set the Authenticator redirects in a loop and
-					// results in an error for too many redirects
-					System.setProperty("http.maxRedirects", "3");
-				}
-				Proxy proxy = null;
-				if (configPersistenceManager.getConfiguredServer().getProxyInfo() != null) {
-					final HubProxyInfo proxyInfo = configPersistenceManager.getConfiguredServer().getProxyInfo();
-
-					if (StringUtils.isNotBlank(proxyInfo.getHost())
-							&& StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
-						for (final Pattern p : proxyInfo.getNoProxyHostPatterns()) {
-							if (p.matcher(proxyInfo.getHost()).matches()) {
-								proxy = Proxy.NO_PROXY;
-							}
-						}
-					}
-					if (proxy == null && StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != null) {
-						InetSocketAddress address = null;
-						try {
-							address = InetSocketAddress.createUnresolved(proxyInfo.getHost(), proxyInfo.getPort());
-						} catch (final IllegalArgumentException e) {
-							errors.addError("errorHubProxyPort", "Not a valid Proxy Port. " + e.getMessage());
-						}
-						if (address != null) {
-							proxy = new Proxy(Proxy.Type.HTTP, address);
-						}
-					}
-				}
-				attemptResetProxyCache();
-
-				if (proxy != null && proxy != Proxy.NO_PROXY) {
-					if (StringUtils.isNotBlank(
-							configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyUsername())
-							&& StringUtils.isNotBlank(
-									configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword())) {
-						Authenticator.setDefault(new Authenticator() {
-							@Override
-							public PasswordAuthentication getPasswordAuthentication() {
-								return new PasswordAuthentication(
-										configPersistenceManager.getConfiguredServer().getProxyInfo()
-										.getProxyUsername(),
-										configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword()
-										.toCharArray());
-							}
-						});
-					} else {
-						Authenticator.setDefault(null);
-					}
-				}
-				URLConnection connection = null;
-				if (proxy != null) {
-					connection = testUrl.openConnection(proxy);
-				} else {
-					connection = testUrl.openConnection();
-				}
-
-				connection.getContent();
-			} catch (final IOException ioe) {
-				errors.addError("errorUrl", "Trouble reaching the Hub server. " + ioe.toString());
-			} catch (final RuntimeException e) {
-				errors.addError("errorUrl", "Not a valid Hub server. " + e.toString());
-			}
-		}
-		return errors;
-	}
-
-	private void attemptResetProxyCache() {
-		try {
-			// works, and resets the cache when using sun classes
-			// sun.net.www.protocol.http.AuthCacheValue.setAuthCache(new
-			// sun.net.www.protocol.http.AuthCacheImpl());
-
-			// Attempt the same thing using reflection in case they are not
-			// using a jdk with sun classes
-
-			Class<?> sunAuthCacheValue;
-			Class<?> sunAuthCache;
-			Class<?> sunAuthCacheImpl;
-			try {
-				sunAuthCacheValue = Class.forName("sun.net.www.protocol.http.AuthCacheValue");
-				sunAuthCache = Class.forName("sun.net.www.protocol.http.AuthCache");
-				sunAuthCacheImpl = Class.forName("sun.net.www.protocol.http.AuthCacheImpl");
-			} catch (final Exception e) {
-				// Must not be using a JDK with sun classes so we abandon this
-				// reset since it is sun specific
-				return;
-			}
-
-			final Method m = sunAuthCacheValue.getDeclaredMethod("setAuthCache", sunAuthCache);
-
-			final Constructor<?> authCacheImplConstr = sunAuthCacheImpl.getConstructor();
-			final Object authCachImp = authCacheImplConstr.newInstance();
-
-			m.invoke(null, authCachImp);
-		} catch (final Exception e) {
-			Loggers.SERVER.error(e);
-		}
-	}
-
-	private ActionErrors checkProxySettings(final HttpServletRequest request, final HubProxyInfo proxyInfo,
-			final ActionErrors errors) {
-		final String proxyServer = request.getParameter("hubProxyServer");
-		if (StringUtils.isNotBlank(proxyServer)) {
-			proxyInfo.setHost(proxyServer);
-		} else {
-			proxyInfo.setHost("");
-		}
-		final String proxyPort = request.getParameter("hubProxyPort");
-		if (StringUtils.isNotBlank(proxyPort)) {
-			try {
-				final int port = Integer.valueOf(proxyPort);
-				if (StringUtils.isNotBlank(proxyServer) && port < 0) {
-					errors.addError("errorHubProxyPort", "Please enter a valid Proxy port.");
-				} else {
-					proxyInfo.setPort(port);
-				}
-			} catch (final NumberFormatException e) {
-				errors.addError("errorHubProxyPort", "Please enter a valid Proxy port. " + e.toString());
-			}
-		} else {
-			proxyInfo.setPort(null);
-		}
-		final String noProxyHosts = request.getParameter("hubNoProxyHost");
-		if (StringUtils.isNotBlank(noProxyHosts)) {
-			String[] ignoreHosts = null;
-			final List<Pattern> noProxyHostsPatterns = new ArrayList<Pattern>();
-			boolean patternError = false;
-			if (StringUtils.isNotBlank(noProxyHosts)) {
-				if (noProxyHosts.contains(",")) {
-					ignoreHosts = noProxyHosts.split(",");
-					for (final String ignoreHost : ignoreHosts) {
-						try {
-							final Pattern pattern = Pattern.compile(ignoreHost);
-							noProxyHostsPatterns.add(pattern);
-						} catch (final PatternSyntaxException e) {
-							patternError = true;
-							errors.addError("errorHubNoProxyHost",
-									"The host : " + ignoreHost + " : is not a valid regular expression.");
-						}
-					}
-				} else {
-					try {
-						final Pattern pattern = Pattern.compile(noProxyHosts);
-						noProxyHostsPatterns.add(pattern);
-					} catch (final PatternSyntaxException e) {
-						patternError = true;
-						errors.addError("errorHubNoProxyHost",
-								"The host : " + noProxyHosts + " : is not a valid regular expression.");
-					}
-				}
-			}
-			if (!patternError) {
-				proxyInfo.setIgnoredProxyHosts(noProxyHosts);
-			} else {
-				proxyInfo.setIgnoredProxyHosts("");
-			}
-		} else {
-			proxyInfo.setIgnoredProxyHosts("");
-		}
-		final String proxyUser = request.getParameter("hubProxyUser");
-		if (StringUtils.isNotBlank(proxyUser)) {
-			proxyInfo.setProxyUsername(proxyUser);
-		} else {
-			proxyInfo.setProxyUsername("");
-		}
-		final String encProxyPassword = request.getParameter("encryptedHubProxyPass");
-
-		final String webDecryptedProxyPass = RSACipher.decryptWebRequestData(encProxyPassword);
-		if (StringUtils.isNotBlank(webDecryptedProxyPass)) {
-			proxyInfo.setProxyPassword(webDecryptedProxyPass);
-		} else {
-			proxyInfo.setProxyPassword("");
-		}
-
-		return errors;
 	}
 
 	public ActionErrors testConnection(final HttpServletRequest request)
 			throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
-			BadPaddingException, IOException, IllegalArgumentException, EncryptionException {
+			BadPaddingException, IOException, IllegalArgumentException, EncryptionException, NoSuchMethodException,
+			IllegalAccessException, InvocationTargetException {
 		final ActionErrors errors = new ActionErrors();
 		checkInput(request, errors);
 		final ServerHubConfigBean serverConfig = configPersistenceManager.getConfiguredServer();
@@ -440,12 +283,13 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-	BDRestException, EncryptionException {
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}
 		final HubIntRestService service = new HubIntRestService(serverConfig.getHubUrl());
+		service.setTimeout(serverConfig.getHubTimeout());
 		if (proxyInfo != null) {
 
 			Proxy proxy = null;
