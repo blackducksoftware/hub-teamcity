@@ -50,7 +50,7 @@ public class TeamCityHubIntTestHelper extends HubIntRestService {
 		}
 
 		final Series<Cookie> cookies = getCookies();
-		final ClientResource resource = new ClientResource(project.get_meta().getHref());
+		final ClientResource resource = new ClientResource(project.getMeta().getHref());
 		resource.getRequest().setCookies(cookies);
 		resource.setMethod(Method.DELETE);
 		resource.delete();

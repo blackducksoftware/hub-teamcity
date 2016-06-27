@@ -47,6 +47,7 @@ import com.blackducksoftware.integration.hub.builder.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.hub.builder.ValidationResults;
+import com.blackducksoftware.integration.hub.capabilities.HubCapabilitiesEnum;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.cli.CLILocation;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
@@ -54,6 +55,7 @@ import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
+import com.blackducksoftware.integration.hub.exception.UnexpectedHubResponseException;
 import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistException;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
 import com.blackducksoftware.integration.hub.global.HubProxyInfo;
@@ -469,10 +471,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	/**
 	 * Ensures the Version exists. Returns the version URL
+	 *
+	 * @throws UnexpectedHubResponseException
 	 */
 	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
 		ReleaseItem version = null;
 		try {
 			version = service.getVersion(project, projectVersion);
@@ -496,7 +500,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
 		ReleaseItem version = null;
 
 		try {
@@ -517,8 +521,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final HubServerConfig globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+					IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
+					IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl().toString(),
 				globalConfig.getGlobalCredentials().getUsername(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -571,7 +575,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void addProxySettingsToScanner(final IntLogger logger, final TeamCityScanExecutor scan,
 			final HubProxyInfo proxyInfo) throws HubIntegrationException, URISyntaxException, MalformedURLException,
-			IllegalArgumentException, EncryptionException {
+					IllegalArgumentException, EncryptionException {
 		if (proxyInfo != null) {
 			if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
 				if (StringUtils.isNotBlank(proxyInfo.getUsername())
@@ -593,7 +597,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
 			final HubSupportHelper hubSupport, final HubIntRestService restService,
-			final HubReportGenerationInfo bomUpdateInfo, final ReleaseItem version, final boolean waitForBom) {
+			final HubReportGenerationInfo bomUpdateInfo, final ReleaseItem version, final boolean waitForBom)
+					throws UnexpectedHubResponseException {
 		// Check if User specified our Failure Condition on policy
 		final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
 		// The feature is only allowed to have a single instance in the
@@ -602,7 +607,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		// configured.
 		if (features != null && features.iterator() != null && !features.isEmpty()
 				&& features.iterator().next() != null) {
-			if (hubSupport.isPolicyApiSupport() == false) {
+			if (!hubSupport.hasCapability(HubCapabilitiesEnum.POLICY_API)) {
 				final String message = "This version of the Hub does not have support for Policies.";
 				build.stopBuild(message);
 			} else {
@@ -674,9 +679,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
+					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException,
+					IOException {
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
-		if (supportHelper.isCliStatusDirOptionSupport()) {
+		if (supportHelper.hasCapability(HubCapabilitiesEnum.CLI_STATUS_DIRECTORY_OPTION)) {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
 		} else {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo);
