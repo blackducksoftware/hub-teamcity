@@ -151,7 +151,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				getParameter(HubConstantValues.HUB_PASSWORD));
 
 		final com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo originalProxyInfo = new com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo();
-		;
+
 		originalProxyInfo.setHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
 		if (getParameter(HubConstantValues.HUB_PROXY_PORT) != null) {
 			originalProxyInfo.setPort(Integer.valueOf(getParameter(HubConstantValues.HUB_PROXY_PORT)));
