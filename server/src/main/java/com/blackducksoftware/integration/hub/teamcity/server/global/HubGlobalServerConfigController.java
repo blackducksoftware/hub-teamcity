@@ -159,7 +159,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			// the checkUrl
 			configPersistenceManager.getConfiguredServer().setProxyInfo(proxyInfo);
 		} else {
-
 			checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
 			checkForErrors(HubServerConfigFieldEnum.HUBTIMEOUT, "errorTimeout", results, errors);
 
@@ -283,8 +282,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			BDRestException, EncryptionException {
+					NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+					BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}
