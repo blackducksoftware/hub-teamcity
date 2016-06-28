@@ -28,14 +28,12 @@
 
 <script type="text/javascript">
     var EnableFormAgain = function() {
-
     }
 
     var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
         getContainer: function() {
             return $('testConnectionDialog');
         },
-
         showTestDialog: function(successful, connectionDetails) {
             if (successful) {
                 $('testConnectionStatus').innerHTML = 'Connection successful!';
@@ -45,12 +43,10 @@
                 $('testConnectionStatus').className = 'testConnectionFailed';
             }
             $('testConnectionDetails').innerHTML = connectionDetails;
-
             $('testConnectionDetails').style.height = '';
             $('testConnectionDetails').style.overflow = 'auto';
             this.showCentered();
         },
-
         testConnection: function() {
             var that = this;
 
@@ -153,6 +149,17 @@
                 errorHubNoProxyHost: function(elem) {
                     $('errorHubNoProxyHost').innerHTML = elem.firstChild.nodeValue;
                 },
+                load: function() {
+                	$('hubUrl').value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
+                	$('hubUser').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
+                	$('hubPass').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
+                	$('hubTimeout').value = "${hubConfigPersistenceManager.configuredServer.getHubTimeout()}";
+                	$('hubProxyServer').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
+                	$('hubProxyPort').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
+                	$('hubNoProxyHost').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
+                	$('hubProxyUser').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
+                	$('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
+                },
                 errorHubProxyUser: function(elem) {
                     $('errorHubProxyUser').innerHTML = elem.firstChild.nodeValue;
                 },
@@ -168,7 +175,6 @@
                     that.enable();
                 }
             }), false);
-
             return false;
         }
     }));
@@ -237,6 +243,24 @@
                 <td/>
                 <td>
                     <span class="error" id="errorPassword" style="margin-left: 0;"></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="200px" >
+                    <label class="label" for="hubTimeout">Timeout (secs):
+                    <span class="mandatoryAsterix" title="Mandatory field">*</span>
+                        <bs:helpIcon
+                                iconTitle="Hub connection timeout."/>
+                    </label>
+                </td>
+                <td>
+                    <forms:textField className="textFieldLong" name="hubTimeout" id="hubTimeout" value=""/>
+                </td>
+            </tr>
+             <tr>
+                <td/>
+                <td>
+                    <span class="error" id="errorTimeout" style="margin-left: 0;"></span>
                 </td>
             </tr>
         </table>
