@@ -128,6 +128,17 @@
             // will serialize form params, and submit form to form.action
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?saving=true', OO.extend(BS.ErrorsAwareListener, {
+                load: function() {
+                    $('hubUrl').value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
+                    $('hubUser').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
+                    $('hubPass').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
+                    $('hubTimeout').value = "${hubConfigPersistenceManager.configuredServer.getHubTimeout()}";
+                    $('hubProxyServer').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
+                    $('hubProxyPort').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
+                    $('hubNoProxyHost').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
+                    $('hubProxyUser').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
+                    $('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
+                },
                 errorUrl: function(elem) {
                     $('errorUrl').innerHTML = elem.firstChild.nodeValue;
                 },
@@ -148,17 +159,6 @@
                 },
                 errorHubNoProxyHost: function(elem) {
                     $('errorHubNoProxyHost').innerHTML = elem.firstChild.nodeValue;
-                },
-                load: function() {
-                	$('hubUrl').value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
-                	$('hubUser').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
-                	$('hubPass').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
-                	$('hubTimeout').value = "${hubConfigPersistenceManager.configuredServer.getHubTimeout()}";
-                	$('hubProxyServer').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
-                	$('hubProxyPort').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
-                	$('hubNoProxyHost').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
-                	$('hubProxyUser').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
-                	$('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
                 },
                 errorHubProxyUser: function(elem) {
                     $('errorHubProxyUser').innerHTML = elem.firstChild.nodeValue;
@@ -254,7 +254,7 @@
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubTimeout" id="hubTimeout" value=""/>
+                    <forms:textField className="textFieldLong" name="hubTimeout" id="hubTimeout" />
                 </td>
             </tr>
              <tr>
