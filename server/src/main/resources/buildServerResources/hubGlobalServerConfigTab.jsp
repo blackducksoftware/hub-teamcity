@@ -7,8 +7,6 @@
     /js/bs/testConnection.js
 </bs:linkScript>
 
-<c:url var="controllerUrl" value="/admin/hub/serverHubConfigTab.html" />
-
 <style type="text/css">
     .dialogDetails {
         font-family: 'Menlo', 'Bitstream Vera Sans Mono', 'Courier New', 'Courier', monospace;
@@ -27,9 +25,6 @@
 </style>
 
 <script type="text/javascript">
-    var EnableFormAgain = function() {
-    }
-
     var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
         getContainer: function() {
             return $('testConnectionDialog');
@@ -111,7 +106,6 @@
             $('savingDetails').style.overflow = 'auto';
             this.showCentered();
         },
-
         load: function() {
             $('hubUrl').value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
             $('hubUser').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
@@ -123,9 +117,7 @@
             $('hubProxyUser').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
             $('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
         },
-
         save: function() {
-            var that = this;
             // will serialize form params, and submit form to form.action
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?saving=true', OO.extend(BS.ErrorsAwareListener, {
@@ -168,15 +160,15 @@
                     $('errorHubProxyPass').innerHTML = elem.firstChild.nodeValue;
                 },
                 errorSaving: function(elem) {
-                    Config.showConfigDialog(false, elem.firstChild.nodeValue);
+                    this.showConfigDialog(false, elem.firstChild.nodeValue);
                 },
                 onSuccessfulSave: function() {
-                    Config.showConfigDialog(true, 'Saving was successful.');
+                    alert("got a successful save!");
+                    this.showConfigDialog(true, 'Saving was successful.');
                     // Need to enable the form again, the AbstractPasswordForm disables it by default.
-                    that.enable();
+                    this.enable();
                 }
-            }), false);
-            return false;
+            }), true);
         }
     }));
 
@@ -352,7 +344,7 @@
         </table>
 
         <div class="saveButtonsBlock" id="saveButtonsBlock">
-            <input type="submit" value="Save" id=saveButton class="btn btn_primary submitButton" onclick="Config.save();"></input>
+            <input type="button" value="Save" id=saveButton class="btn btn_primary submitButton" onclick="Config.save();"></input>
             <input type="button" value="Test connection" class="btn btn_primary submitButton" id="testConnection" onclick="TestConnectionDialog.testConnection();"></input>
             <img id="saving" style="display: none; " class="progressRing progressRingDefault" src="/img/ajax-loader.gif" width="16" height="16" alt="Please wait..." title="Please wait..." />
             <input type="hidden" id="publicKey" name="publicKey" value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>" />
