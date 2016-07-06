@@ -52,6 +52,7 @@ import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubProxyInfoFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.global.HubServerConfigFieldEnum;
+import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
@@ -74,40 +75,43 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 	}
 
 	@Override
-	public void doPost(final HttpServletRequest request, final HttpServletResponse response,
-			final Element xmlResponse) {
-		if (request.getParameterNames().hasMoreElements()) {
-			if (isTestConnectionRequest(request)) {
-				ActionErrors errors = new ActionErrors();
-				try {
-					errors = testConnection(request);
-					if (errors.hasErrors()) {
-						errors.serialize(xmlResponse);
-					}
-				} catch (final Exception e) {
-					Loggers.SERVER.error("Error testing Server connection", e);
-					errors.addError("errorConnection", e.toString());
-				}
-				return;
-			} else if (isSavingRequest(request)) {
-				final ActionErrors errors = new ActionErrors();
-				try {
-					checkInput(request, errors);
-				} catch (final Exception e) {
-					Loggers.SERVER.error("Error with the Hub configuration", e);
-					errors.addError("errorSaving", e.toString());
-				}
-				if (errors.hasErrors()) {
-					errors.serialize(xmlResponse);
-					return;
-				} else {
-					try {
-						configPersistenceManager.persist();
-					} catch (final Exception e) {
-						Loggers.SERVER.error("Error saving Hub configuration", e);
-						errors.addError("errorSaving", e.toString());
-					}
-				}
+	public void doPost(final HttpServletRequest req, final HttpServletResponse resp, final Element xmlResponse) {
+		if (isTestConnectionRequest(req)) {
+			handleTestConnectionRequest(req, xmlResponse);
+		} else if (isSavingRequest(req)) {
+			handleSaveRequest(req, xmlResponse);
+		}
+	}
+
+	private void handleTestConnectionRequest(final HttpServletRequest request, final Element xmlResponse) {
+		ActionErrors errors = new ActionErrors();
+		try {
+			errors = testConnection(request);
+			if (errors.hasErrors()) {
+				errors.serialize(xmlResponse);
+			}
+		} catch (final Exception e) {
+			Loggers.SERVER.error("Error testing Server connection", e);
+			errors.addError("errorConnection", e.toString());
+		}
+	}
+
+	private void handleSaveRequest(final HttpServletRequest request, final Element xmlResponse) {
+		final ActionErrors errors = new ActionErrors();
+		try {
+			checkInput(request, errors);
+		} catch (final Exception e) {
+			Loggers.SERVER.error("Error with the Hub configuration", e);
+			errors.addError("errorSaving", e.toString());
+		}
+		if (errors.hasErrors()) {
+			errors.serialize(xmlResponse);
+		} else {
+			try {
+				configPersistenceManager.persist();
+			} catch (final Exception e) {
+				Loggers.SERVER.error("Error saving Hub configuration", e);
+				errors.addError("errorSaving", e.toString());
 			}
 		}
 	}
@@ -179,7 +183,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private void checkForErrors(final GlobalFieldKey key, final String fieldId,
 			final ValidationResults<GlobalFieldKey, HubServerConfig> results, final ActionErrors errors) {
-
 		if (results.hasErrors(key)) {
 			errors.addError(fieldId, results.getResultString(key, ValidationResultEnum.ERROR));
 		} else if (results.hasWarnings(key)) {
@@ -270,14 +273,20 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		return "";
 	}
 
-	public boolean isTestConnectionRequest(final HttpServletRequest req) {
-		final String testConnectionParamValue = req.getParameter("testConnection");
-		return StringUtils.isNotBlank(testConnectionParamValue) && Boolean.valueOf(testConnectionParamValue);
+	private boolean isTestConnectionRequest(final HttpServletRequest request) {
+		if (!request.getParameterNames().hasMoreElements()) {
+			return false;
+		}
+		final String testConnectionParamValue = request.getParameter("testConnection");
+		return Boolean.valueOf(testConnectionParamValue);
 	}
 
-	public boolean isSavingRequest(final HttpServletRequest req) {
-		final String savingParamValue = req.getParameter("saving");
-		return StringUtils.isNotBlank(savingParamValue) && Boolean.valueOf(savingParamValue);
+	private boolean isSavingRequest(final HttpServletRequest request) {
+		if (!request.getParameterNames().hasMoreElements()) {
+			return false;
+		}
+		final String savingParamValue = request.getParameter("saving");
+		return Boolean.valueOf(savingParamValue);
 	}
 
 	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
@@ -287,10 +296,9 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		if (serverConfig == null) {
 			return null;
 		}
-		final HubIntRestService service = new HubIntRestService(serverConfig.getHubUrl());
-		service.setTimeout(serverConfig.getHubTimeout());
+		final RestConnection restConnection = new RestConnection(serverConfig.getHubUrl());
+		restConnection.setTimeout(serverConfig.getHubTimeout());
 		if (proxyInfo != null) {
-
 			Proxy proxy = null;
 			if (StringUtils.isNotBlank(proxyInfo.getHost())
 					&& StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
@@ -305,19 +313,21 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 				if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
 					if (StringUtils.isNotBlank(proxyInfo.getProxyUsername())
 							&& StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
-						service.setProxyProperties(proxyInfo.getHost(), proxyInfo.getPort(), null,
+						restConnection.setProxyProperties(proxyInfo.getHost(), proxyInfo.getPort(), null,
 								proxyInfo.getProxyUsername(), proxyInfo.getProxyPassword());
 					} else {
-						service.setProxyProperties(proxyInfo.getHost(), proxyInfo.getPort(), null, null, null);
+						restConnection.setProxyProperties(proxyInfo.getHost(), proxyInfo.getPort(), null, null, null);
 					}
 				}
 			}
 		}
+
 		if (serverConfig != null && !isTestConnection) {
-			service.setCookies(serverConfig.getGlobalCredentials().getHubUser(),
+			restConnection.setCookies(serverConfig.getGlobalCredentials().getHubUser(),
 					serverConfig.getGlobalCredentials().getDecryptedPassword());
 		}
 
+		final HubIntRestService service = new HubIntRestService(restConnection);
 		return service;
 	}
 
