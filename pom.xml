@@ -17,18 +17,18 @@
   <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
   <inceptionYear>2015</inceptionYear>
 
-  <scm>
-    <connection>scm:git:git://github.com/blackducksoftware/hub-teamcity.git/</connection>
-    <developerConnection>scm:git:git@github.com:blackducksoftware/hub-teamcity.git</developerConnection>
-    <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
-  </scm>
-
   <modules>
     <module>common</module>
     <module>server</module>
     <module>agent</module>
     <module>assembly</module>
   </modules>
+
+  <scm>
+    <connection>scm:git:git://github.com/blackducksoftware/hub-teamcity.git/</connection>
+    <developerConnection>scm:git:git@github.com:blackducksoftware/hub-teamcity.git</developerConnection>
+    <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
+  </scm>
 
   <properties>
     <plugin.version>${project.version}</plugin.version>
