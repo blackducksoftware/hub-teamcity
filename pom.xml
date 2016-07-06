@@ -5,8 +5,7 @@
   <parent>
     <groupId>com.blackducksoftware.integration</groupId>
     <artifactId>common-maven-parent</artifactId>
-    <version>1.0.2</version>
-    <relativePath>../common-maven-parent</relativePath>
+    <version>1.0.4</version>
   </parent>
 
   <artifactId>hub-teamcity</artifactId>
@@ -15,6 +14,7 @@
 
   <name>Black Duck Hub Plugin for TeamCity</name>
   <description>Open Source Governance with Black Duck Hub (TM).</description>
+  <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
   <inceptionYear>2015</inceptionYear>
 
   <modules>
@@ -23,6 +23,12 @@
     <module>agent</module>
     <module>assembly</module>
   </modules>
+
+  <scm>
+    <connection>scm:git:git://github.com/blackducksoftware/hub-teamcity.git/</connection>
+    <developerConnection>scm:git:git@github.com:blackducksoftware/hub-teamcity.git</developerConnection>
+    <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
+  </scm>
 
   <properties>
     <plugin.version>${project.version}</plugin.version>
@@ -34,13 +40,6 @@
       <id>jcenter</id>
       <url>https://jcenter.bintray.com</url>
     </repository>
-    <repository>
-      <snapshots>
-        <updatePolicy>always</updatePolicy>
-      </snapshots>
-      <id>bds-int-public</id>
-      <url>https://updates.suite.blackducksoftware.com/integrations/</url>
-    </repository>
   </repositories>
 
   <dependencyManagement>
@@ -48,7 +47,7 @@
       <dependency>
         <groupId>com.blackducksoftware.integration</groupId>
         <artifactId>hub-common</artifactId>
-        <version>1.4.1</version>
+        <version>1.4.2</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -171,11 +170,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
-        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
