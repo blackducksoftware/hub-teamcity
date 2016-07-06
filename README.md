@@ -14,4 +14,4 @@ You can download the latest artifact from releases: https://github.com/blackduck
 All documentation for hub-teamcity can be found on the base project:  https://github.com/blackducksoftware/hub-teamcity/wiki
 
 ## License ##
-GNU General Public License 2 only
+Apache License 2.0
