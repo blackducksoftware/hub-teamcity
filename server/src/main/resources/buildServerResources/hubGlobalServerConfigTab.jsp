@@ -118,6 +118,7 @@
             $('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
         },
         save: function() {
+            var that = this;
             // will serialize form params, and submit form to form.action
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?saving=true', OO.extend(BS.ErrorsAwareListener, {
@@ -160,15 +161,16 @@
                     $('errorHubProxyPass').innerHTML = elem.firstChild.nodeValue;
                 },
                 errorSaving: function(elem) {
-                    this.showConfigDialog(false, elem.firstChild.nodeValue);
+                    Config.showConfigDialog(false, elem.firstChild.nodeValue);
                 },
                 onSuccessfulSave: function() {
-                    alert("got a successful save!");
-                    this.showConfigDialog(true, 'Saving was successful.');
+                    Config.showConfigDialog(true, 'Saving was successful.');
                     // Need to enable the form again, the AbstractPasswordForm disables it by default.
-                    this.enable();
+                    that.enable();
                 }
-            }), true);
+            }), false);
+
+            return false;
         }
     }));
 
@@ -356,7 +358,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="BS.TestConnectionDialog.close();" showdiscardchangesmessage='false'>
-                <img src='/img/close.gif' />
+                <img src="${teamcityPluginResourcesPath}images/close.gif" />
             </a>
         </div>
         <div class="dialogHandle">
@@ -374,7 +376,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="Config.close();" showdiscardchangesmessage='false'>
-                <img src='/img/close.gif' />
+                <img src="${teamcityPluginResourcesPath}images/close.gif" />
             </a>
         </div>
         <div class="dialogHandle">
