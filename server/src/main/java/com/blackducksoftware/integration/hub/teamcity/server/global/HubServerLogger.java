@@ -26,7 +26,7 @@ import com.blackducksoftware.integration.hub.logging.LogLevel;
 
 import jetbrains.buildServer.log.Loggers;
 
-public class HubServerLogger implements IntLogger {
+public class HubServerLogger extends IntLogger {
 	private LogLevel loggerLevel = LogLevel.INFO;
 
 	public HubServerLogger() {

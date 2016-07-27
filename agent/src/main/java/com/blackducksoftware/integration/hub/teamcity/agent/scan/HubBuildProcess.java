@@ -126,11 +126,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	@Override
 	public BuildFinishedStatus call() throws IOException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+	IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final BuildProgressLogger buildLogger = build.getBuildLogger();
 		final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
-		final String logLevel = getAnyParameterType(HubConstantValues.HUB_LOG_LEVEL);
-		hubLogger.setLogLevel(logLevel);
+		hubLogger.setLogLevel(getCommonVariables());
 		setHubLogger(hubLogger);
 
 		if (StringUtils.isBlank(System.getProperty("http.maxRedirects"))) {
@@ -211,12 +210,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			hubScanJobConfigBuilder.setVersion(projectVersion);
 			hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
 			hubScanJobConfigBuilder
-					.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
+			.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
 			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
 				hubScanJobConfigBuilder
-						.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
+				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
 			} else {
 				hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
 			}
@@ -350,30 +349,17 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		return StringUtils.trimToNull(context.getRunnerParameters().get(parameterName));
 	}
 
-	private String getConfigParameter(@NotNull final String parameterName) {
-		return StringUtils.trimToNull(context.getConfigParameters().get(parameterName));
-	}
-
-	private String getSystemVariable(@NotNull final String parameterName) {
-		return StringUtils.trimToNull(context.getBuildParameters().getSystemProperties().get(parameterName));
-	}
-
 	private String getEnvironmentVariable(@NotNull final String parameterName) {
 		return StringUtils.trimToNull(context.getBuildParameters().getEnvironmentVariables().get(parameterName));
 	}
 
-	private String getAnyParameterType(@NotNull final String parameterName) {
-		String value = getParameter(parameterName);
-		if (value == null) {
-			value = getConfigParameter(parameterName);
-		}
-		if (value == null) {
-			value = getSystemVariable(parameterName);
-		}
-		if (value == null) {
-			value = getEnvironmentVariable(parameterName);
-		}
-		return value;
+	private CIEnvironmentVariables getCommonVariables() {
+		final CIEnvironmentVariables variables = new CIEnvironmentVariables();
+		variables.putAll(context.getBuildParameters().getEnvironmentVariables());
+		variables.putAll(context.getBuildParameters().getSystemProperties());
+		variables.putAll(context.getConfigParameters());
+		variables.putAll(context.getRunnerParameters());
+		return variables;
 	}
 
 	public void printGlobalConfiguration(final HubServerConfig globalConfig) {
@@ -521,8 +507,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final HubServerConfig globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-					IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
-					IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
+	IOException, URISyntaxException, NumberFormatException, NoSuchMethodException,
+	IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl().toString(),
 				globalConfig.getGlobalCredentials().getUsername(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -575,7 +561,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void addProxySettingsToScanner(final IntLogger logger, final TeamCityScanExecutor scan,
 			final HubProxyInfo proxyInfo) throws HubIntegrationException, URISyntaxException, MalformedURLException,
-					IllegalArgumentException, EncryptionException {
+	IllegalArgumentException, EncryptionException {
 		if (proxyInfo != null) {
 			if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
 				if (StringUtils.isNotBlank(proxyInfo.getUsername())
