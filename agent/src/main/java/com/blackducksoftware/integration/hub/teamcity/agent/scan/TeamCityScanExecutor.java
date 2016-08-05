@@ -45,9 +45,9 @@ public class TeamCityScanExecutor extends ScanExecutor {
 	private final HubAgentBuildLogger logger;
 
 	protected TeamCityScanExecutor(final String hubUrl, final String hubUsername, final String hubPassword,
-			final List<String> scanTargets, final Integer buildNumber, final HubSupportHelper supportHelper,
+			final List<String> scanTargets, final String buildIdentifier, final HubSupportHelper supportHelper,
 			final HubAgentBuildLogger logger) {
-		super(hubUrl, hubUsername, hubPassword, scanTargets, buildNumber, supportHelper);
+		super(hubUrl, hubUsername, hubPassword, scanTargets, buildIdentifier, supportHelper);
 		this.logger = logger;
 		setLogger(logger);
 	}
@@ -61,7 +61,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
 	protected String getLogDirectoryPath() throws IOException {
 		File logDirectory = new File(getWorkingDirectory());
 		logDirectory = new File(logDirectory, "HubScanLogs");
-		logDirectory = new File(logDirectory, String.valueOf(getBuildNumber()));
+		logDirectory = new File(logDirectory, String.valueOf(getBuildIdentifier()));
 		logDirectory.mkdirs();
 
 		return logDirectory.getAbsolutePath();

@@ -512,7 +512,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl().toString(),
 				globalConfig.getGlobalCredentials().getUsername(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
-				Integer.valueOf(context.getBuild().getBuildNumber()), supportHelper, logger);
+				context.getBuild().getBuildNumber(), supportHelper, logger);
 
 		if (globalConfig.getProxyInfo() != null) {
 			final URL hubUrl = globalConfig.getHubUrl();
