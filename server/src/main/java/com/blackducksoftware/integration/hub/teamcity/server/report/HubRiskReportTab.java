@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.hub.report.api.HubRiskReportData;
+import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.util.HubResourceBundleHelper;
 import com.google.gson.Gson;

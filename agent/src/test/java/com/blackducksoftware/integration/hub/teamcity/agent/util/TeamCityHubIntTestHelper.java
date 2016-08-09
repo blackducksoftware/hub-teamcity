@@ -31,9 +31,9 @@ import org.restlet.resource.ClientResource;
 import org.restlet.util.Series;
 
 import com.blackducksoftware.integration.hub.HubIntRestService;
+import com.blackducksoftware.integration.hub.api.project.ProjectItem;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
-import com.blackducksoftware.integration.hub.project.api.ProjectItem;
 
 public class TeamCityHubIntTestHelper extends HubIntRestService {
 	public TeamCityHubIntTestHelper(final String baseUrl) throws URISyntaxException {
