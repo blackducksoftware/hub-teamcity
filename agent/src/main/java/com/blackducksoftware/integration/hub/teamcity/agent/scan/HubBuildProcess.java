@@ -303,7 +303,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
 						globalConfig, jobConfig, hubSupport);
-				scanExecutor.setDryRun(jobConfig.isDryRun());
 
 				final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
 				hubReportGenerationInfo.setService(restService);
@@ -528,7 +527,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				addProxySettingsToScanner(logger, scan, globalConfig.getProxyInfo());
 			}
 		}
-
+		scan.setDryRun(jobConfig.isDryRun());
 		scan.setScanMemory(jobConfig.getScanMemory());
 		scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
 		scan.setVerboseRun(isVerbose());
