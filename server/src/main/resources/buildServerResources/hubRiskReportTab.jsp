@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <jsp:useBean id="hubRiskReportData" scope="request"
-	type="com.blackducksoftware.integration.hub.report.api.HubRiskReportData" />
+	type="com.blackducksoftware.integration.hub.api.report.HubRiskReportData" />
 
 <jsp:useBean id="bundle" scope="request"
 	type="com.blackducksoftware.integration.hub.util.HubResourceBundleHelper" />
@@ -236,6 +236,7 @@
 	<table id="hubBomReport" class="table sortable">
 		<thead>
 			<tr>
+				<th/>
 				<th class="clickable componentColumn columnLabel evenPadding">${bundle.getString("component")}</th>
 				<th class="clickable componentColumn columnLabel evenPadding">${bundle.getString("version")}</th>
 				<th class="clickable columnLabel evenPadding">${bundle.getString("license")}</th>
@@ -251,6 +252,7 @@
 		<tbody>
 			<c:forEach var="entry" items="${hubRiskReportData.getBomEntries()}">
 				<tr>
+					<td class="evenPadding violation"><i class="fa fa-ban"></i><div>${entry.getPolicyApprovalStatus()}</div></td>
 					<td class="clickable componentColumn evenPadding"
 						onclick="window.open('${hubRiskReportData.getReport().getComponentUrl(entry)}', '_blank');">
 						${hubRiskReportData.htmlEscape(entry.getProducerProject().getName())}</td>

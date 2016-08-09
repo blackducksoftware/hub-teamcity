@@ -25,11 +25,12 @@ var filteredOperationalClassName = " rowFilteredOperational";
 
 var tableId = "hubBomReport";
 
-var highSecurityColumnNum = 3;
-var mediumSecurityColumnNum = 4;
-var lowSecurityColumnNum = 5;
-var licenseRiskColumnNum = 6;
-var operationRiskColumnNum = 7;
+var policyViolationColumnNum = 0;
+var highSecurityColumnNum = 4;
+var mediumSecurityColumnNum = 5;
+var lowSecurityColumnNum = 6;
+var licenseRiskColumnNum = 7;
+var operationRiskColumnNum = 8;
 
 function adjustWidth(object) {
 	var percentageSpan = object.getElementsByTagName("SPAN")[0];
@@ -83,6 +84,26 @@ function adjustTableRow(row, odd) {
 	}
 
 	row.className = className;
+	
+	if(row.cells[policyViolationColumnNum].children.length > 1){
+		var violationStatus = row.cells[policyViolationColumnNum].children[1];
+		if(violationStatus){
+			violationStatus = violationStatus.innerHTML;
+		} else{
+			violationStatus = "NOT_IN_VIOLATION";
+		}
+		
+		var violationClasses = row.cells[policyViolationColumnNum].className;
+		
+		if(violationStatus == "IN_VIOLATION"){
+				//Do nothing
+	    } else {
+	    	row.cells[policyViolationColumnNum].removeChild(row.cells[policyViolationColumnNum].firstChild);
+		}
+		row.cells[policyViolationColumnNum].removeChild(row.cells[policyViolationColumnNum].lastChild);
+		
+		row.cells[policyViolationColumnNum].className = violationClasses;
+	}
 }
 
 function adjustSecurityRisks(row) {
