@@ -39,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.hub.builder.ValidationResults;
@@ -117,7 +116,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 	}
 
 	public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
-			EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+	EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final HubCredentialsBean credentials = getCredentialsFromRequest(request, "hubUser");
 
 		final String url = request.getParameter("hubUrl");
@@ -204,9 +203,9 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			try {
 				serverLogger.info("Validating the credentials for the Server : " + serverConfig.getHubUrl());
 
-				final HubIntRestService service = getRestService(serverConfig, proxyInfo, true);
+				final RestConnection restConnection = getRestConnection(serverConfig, proxyInfo, true);
 
-				final int responseCode = service.setCookies(serverConfig.getGlobalCredentials().getHubUser(),
+				final int responseCode = restConnection.setCookies(serverConfig.getGlobalCredentials().getHubUser(),
 						serverConfig.getGlobalCredentials().getDecryptedPassword());
 
 				if (responseCode == 401) {
@@ -289,10 +288,10 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		return Boolean.valueOf(savingParamValue);
 	}
 
-	private HubIntRestService getRestService(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
+	private RestConnection getRestConnection(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-					NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-					BDRestException, EncryptionException {
+	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+	BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}
@@ -327,8 +326,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 					serverConfig.getGlobalCredentials().getDecryptedPassword());
 		}
 
-		final HubIntRestService service = new HubIntRestService(restConnection);
-		return service;
+		return restConnection;
 	}
 
 }

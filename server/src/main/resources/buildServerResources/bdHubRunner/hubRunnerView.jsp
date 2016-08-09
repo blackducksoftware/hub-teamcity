@@ -38,6 +38,9 @@
                 emptyValue="4096"/>
         </div>
         <div class="parameter">
+            Dry Run: <props:displayValue name="com.blackducksoftware.integration.hub.hubDryRun" />
+        </div>
+        <div class="parameter">
             Scan Targets: <props:displayValue
                 name="com.blackducksoftware.integration.hub.targets" />
         </div>

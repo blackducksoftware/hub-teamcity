@@ -32,6 +32,7 @@ public final class HubConstantValues {
 	public static final String HUB_GENERATE_RISK_REPORT = PLUGIN_PREFIX + "generateRiskReport";
 	public static final String HUB_MAX_WAIT_TIME_FOR_RISK_REPORT = PLUGIN_PREFIX + "maxWaitTimeForRiskReport";
 	public static final String HUB_SCAN_MEMORY = PLUGIN_PREFIX + "scanMemory";
+	public static final String HUB_DRY_RUN = PLUGIN_PREFIX + "hubDryRun";
 	public static final String HUB_SCAN_TARGETS = PLUGIN_PREFIX + "targets";
 	public static final String HUB_URL = PLUGIN_PREFIX + "hubUrl";
 	public static final String HUB_USERNAME = PLUGIN_PREFIX + "hubUser";

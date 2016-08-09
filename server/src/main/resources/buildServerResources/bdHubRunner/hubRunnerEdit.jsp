@@ -141,6 +141,17 @@
 					</td>
 				</tr>
 				
+				<tr class="noBorder" id="blackDuckHubDryRun" style="">
+					<th>
+						<label for="com.blackducksoftware.integration.hub.hubDryRun">
+							Dry Run:
+						</label>
+					</th>
+					<td>
+						<props:checkboxProperty name="com.blackducksoftware.integration.hub.hubDryRun" className="longField" />
+					</td>
+				</tr>
+				
 				<tr class="noBorder" id="blackDuckHubScanTargets" style="">
 					<th><label
 						for="com.blackducksoftware.integration.hub.targets">

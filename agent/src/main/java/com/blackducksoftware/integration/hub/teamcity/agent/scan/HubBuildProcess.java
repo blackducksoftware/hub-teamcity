@@ -73,6 +73,7 @@ import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobFieldEnum;
 import com.blackducksoftware.integration.hub.logging.IntLogger;
 import com.blackducksoftware.integration.hub.polling.HubEventPolling;
+import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
@@ -183,6 +184,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		final String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
 		final String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
 		final String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
+		final String dryRun = getParameter(HubConstantValues.HUB_DRY_RUN);
 		final String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
 
 		final File workingDirectory = context.getWorkingDirectory();
@@ -213,6 +215,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
+			hubScanJobConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
 			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
 				hubScanJobConfigBuilder
 				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
@@ -226,39 +229,41 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			}
 			hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 
-			final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> globalResults = hubScanJobConfigBuilder
+			final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> jobConfigResults = hubScanJobConfigBuilder
 					.build();
 			if (!builderResults.isSuccess()) {
 				result = BuildFinishedStatus.FINISHED_FAILED;
-				final Set<HubScanJobFieldEnum> keys = globalResults.getResultMap().keySet();
+				final Set<HubScanJobFieldEnum> keys = jobConfigResults.getResultMap().keySet();
 				for (final HubScanJobFieldEnum fieldKey : keys) {
-					if (globalResults.hasErrors(fieldKey)) {
-						logger.error(globalResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
+					if (jobConfigResults.hasErrors(fieldKey)) {
+						logger.error(jobConfigResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
 					}
-					if (globalResults.hasWarnings(fieldKey)) {
-						logger.warn(globalResults.getResultString(fieldKey, ValidationResultEnum.WARN));
+					if (jobConfigResults.hasWarnings(fieldKey)) {
+						logger.warn(jobConfigResults.getResultString(fieldKey, ValidationResultEnum.WARN));
 					}
 				}
 				return result;
 			}
-			final HubScanJobConfig jobConfig = globalResults.getConstructedObject();
+			final HubScanJobConfig jobConfig = jobConfigResults.getConstructedObject();
 
 			printJobConfiguration(jobConfig);
 
-			if (globalResults.isSuccess()) {
+			if (jobConfigResults.isSuccess()) {
 				final URL hubUrl = globalConfig.getHubUrl();
-				final HubIntRestService restService = new HubIntRestService(serverUrl);
-				restService.setTimeout(Integer.valueOf(timeout));
-				restService.setLogger(logger);
+				final RestConnection restConnection = new RestConnection(serverUrl);
+				restConnection.setTimeout(Integer.valueOf(timeout));
+				restConnection.setLogger(logger);
+
 				final HubProxyInfo proxyInfo = globalConfig.getProxyInfo();
 				if (proxyInfo != null) {
 					if (!globalConfig.getProxyInfo().shouldUseProxyForUrl(hubUrl)) {
-						restService.setProxyProperties(proxyInfo);
+						restConnection.setProxyProperties(proxyInfo);
 					}
 				}
-				restService.setCookies(globalConfig.getGlobalCredentials().getUsername(),
+				restConnection.setCookies(globalConfig.getGlobalCredentials().getUsername(),
 						globalConfig.getGlobalCredentials().getDecryptedPassword());
 
+				final HubIntRestService restService = new HubIntRestService(restConnection);
 				final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
 						.getEnvironmentVariables();
 				final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
@@ -288,7 +293,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				ProjectItem project = null;
 				ReleaseItem version = null;
-				if (null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
+				if (!jobConfig.isDryRun() && null != jobConfig.getProjectName() && null != jobConfig.getVersion()) {
 					project = ensureProjectExists(restService, logger, projectName);
 					version = ensureVersionExists(restService, logger, projectVersion, project, jobConfig);
 				}
@@ -298,6 +303,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 				final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
 						globalConfig, jobConfig, hubSupport);
+				scanExecutor.setDryRun(jobConfig.isDryRun());
 
 				final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
 				hubReportGenerationInfo.setService(restService);
@@ -309,7 +315,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
 
 				boolean waitForBom = true;
-				if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()) {
+				if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()
+						&& !jobConfig.isDryRun()) {
 					final RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo,
 							hubSupport);
 					// will wait for bom to be updated while generating the
@@ -332,7 +339,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					Thread.sleep(2000);
 				}
 				checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo, version,
-						waitForBom);
+						waitForBom, jobConfig.isDryRun());
 			} else {
 				logger.info("Skipping Hub Build Step");
 				result = BuildFinishedStatus.FINISHED_FAILED;
@@ -413,6 +420,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		logger.alwaysLog("-> Generate Hub report : " + jobConfig.isShouldGenerateRiskReport());
 		final String formattedTime = String.format("%d minutes", jobConfig.getMaxWaitTimeForBomUpdate());
 		logger.alwaysLog("-> Maximum wait time for the BOM Update : " + formattedTime);
+		logger.alwaysLog("-> Dry Run : " + jobConfig.isDryRun());
 	}
 
 	private ProjectItem ensureProjectExists(final HubIntRestService service, final IntLogger logger,
@@ -583,7 +591,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
 			final HubSupportHelper hubSupport, final HubIntRestService restService,
-			final HubReportGenerationInfo bomUpdateInfo, final ReleaseItem version, final boolean waitForBom)
+			final HubReportGenerationInfo bomUpdateInfo, final ReleaseItem version, final boolean waitForBom,
+			final boolean isDryRun)
 					throws UnexpectedHubResponseException {
 		// Check if User specified our Failure Condition on policy
 		final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
@@ -593,6 +602,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		// configured.
 		if (features != null && features.iterator() != null && !features.isEmpty()
 				&& features.iterator().next() != null) {
+			if (isDryRun) {
+				logger.warn("Will not run the Failure conditions because this was a dry run scan.");
+				return;
+			}
 			if (!hubSupport.hasCapability(HubCapabilitiesEnum.POLICY_API)) {
 				final String message = "This version of the Hub does not have support for Policies.";
 				build.stopBuild(message);
