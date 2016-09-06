@@ -1,40 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?><project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>com.blackducksoftware.integration</groupId>
     <artifactId>common-maven-parent</artifactId>
     <version>1.0.8</version>
   </parent>
-
   <artifactId>hub-teamcity</artifactId>
-  <version>1.4.2</version>
+  <version>1.4.3-SNAPSHOT</version>
   <packaging>pom</packaging>
-
   <name>Black Duck Hub Plugin for TeamCity</name>
   <description>Open Source Governance with Black Duck Hub (TM).</description>
   <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
   <inceptionYear>2015</inceptionYear>
-
   <modules>
     <module>common</module>
     <module>server</module>
     <module>agent</module>
     <module>assembly</module>
   </modules>
-
   <scm>
     <connection>scm:git:git://github.com/blackducksoftware/hub-teamcity.git/</connection>
     <developerConnection>scm:git:git@github.com:blackducksoftware/hub-teamcity.git</developerConnection>
     <url>https://www.github.com/blackducksoftware/hub-teamcity</url>
   </scm>
-
   <properties>
     <plugin.version>${project.version}</plugin.version>
     <teamcity.version>7.1.0</teamcity.version>
   </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -159,7 +151,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
   <build>
     <pluginManagement>
       <plugins>
