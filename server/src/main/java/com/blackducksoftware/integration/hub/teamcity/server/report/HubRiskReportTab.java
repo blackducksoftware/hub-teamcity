@@ -68,7 +68,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
 
 			final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
 			bundle.setKeyPrefix("hub.riskreport");
-			if (null != request.getLocale()) {
+			if (request.getLocale() != null) {
 				bundle.setLocale(request.getLocale());
 			}
 			model.put("bundle", bundle);
@@ -81,7 +81,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
 	public boolean isAvailable(final HttpServletRequest request) {
 		final File riskReportFile = getRiskReportFile(request, server);
 
-		return null != riskReportFile && riskReportFile.exists();
+		return riskReportFile != null && riskReportFile.exists();
 	}
 
 	private File getRiskReportFile(final HttpServletRequest request, final SBuildServer server) {
