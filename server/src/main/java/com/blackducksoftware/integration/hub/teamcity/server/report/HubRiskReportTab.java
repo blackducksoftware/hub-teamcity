@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+import com.blackducksoftware.integration.hub.teamcity.server.UrlUtil;
 import com.blackducksoftware.integration.hub.util.HubResourceBundleHelper;
 import com.google.gson.Gson;
 
@@ -75,6 +76,8 @@ public class HubRiskReportTab extends SimpleCustomTab {
 		} catch (final IOException e) {
 			Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());
 		}
+
+		model.put("teamcityBaseUrl", UrlUtil.createTeamcityBaseUrl(request));
 	}
 
 	@Override

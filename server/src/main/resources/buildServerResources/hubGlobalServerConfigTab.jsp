@@ -2,7 +2,7 @@
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
 <jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" scope="request" />
-
+<jsp:useBean id="teamcityBaseUrl" type="java.lang.String" scope="request"/>
 <bs:linkScript>
     /js/bs/testConnection.js
 </bs:linkScript>
@@ -180,7 +180,7 @@
 </script>
 
 <div id="bdHubContainer">
-    <form id="bdHubForm" action="/admin/hub/serverHubConfigTab.html" autocomplete="off">
+    <form id="bdHubForm" action="${teamcityBaseUrl}/admin/hub/serverHubConfigTab.html" autocomplete="off">
         <h3>Hub Settings</h3>
         <table border="0" style="width: 100%">
             <tr>
@@ -348,7 +348,7 @@
         <div class="saveButtonsBlock" id="saveButtonsBlock">
             <input type="button" value="Save" id=saveButton class="btn btn_primary submitButton" onclick="Config.save();"></input>
             <input type="button" value="Test connection" class="btn btn_primary submitButton" id="testConnection" onclick="TestConnectionDialog.testConnection();"></input>
-            <img id="saving" style="display: none; " class="progressRing progressRingDefault" src="/img/ajax-loader.gif" width="16" height="16" alt="Please wait..." title="Please wait..." />
+            <img id="saving" style="display: none; " class="progressRing progressRingDefault" src="${teamcityBaseUrl}${teamcityPluginResourcesPath}img/ajax-loader.gif" width="16" height="16" alt="Please wait..." title="Please wait..." />
             <input type="hidden" id="publicKey" name="publicKey" value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>" />
         </div>
     </form>
@@ -358,7 +358,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="BS.TestConnectionDialog.close();" showdiscardchangesmessage='false'>
-                <img src="${teamcityPluginResourcesPath}images/close.gif" />
+                <img src="${teamcityBaseUrl}${teamcityPluginResourcesPath}images/close.gif" />
             </a>
         </div>
         <div class="dialogHandle">
@@ -376,7 +376,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="Config.close();" showdiscardchangesmessage='false'>
-                <img src="${teamcityPluginResourcesPath}images/close.gif" />
+                <img src="${teamcityBaseUrl}${teamcityPluginResourcesPath}images/close.gif" />
             </a>
         </div>
         <div class="dialogHandle">

@@ -5,16 +5,17 @@
 
 <jsp:useBean id="bundle" scope="request"
 	type="com.blackducksoftware.integration.hub.util.HubResourceBundleHelper" />
+<jsp:useBean id="teamcityBaseUrl" type="java.lang.String" scope="request"/>
 
-<link href="${teamcityPluginResourcesPath}css/HubBomReport.css"
+<link href="${teamcityBaseUrl}${teamcityPluginResourcesPath}css/HubBomReport.css"
 	rel="stylesheet" type="text/css" />
 <link
-	href="${teamcityPluginResourcesPath}font-awesome-4.5.0/css/font-awesome.min.css"
+	href="${teamcityBaseUrl}${teamcityPluginResourcesPath}font-awesome-4.5.0/css/font-awesome.min.css"
 	rel="stylesheet" type="text/css" />
 <script type="text/javascript"
-	src="${teamcityPluginResourcesPath}js/HubBomReportFunctions.js"></script>
+	src="${teamcityBaseUrl}${teamcityPluginResourcesPath}js/HubBomReportFunctions.js"></script>
 <script type="text/javascript"
-	src="${teamcityPluginResourcesPath}js/Sortable.js"></script>
+	src="${teamcityBaseUrl}${teamcityPluginResourcesPath}js/Sortable.js"></script>
 
 <div class="riskReportBackgroundColor">
 	<div class="reportHeader">
@@ -22,7 +23,7 @@
 
 		<div style="float: right;">
 			<img class="reportHeaderIcon"
-				src="${teamcityPluginResourcesPath}images/Hub_BD_logo.png" />
+				src="${teamcityBaseUrl}${teamcityPluginResourcesPath}images/Hub_BD_logo.png" />
 		</div>
 	</div>
 
@@ -279,4 +280,4 @@
 
 <!-- load this script after the tables otherwise the tables wont exist yet when this script runs -->
 <script type="text/javascript"
-	src="${teamcityPluginResourcesPath}js/HubReportStartup.js"></script>
+	src="${teamcityBaseUrl}${teamcityPluginResourcesPath}js/HubReportStartup.js"></script>
