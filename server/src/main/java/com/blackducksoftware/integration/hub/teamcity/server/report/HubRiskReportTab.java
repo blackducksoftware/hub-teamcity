@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+import com.blackducksoftware.integration.hub.teamcity.server.UrlUtil;
 import com.blackducksoftware.integration.hub.util.HubResourceBundleHelper;
 import com.google.gson.Gson;
 
@@ -68,20 +69,22 @@ public class HubRiskReportTab extends SimpleCustomTab {
 
 			final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
 			bundle.setKeyPrefix("hub.riskreport");
-			if (null != request.getLocale()) {
+			if (request.getLocale() != null) {
 				bundle.setLocale(request.getLocale());
 			}
 			model.put("bundle", bundle);
 		} catch (final IOException e) {
 			Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());
 		}
+
+		model.put("teamcityBaseUrl", UrlUtil.createTeamcityBaseUrl(request));
 	}
 
 	@Override
 	public boolean isAvailable(final HttpServletRequest request) {
 		final File riskReportFile = getRiskReportFile(request, server);
 
-		return null != riskReportFile && riskReportFile.exists();
+		return riskReportFile != null && riskReportFile.exists();
 	}
 
 	private File getRiskReportFile(final HttpServletRequest request, final SBuildServer server) {

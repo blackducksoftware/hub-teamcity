@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.teamcity.server.UrlUtil;
+
 import jetbrains.buildServer.web.openapi.PlaceId;
 import jetbrains.buildServer.web.openapi.PositionConstraint;
 import jetbrains.buildServer.web.openapi.SimpleCustomTab;
@@ -51,6 +53,6 @@ public class HubGlobalServerConfigTab extends SimpleCustomTab {
 		super.fillModel(model, request);
 		configPersistenceManager.loadSettings();
 		model.put("hubConfigPersistenceManager", configPersistenceManager);
+		model.put("teamcityBaseUrl", UrlUtil.createTeamcityBaseUrl(request));
 	}
-
 }
