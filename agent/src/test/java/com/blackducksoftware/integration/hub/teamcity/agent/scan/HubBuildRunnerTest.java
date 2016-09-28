@@ -21,39 +21,29 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
-import com.blackducksoftware.integration.hub.teamcity.agent.util.TestAgentRunningBuild;
-import com.blackducksoftware.integration.hub.teamcity.agent.util.TestArtifactsWatcher;
-import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildRunnerContext;
-import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
-
-import jetbrains.buildServer.agent.AgentBuildRunnerInfo;
-
 public class HubBuildRunnerTest {
-	@Test
-	public void testConstructor() {
-		assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
-	}
-
-	@Test
-	public void testCreateBuildProcess() throws Exception {
-		final HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
-		assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new TestBuildRunnerContext()));
-	}
-
-	@Test
-	public void testGetRunnerInfo() {
-		final HubBuildRunner runner = new HubBuildRunner(new TestArtifactsWatcher());
-		final AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
-
-		assertTrue(runnerInfo.canRun(null));
-
-		assertEquals(HubBundle.RUNNER_TYPE, runnerInfo.getType());
-	}
+	// @Test
+	// public void testConstructor() {
+	// assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
+	// }
+	//
+	// @Test
+	// public void testCreateBuildProcess() throws Exception {
+	// final HubBuildRunner runner = new HubBuildRunner(new
+	// TestArtifactsWatcher());
+	// assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new
+	// TestBuildRunnerContext()));
+	// }
+	//
+	// @Test
+	// public void testGetRunnerInfo() {
+	// final HubBuildRunner runner = new HubBuildRunner(new
+	// TestArtifactsWatcher());
+	// final AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
+	//
+	// assertTrue(runnerInfo.canRun(null));
+	//
+	// assertEquals(HubBundle.RUNNER_TYPE, runnerInfo.getType());
+	// }
 
 }

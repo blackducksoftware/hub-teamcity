@@ -37,6 +37,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.restlet.resource.ResourceException;
 
 import com.blackducksoftware.integration.hub.CIEnvironmentVariables;
 import com.blackducksoftware.integration.hub.HubIntRestService;
@@ -80,6 +82,11 @@ import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
+import com.blackducksoftware.integration.phone.home.PhoneHomeClient;
+import com.blackducksoftware.integration.phone.home.enums.BlackDuckName;
+import com.blackducksoftware.integration.phone.home.enums.ThirdPartyName;
+import com.blackducksoftware.integration.phone.home.exception.PhoneHomeException;
+import com.blackducksoftware.integration.phone.home.exception.PropertiesLoaderException;
 import com.google.gson.Gson;
 
 import jetbrains.buildServer.agent.AgentBuildFeature;
@@ -88,6 +95,8 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
+import jetbrains.buildServer.agent.plugins.beans.AgentPluginInfoImpl;
+import jetbrains.buildServer.version.ServerVersionHolder;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
 	@NotNull
@@ -99,15 +108,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	@NotNull
 	private final ArtifactsWatcher artifactsWatcher;
 
+	@NotNull
+	private final AgentPluginInfoImpl pluginInfo;
+
 	private HubAgentBuildLogger logger;
 	private BuildFinishedStatus result;
 	private Boolean verbose;
 
 	public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context,
-			@NotNull final ArtifactsWatcher artifactsWatcher) {
+			@NotNull final ArtifactsWatcher artifactsWatcher, @NotNull final AgentPluginInfoImpl pluginInfo) {
 		this.build = build;
 		this.context = context;
 		this.artifactsWatcher = artifactsWatcher;
+		this.pluginInfo = pluginInfo;
 	}
 
 	public void setverbose(final boolean verbose) {
@@ -190,7 +203,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		final File workingDirectory = context.getWorkingDirectory();
 		final String workingDirectoryPath = workingDirectory.getCanonicalPath();
 
-		final List<String> scanTargetPaths = new ArrayList<String>();
+		final List<String> scanTargetPaths = new ArrayList<>();
 		final String scanTargetParameter = getParameter(HubConstantValues.HUB_SCAN_TARGETS);
 		if (StringUtils.isNotBlank(scanTargetParameter)) {
 			final String[] scanTargetPathsArray = scanTargetParameter.split("\\r?\\n");
@@ -301,6 +314,26 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				final HubSupportHelper hubSupport = new HubSupportHelper();
 				hubSupport.checkHubSupport(restService, hubLogger);
 
+				try {
+					final String hubVersion = hubSupport.getHubVersion(restService);
+					String regId = null;
+					String hubHostName = null;
+					try {
+						regId = restService.getRegistrationId();
+					} catch (final Exception e) {
+						logger.debug("Could not get the Hub registration Id.");
+					}
+					try {
+						final URL url = new URL(serverUrl);
+						hubHostName = url.getHost();
+					} catch (final Exception e) {
+						logger.debug("Could not get the Hub Host name.");
+					}
+					bdPhoneHome(hubVersion, regId, hubHostName);
+				} catch (final Exception e) {
+					logger.debug("Unable to phone-home", e);
+				}
+
 				final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
 						globalConfig, jobConfig, hubSupport);
 
@@ -402,6 +435,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			return;
 		}
 		logger.alwaysLog("Working directory : " + jobConfig.getWorkingDirectory());
+		logger.alwaysLog("TeamCity Hub Plugin version : " + getPluginVersion());
 		logger.alwaysLog("--> Project : " + jobConfig.getProjectName());
 		logger.alwaysLog("--> Version : " + jobConfig.getVersion());
 		logger.alwaysLog("--> Version Phase : " + PhaseEnum.valueOf(jobConfig.getPhase()).getDisplayValue());
@@ -685,6 +719,42 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		} else {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo);
 		}
+	}
+
+	private String getPluginVersion() {
+		String pluginVersion = pluginInfo.getPluginVersion();
+		if (StringUtils.isBlank(pluginVersion)) {
+			final String pluginName = pluginInfo.getPluginName();
+			int indexStartOfVersion = 0;
+			if (pluginName.endsWith("-SNAPSHOT")) {
+				indexStartOfVersion = pluginName.replace("-SNAPSHOT", "").lastIndexOf("-") + 1;
+			} else {
+				indexStartOfVersion = pluginName.lastIndexOf("-") + 1;
+			}
+			pluginVersion = pluginName.substring(indexStartOfVersion, pluginName.length());
+		}
+		return pluginVersion;
+	}
+
+	/**
+	 * @param blackDuckVersion
+	 *            Version of the blackduck product, in this instance, the hub
+	 * @param regId
+	 *            Registration ID of the hub instance that this plugin uses
+	 * @param hubHostName
+	 *            Host name of the hub instance that this plugin uses
+	 *
+	 *            This method "phones-home" to the internal BlackDuck
+	 *            Integrations server. Every time a build is kicked off,
+	 */
+	public void bdPhoneHome(final String blackDuckVersion, final String regId, final String hubHostName)
+			throws IOException, PhoneHomeException, PropertiesLoaderException, ResourceException, JSONException {
+		final String thirdPartyVersion = ServerVersionHolder.getVersion().getDisplayVersion();
+		final String pluginVersion = getPluginVersion();
+
+		final PhoneHomeClient phClient = new PhoneHomeClient();
+		phClient.callHomeIntegrations(regId, hubHostName, BlackDuckName.HUB, blackDuckVersion, ThirdPartyName.TEAM_CITY,
+				thirdPartyVersion, pluginVersion);
 	}
 
 }
