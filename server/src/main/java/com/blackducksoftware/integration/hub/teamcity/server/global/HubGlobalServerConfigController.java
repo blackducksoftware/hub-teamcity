@@ -143,7 +143,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 		}
 		builder.setProxyPassword(proxyPass);
 
-		final ValidationResults<GlobalFieldKey, HubServerConfig> results = builder.build();
+		final ValidationResults<GlobalFieldKey, HubServerConfig> results = builder.buildResults();
 
 		if (results.isSuccess()) {
 			final HubServerConfig config = results.getConstructedObject();
@@ -165,18 +165,14 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 			checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
 			checkForErrors(HubServerConfigFieldEnum.HUBTIMEOUT, "errorTimeout", results, errors);
 
-			if (results.hasErrors(HubServerConfigFieldEnum.CREDENTIALS)) {
-				checkForErrors(HubCredentialsFieldEnum.USERNAME, "errorUserName", results, errors);
-				checkForErrors(HubCredentialsFieldEnum.PASSWORD, "errorPassword", results, errors);
-			}
+			checkForErrors(HubCredentialsFieldEnum.USERNAME, "errorUserName", results, errors);
+			checkForErrors(HubCredentialsFieldEnum.PASSWORD, "errorPassword", results, errors);
 
-			if (results.hasErrors(HubServerConfigFieldEnum.PROXYINFO)) {
-				checkForErrors(HubProxyInfoFieldEnum.PROXYHOST, "errorHubProxyServer", results, errors);
-				checkForErrors(HubProxyInfoFieldEnum.PROXYPORT, "errorHubProxyPort", results, errors);
-				checkForErrors(HubProxyInfoFieldEnum.NOPROXYHOSTS, "errorHubNoProxyHost", results, errors);
-				checkForErrors(HubProxyInfoFieldEnum.PROXYUSERNAME, "errorHubProxyUser", results, errors);
-				checkForErrors(HubProxyInfoFieldEnum.PROXYPASSWORD, "errorHubProxyPass", results, errors);
-			}
+			checkForErrors(HubProxyInfoFieldEnum.PROXYHOST, "errorHubProxyServer", results, errors);
+			checkForErrors(HubProxyInfoFieldEnum.PROXYPORT, "errorHubProxyPort", results, errors);
+			checkForErrors(HubProxyInfoFieldEnum.NOPROXYHOSTS, "errorHubNoProxyHost", results, errors);
+			checkForErrors(HubProxyInfoFieldEnum.PROXYUSERNAME, "errorHubProxyUser", results, errors);
+			checkForErrors(HubProxyInfoFieldEnum.PROXYPASSWORD, "errorHubProxyPass", results, errors);
 		}
 	}
 

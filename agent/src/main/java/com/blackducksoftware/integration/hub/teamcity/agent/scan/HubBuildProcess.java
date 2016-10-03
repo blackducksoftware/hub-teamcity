@@ -45,11 +45,12 @@ import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
-import com.blackducksoftware.integration.hub.api.policy.PolicyStatus;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
+import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
 import com.blackducksoftware.integration.hub.api.project.ProjectItem;
 import com.blackducksoftware.integration.hub.api.report.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
+import com.blackducksoftware.integration.hub.api.report.ReportCategoriesEnum;
 import com.blackducksoftware.integration.hub.api.report.RiskReportGenerator;
 import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
 import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
@@ -64,7 +65,7 @@ import com.blackducksoftware.integration.hub.cli.CLILocation;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.exception.MissingPolicyStatusException;
+import com.blackducksoftware.integration.hub.exception.MissingUUIDException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.exception.UnexpectedHubResponseException;
 import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistException;
@@ -140,7 +141,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	@Override
 	public BuildFinishedStatus call() throws IOException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+	IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final BuildProgressLogger buildLogger = build.getBuildLogger();
 		final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
 		hubLogger.setLogLevel(getCommonVariables());
@@ -186,7 +187,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		configBuilder.setProxyUsername(originalProxyInfo.getProxyUsername());
 		configBuilder.setProxyPassword(originalProxyInfo.getProxyPassword());
 		configBuilder.setTimeout(timeout);
-		final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.build();
+		final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.buildResults();
+
+		if (builderResults.hasErrors()) {
+			logger.error(builderResults.getAllResultString(ValidationResultEnum.ERROR));
+		}
 
 		final HubServerConfig globalConfig = builderResults.getConstructedObject();
 		printGlobalConfiguration(globalConfig);
@@ -225,13 +230,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			hubScanJobConfigBuilder.setVersion(projectVersion);
 			hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
 			hubScanJobConfigBuilder
-					.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
+			.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
 			hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
 			hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
 			hubScanJobConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
 			if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
 				hubScanJobConfigBuilder
-						.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
+				.setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
 			} else {
 				hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
 			}
@@ -243,7 +248,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 			hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
 
 			final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> jobConfigResults = hubScanJobConfigBuilder
-					.build();
+					.buildResults();
 			if (!builderResults.isSuccess()) {
 				result = BuildFinishedStatus.FINISHED_FAILED;
 				final Set<HubScanJobFieldEnum> keys = jobConfigResults.getResultMap().keySet();
@@ -353,7 +358,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 							hubSupport);
 					// will wait for bom to be updated while generating the
 					// report.
-					final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger);
+					final ReportCategoriesEnum[] reportCategories = { ReportCategoriesEnum.COMPONENTS,
+							ReportCategoriesEnum.VERSION };
+
+					final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger,
+							reportCategories);
 					waitForBom = false;
 					final String reportPath = workingDirectoryPath + File.separator
 							+ HubConstantValues.HUB_RISK_REPORT_FILENAME;
@@ -503,7 +512,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	 */
 	private ReleaseItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
 		ReleaseItem version = null;
 		try {
 			version = service.getVersion(project, projectVersion);
@@ -527,7 +536,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	private ReleaseItem createVersion(final HubIntRestService service, final IntLogger logger,
 			final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-			throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
+					throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
 		ReleaseItem version = null;
 
 		try {
@@ -548,8 +557,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 	public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
 			final File oneJarFile, final File scanExec, File javaExec, final HubServerConfig globalConfig,
 			final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-			IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, EncryptionException {
+	IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
+	IllegalArgumentException, InvocationTargetException, EncryptionException {
 		final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl().toString(),
 				globalConfig.getGlobalCredentials().getUsername(),
 				globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
@@ -602,7 +611,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void addProxySettingsToScanner(final IntLogger logger, final TeamCityScanExecutor scan,
 			final HubProxyInfo proxyInfo) throws HubIntegrationException, URISyntaxException, MalformedURLException,
-			IllegalArgumentException, EncryptionException {
+	IllegalArgumentException, EncryptionException {
 		if (proxyInfo != null) {
 			if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
 				if (StringUtils.isNotBlank(proxyInfo.getUsername())
@@ -654,13 +663,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					}
 					// We use this conditional in case there are other failure
 					// conditions in the future
-					final PolicyStatus policyStatus = restService.getPolicyStatus(policyStatusLink);
+					final PolicyStatusItem policyStatus = restService.getPolicyStatus(policyStatusLink);
 					if (policyStatus == null) {
 						build.stopBuild("Could not find any information about the Policy status of the bom.");
 						return;
 					}
 					boolean policyViolationFound = false;
-					if (policyStatus.getOverallStatusEnum() == PolicyStatusEnum.IN_VIOLATION) {
+					if (policyStatus.getOverallStatus() == PolicyStatusEnum.IN_VIOLATION) {
 						policyViolationFound = true;
 					}
 
@@ -686,21 +695,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 					if (policyViolationFound) {
 						build.stopBuild("Policy Violations found");
 					}
-				} catch (final MissingPolicyStatusException e) {
-					logger.warn(e.getMessage());
-				} catch (final IOException e) {
-					logger.error(e.getMessage(), e);
-					build.stopBuild(e.getMessage());
-				} catch (final BDRestException e) {
-					logger.error(e.getMessage(), e);
-					build.stopBuild(e.getMessage());
-				} catch (final URISyntaxException e) {
-					logger.error(e.getMessage(), e);
-					build.stopBuild(e.getMessage());
-				} catch (final InterruptedException e) {
-					logger.error(e.getMessage(), e);
-					build.stopBuild(e.getMessage());
-				} catch (final HubIntegrationException e) {
+				} catch (final Exception e) {
 					logger.error(e.getMessage(), e);
 					build.stopBuild(e.getMessage());
 				}
@@ -710,7 +705,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
 	public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
 			final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-			throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException {
+					throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException,
+					ProjectDoesNotExistException, MissingUUIDException, UnexpectedHubResponseException {
 		final HubEventPolling hubEventPolling = new HubEventPolling(service);
 		if (supportHelper.hasCapability(HubCapabilitiesEnum.CLI_STATUS_DIRECTORY_OPTION)) {
 			hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);

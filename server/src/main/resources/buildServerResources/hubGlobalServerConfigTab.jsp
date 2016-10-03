@@ -69,6 +69,12 @@
                 errorHubNoProxyHost: function(elem) {
                     $('errorHubNoProxyHost').innerHTML = elem.firstChild.nodeValue;
                 },
+                errorHubProxyUser: function(elem) {
+                    $('errorHubProxyUser').innerHTML = elem.firstChild.nodeValue;
+                },
+                errorHubProxyPass: function(elem) {
+                    $('errorHubProxyPass').innerHTML = elem.firstChild.nodeValue;
+                },
                 errorConnection: function(elem) {
                     TestConnectionDialog.showTestDialog(false, elem.firstChild.nodeValue);
                 },
