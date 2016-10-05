@@ -27,8 +27,8 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.blackducksoftware.integration.hub.encryption.PasswordDecrypter;
-import com.blackducksoftware.integration.hub.exception.EncryptionException;
+import com.blackducksoftware.integration.encryption.PasswordDecrypter;
+import com.blackducksoftware.integration.exception.EncryptionException;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("globalHubCredentials")

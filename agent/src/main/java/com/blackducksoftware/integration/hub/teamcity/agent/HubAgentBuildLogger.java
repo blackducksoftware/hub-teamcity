@@ -24,8 +24,8 @@ package com.blackducksoftware.integration.hub.teamcity.agent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.blackducksoftware.integration.hub.logging.IntLogger;
-import com.blackducksoftware.integration.hub.logging.LogLevel;
+import com.blackducksoftware.integration.log.IntLogger;
+import com.blackducksoftware.integration.log.LogLevel;
 
 import jetbrains.buildServer.agent.BuildProgressLogger;
 

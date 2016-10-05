@@ -27,8 +27,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.blackducksoftware.integration.hub.logging.LogLevel;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
+import com.blackducksoftware.integration.log.LogLevel;
 
 public class HubAgentBuildLoggerTest {
 	@Test

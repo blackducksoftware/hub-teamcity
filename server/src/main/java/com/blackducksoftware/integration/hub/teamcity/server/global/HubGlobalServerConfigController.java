@@ -39,12 +39,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.blackducksoftware.integration.builder.ValidationResultEnum;
+import com.blackducksoftware.integration.builder.ValidationResults;
+import com.blackducksoftware.integration.encryption.PasswordEncrypter;
+import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.builder.ValidationResultEnum;
-import com.blackducksoftware.integration.hub.builder.ValidationResults;
-import com.blackducksoftware.integration.hub.encryption.PasswordEncrypter;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
-import com.blackducksoftware.integration.hub.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
 import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
@@ -116,7 +116,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 	}
 
 	public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
-	EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+			EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final HubCredentialsBean credentials = getCredentialsFromRequest(request, "hubUser");
 
 		final String url = request.getParameter("hubUrl");
@@ -286,8 +286,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private RestConnection getRestConnection(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-	BDRestException, EncryptionException {
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}

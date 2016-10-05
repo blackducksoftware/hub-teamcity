@@ -21,8 +21,8 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.server.global;
 
-import com.blackducksoftware.integration.hub.logging.IntLogger;
-import com.blackducksoftware.integration.hub.logging.LogLevel;
+import com.blackducksoftware.integration.log.IntLogger;
+import com.blackducksoftware.integration.log.LogLevel;
 
 import jetbrains.buildServer.log.Loggers;
 
