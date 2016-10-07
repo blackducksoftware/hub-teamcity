@@ -38,8 +38,8 @@ import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScannerSplitStream;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.logging.IntLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
+import com.blackducksoftware.integration.log.IntLogger;
 
 public class TeamCityScanExecutor extends ScanExecutor {
 	private final HubAgentBuildLogger logger;
@@ -77,10 +77,10 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			standardOutFile.createNewFile();
 
 			// ////////////////////// Code to mask the password in the logs
-			final List<String> cmdToOutput = new ArrayList<String>();
+			final List<String> cmdToOutput = new ArrayList<>();
 			cmdToOutput.addAll(cmd);
 
-			final ArrayList<Integer> indexToMask = new ArrayList<Integer>();
+			final ArrayList<Integer> indexToMask = new ArrayList<>();
 			if (cmdToOutput.indexOf("--password") != -1) {
 				// The User's password will be at the next index
 				indexToMask.add(cmdToOutput.indexOf("--password") + 1);
