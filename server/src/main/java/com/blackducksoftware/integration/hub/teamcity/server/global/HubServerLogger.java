@@ -21,7 +21,6 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.server.global;
 
-
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.log.LogLevel;
 

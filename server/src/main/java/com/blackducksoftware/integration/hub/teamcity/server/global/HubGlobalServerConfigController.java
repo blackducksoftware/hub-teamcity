@@ -116,7 +116,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 	}
 
 	public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
-	EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+			EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		final HubCredentialsBean credentials = getCredentialsFromRequest(request, "hubUser");
 
 		final String url = request.getParameter("hubUrl");
@@ -286,8 +286,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
 	private RestConnection getRestConnection(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
 			final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-	NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-	BDRestException, EncryptionException {
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			BDRestException, EncryptionException {
 		if (serverConfig == null) {
 			return null;
 		}
