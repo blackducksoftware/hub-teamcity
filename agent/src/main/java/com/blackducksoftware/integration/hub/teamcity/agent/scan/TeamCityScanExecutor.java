@@ -34,15 +34,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScannerSplitStream;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.log.IntLogger;
+import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 public class TeamCityScanExecutor extends ScanExecutor {
 	private final HubAgentBuildLogger logger;
+	private CIEnvironmentVariables commonVariables;
 
 	protected TeamCityScanExecutor(final String hubUrl, final String hubUsername, final String hubPassword,
 			final List<String> scanTargets, final String buildIdentifier, final HubSupportHelper supportHelper,
@@ -50,6 +54,14 @@ public class TeamCityScanExecutor extends ScanExecutor {
 		super(hubUrl, hubUsername, hubPassword, scanTargets, buildIdentifier, supportHelper);
 		this.logger = logger;
 		setLogger(logger);
+	}
+
+	public CIEnvironmentVariables getCommonVariables() {
+		return commonVariables;
+	}
+
+	public void setCommonVariables(final CIEnvironmentVariables commonVariables) {
+		this.commonVariables = commonVariables;
 	}
 
 	@Override
@@ -109,6 +121,13 @@ public class TeamCityScanExecutor extends ScanExecutor {
 			final ProcessBuilder processBuilder = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE);
 
 			processBuilder.environment().put("BD_HUB_PASSWORD", getHubPassword());
+
+			if (commonVariables != null) {
+				final String bdioEnvVar = getCommonVariables().getValue("BD_HUB_DECLARED_COMPONENTS");
+				if (StringUtils.isNotBlank(bdioEnvVar)) {
+					processBuilder.environment().put("BD_HUB_DECLARED_COMPONENTS", bdioEnvVar);
+				}
+			}
 
 			Process hubCliProcess = processBuilder.start();
 
