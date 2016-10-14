@@ -314,6 +314,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 				ReleaseItem version = null;
 				if (!jobConfig.isDryRun() && jobConfig.getProjectName() != null && jobConfig.getVersion() != null) {
 					project = ensureProjectExists(restService, logger, projectName);
+					if (!project.getMeta().isAccessible()) {
+						hubLogger.error("This Project exists but this User does not have access to it.");
+						result = BuildFinishedStatus.FINISHED_FAILED;
+						return result;
+					}
 					version = ensureVersionExists(restService, logger, projectVersion, project, jobConfig);
 				}
 
@@ -471,6 +476,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 		ProjectItem project = null;
 		try {
 			project = service.getProjectByName(projectName);
+
 		} catch (final NullPointerException npe) {
 			project = createProject(service, logger, projectName);
 		} catch (final ProjectDoesNotExistException e) {
