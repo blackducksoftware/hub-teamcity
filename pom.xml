@@ -193,16 +193,7 @@
             <aggregate>true</aggregate>
           </configuration>
         </plugin>
-<plugin>
-               <groupId>com.blackducksoftware.integration</groupId>
-               <artifactId>hub-maven-plugin</artifactId>
-               <version>1.0.5-SNAPSHOT</version>
-               <configuration>
-                    <hubServerUrl>http://integration-hub.blackducksoftware.com</hubServerUrl>
-                    <hubUsername>sysadmin</hubUsername>
-                    <hubPassword>blackduck</hubPassword>
-               </configuration>
-            </plugin>      </plugins>
+      </plugins>
     </pluginManagement>
   </build>
 </project>
