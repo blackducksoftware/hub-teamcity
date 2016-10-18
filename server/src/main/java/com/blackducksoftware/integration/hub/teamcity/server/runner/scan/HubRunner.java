@@ -39,46 +39,46 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 
 public class HubRunner extends BaseRunType {
-	public HubRunner(@NotNull final RunTypeRegistry runTypeRegistry,
-			@NotNull final WebControllerManager webControllerManager, @NotNull final PluginDescriptor pluginDescriptor,
-			@NotNull final HubServerListener serverListener) {
-		super(webControllerManager, pluginDescriptor, serverListener.getConfigManager());
-		runTypeRegistry.registerRunType(this);
-		registerView("hubRunnerView.html", "bdHubRunner/hubRunnerView.jsp");
-		registerEdit("hubRunnerEdit.html", "bdHubRunner/hubRunnerEdit.jsp");
-	}
+    public HubRunner(@NotNull final RunTypeRegistry runTypeRegistry,
+            @NotNull final WebControllerManager webControllerManager, @NotNull final PluginDescriptor pluginDescriptor,
+            @NotNull final HubServerListener serverListener) {
+        super(webControllerManager, pluginDescriptor, serverListener.getConfigManager());
+        runTypeRegistry.registerRunType(this);
+        registerView("hubRunnerView.html", "bdHubRunner/hubRunnerView.jsp");
+        registerEdit("hubRunnerEdit.html", "bdHubRunner/hubRunnerEdit.jsp");
+    }
 
-	@Override
-	public String getDescription() {
-		return HubBundle.RUNNER_DESCRIPTION;
-	}
+    @Override
+    public String getDescription() {
+        return HubBundle.RUNNER_DESCRIPTION;
+    }
 
-	@Override
-	public String getDisplayName() {
-		return HubBundle.RUNNER_DISPLAY_NAME;
-	}
+    @Override
+    public String getDisplayName() {
+        return HubBundle.RUNNER_DISPLAY_NAME;
+    }
 
-	@Override
-	public String getType() {
-		return HubBundle.RUNNER_TYPE;
-	}
+    @Override
+    public String getType() {
+        return HubBundle.RUNNER_TYPE;
+    }
 
-	@Override
-	public Map<String, String> getDefaultRunnerProperties() {
-		return null;
-	}
+    @Override
+    public Map<String, String> getDefaultRunnerProperties() {
+        return null;
+    }
 
-	@Override
-	@Nullable
-	public PropertiesProcessor getRunnerPropertiesProcessor() {
-		return new PropertiesProcessor() {
-			@Override
-			public Collection<InvalidProperty> process(final Map<String, String> properties) {
-				final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
+    @Override
+    @Nullable
+    public PropertiesProcessor getRunnerPropertiesProcessor() {
+        return new PropertiesProcessor() {
+            @Override
+            public Collection<InvalidProperty> process(final Map<String, String> properties) {
+                final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
 
-				return result;
-			}
-		};
-	}
+                return result;
+            }
+        };
+    }
 
 }

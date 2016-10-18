@@ -30,28 +30,28 @@ import javax.servlet.http.HttpServletRequest;
 import org.mockito.Mockito;
 
 public class MockHttpServletRequest {
-	public static HttpServletRequest getMockedHttpServletRequest() {
-		final HttpServletRequest mockedHttpServletRequest = Mockito.mock(HttpServletRequest.class);
+    public static HttpServletRequest getMockedHttpServletRequest() {
+        final HttpServletRequest mockedHttpServletRequest = Mockito.mock(HttpServletRequest.class);
 
-		Mockito.when(mockedHttpServletRequest.getParameter(Mockito.anyString())).thenReturn("");
+        Mockito.when(mockedHttpServletRequest.getParameter(Mockito.anyString())).thenReturn("");
 
-		return mockedHttpServletRequest;
-	}
+        return mockedHttpServletRequest;
+    }
 
-	public static void addGetParameter(final HttpServletRequest mockedRequest, final String parameterName,
-			final String parameterValue) {
-		Mockito.when(mockedRequest.getParameter(parameterName)).thenReturn(parameterValue);
-	}
+    public static void addGetParameter(final HttpServletRequest mockedRequest, final String parameterName,
+            final String parameterValue) {
+        Mockito.when(mockedRequest.getParameter(parameterName)).thenReturn(parameterValue);
+    }
 
-	public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
-		if (hasParameters) {
-			final Enumeration<?> enumeration = Collections.enumeration(Arrays.asList(""));
-			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
-		} else {
-			final Enumeration<?> enumeration = Collections.emptyEnumeration();
+    public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
+        if (hasParameters) {
+            final Enumeration<?> enumeration = Collections.enumeration(Arrays.asList(""));
+            Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
+        } else {
+            final Enumeration<?> enumeration = Collections.emptyEnumeration();
 
-			Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
-		}
-	}
+            Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
+        }
+    }
 
 }

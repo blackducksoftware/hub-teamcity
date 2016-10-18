@@ -45,130 +45,132 @@ import jetbrains.buildServer.serverSide.ServerPaths;
 import jetbrains.buildServer.serverSide.crypt.RSACipher;
 
 public class ServerHubConfigPersistenceManager {
-	private static final String CONFIG_FILE_NAME = "hub-config.xml";
+    private static final String CONFIG_FILE_NAME = "hub-config.xml";
 
-	private final File configFile;
-	private ServerHubConfigBean configuredServer = new ServerHubConfigBean();
-	private final XStream xStream;
+    private final File configFile;
 
-	public ServerHubConfigPersistenceManager(@NotNull final ServerPaths serverPaths) {
-		xStream = new XStream();
-		xStream.setClassLoader(ServerHubConfigBean.class.getClassLoader());
-		xStream.processAnnotations(new Class[] { HubCredentialsBean.class });
-		xStream.processAnnotations(new Class[] { HubProxyInfo.class });
-		final HubCredentialsBean credentials = new HubCredentialsBean("");
-		final HubProxyInfo proxyInfo = new HubProxyInfo();
+    private ServerHubConfigBean configuredServer = new ServerHubConfigBean();
 
-		configuredServer.setGlobalCredentials(credentials);
-		configuredServer.setProxyInfo(proxyInfo);
+    private final XStream xStream;
 
-		configFile = new File(serverPaths.getConfigDir(), CONFIG_FILE_NAME);
-		loadSettings();
-	}
+    public ServerHubConfigPersistenceManager(@NotNull final ServerPaths serverPaths) {
+        xStream = new XStream();
+        xStream.setClassLoader(ServerHubConfigBean.class.getClassLoader());
+        xStream.processAnnotations(new Class[] { HubCredentialsBean.class });
+        xStream.processAnnotations(new Class[] { HubProxyInfo.class });
+        final HubCredentialsBean credentials = new HubCredentialsBean("");
+        final HubProxyInfo proxyInfo = new HubProxyInfo();
 
-	public File getConfigFile() {
-		return configFile;
-	}
+        configuredServer.setGlobalCredentials(credentials);
+        configuredServer.setProxyInfo(proxyInfo);
 
-	public ServerHubConfigBean getConfiguredServer() {
-		return configuredServer;
-	}
+        configFile = new File(serverPaths.getConfigDir(), CONFIG_FILE_NAME);
+        loadSettings();
+    }
 
-	private void setConfiguredServer(final ServerHubConfigBean bean) {
-		configuredServer = bean;
-	}
+    public File getConfigFile() {
+        return configFile;
+    }
 
-	public void loadSettings() {
-		if (configFile.exists()) {
-			synchronized (this) {
-				FileInputStream inputStream = null;
-				boolean errorLoadingConfig = false;
-				try {
-					inputStream = new FileInputStream(configFile);
-					final ServerHubConfigBean serverConfig = (ServerHubConfigBean) xStream.fromXML(inputStream);
-					if (serverConfig != null) {
-						setConfiguredServer(serverConfig);
-					} else {
-						errorLoadingConfig = true;
-					}
-				} catch (final FileNotFoundException e) {
-					errorLoadingConfig = true;
-					Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
-				} catch (final StreamException e) {
-					errorLoadingConfig = true;
-					Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
-				} finally {
-					IOUtils.closeQuietly(inputStream);
-				}
-				if (errorLoadingConfig) {
-					setConfiguredServer(defaultEmptyConfiguration());
-				}
-			}
-		} else {
-			setConfiguredServer(defaultEmptyConfiguration());
-		}
-	}
+    public ServerHubConfigBean getConfiguredServer() {
+        return configuredServer;
+    }
 
-	private ServerHubConfigBean defaultEmptyConfiguration() {
-		final ServerHubConfigBean config = new ServerHubConfigBean();
-		final HubCredentialsBean credentials = new HubCredentialsBean("", "");
-		final HubProxyInfo proxyInfo = new HubProxyInfo();
+    private void setConfiguredServer(final ServerHubConfigBean bean) {
+        configuredServer = bean;
+    }
 
-		configuredServer.setGlobalCredentials(credentials);
-		configuredServer.setProxyInfo(proxyInfo);
+    public void loadSettings() {
+        if (configFile.exists()) {
+            synchronized (this) {
+                FileInputStream inputStream = null;
+                boolean errorLoadingConfig = false;
+                try {
+                    inputStream = new FileInputStream(configFile);
+                    final ServerHubConfigBean serverConfig = (ServerHubConfigBean) xStream.fromXML(inputStream);
+                    if (serverConfig != null) {
+                        setConfiguredServer(serverConfig);
+                    } else {
+                        errorLoadingConfig = true;
+                    }
+                } catch (final FileNotFoundException e) {
+                    errorLoadingConfig = true;
+                    Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
+                } catch (final StreamException e) {
+                    errorLoadingConfig = true;
+                    Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
+                } finally {
+                    IOUtils.closeQuietly(inputStream);
+                }
+                if (errorLoadingConfig) {
+                    setConfiguredServer(defaultEmptyConfiguration());
+                }
+            }
+        } else {
+            setConfiguredServer(defaultEmptyConfiguration());
+        }
+    }
 
-		return config;
-	}
+    private ServerHubConfigBean defaultEmptyConfiguration() {
+        final ServerHubConfigBean config = new ServerHubConfigBean();
+        final HubCredentialsBean credentials = new HubCredentialsBean("", "");
+        final HubProxyInfo proxyInfo = new HubProxyInfo();
 
-	public void persist() throws IOException {
-		FileOutputStream outputStream = null;
-		try {
-			if (!configFile.getParentFile().exists() && configFile.getParentFile().mkdirs()) {
-				Loggers.SERVER.info("Directory created for the Hub configuration file at : "
-						+ configFile.getParentFile().getCanonicalPath());
-			} else if (configFile.exists() && configFile.delete()) {
-				Loggers.SERVER.info("Old Hub configuration file removed, to be replaced by a new configuration.");
-			}
+        configuredServer.setGlobalCredentials(credentials);
+        configuredServer.setProxyInfo(proxyInfo);
 
-			synchronized (this) {
-				outputStream = new FileOutputStream(configFile);
-				xStream.toXML(configuredServer, outputStream);
-			}
-		} catch (final FileNotFoundException e) {
-			Loggers.SERVER.error("Failed to save Hub config file: " + configFile, e);
-		} finally {
-			IOUtils.closeQuietly(outputStream);
-		}
-	}
+        return config;
+    }
 
-	public String getHexEncodedPublicKey() {
-		return RSACipher.getHexEncodedPublicKey();
-	}
+    public void persist() throws IOException {
+        FileOutputStream outputStream = null;
+        try {
+            if (!configFile.getParentFile().exists() && configFile.getParentFile().mkdirs()) {
+                Loggers.SERVER.info("Directory created for the Hub configuration file at : "
+                        + configFile.getParentFile().getCanonicalPath());
+            } else if (configFile.exists() && configFile.delete()) {
+                Loggers.SERVER.info("Old Hub configuration file removed, to be replaced by a new configuration.");
+            }
 
-	public String getRandom() {
-		return String.valueOf(Math.random());
-	}
+            synchronized (this) {
+                outputStream = new FileOutputStream(configFile);
+                xStream.toXML(configuredServer, outputStream);
+            }
+        } catch (final FileNotFoundException e) {
+            Loggers.SERVER.error("Failed to save Hub config file: " + configFile, e);
+        } finally {
+            IOUtils.closeQuietly(outputStream);
+        }
+    }
 
-	public List<String> getPhaseOptions() {
-		final List<String> phaseList = new ArrayList<String>();
-		for (final PhaseEnum phase : PhaseEnum.values()) {
-			if (phase != PhaseEnum.UNKNOWNPHASE) {
-				phaseList.add(phase.getDisplayValue());
-			}
-		}
+    public String getHexEncodedPublicKey() {
+        return RSACipher.getHexEncodedPublicKey();
+    }
 
-		return phaseList;
-	}
+    public String getRandom() {
+        return String.valueOf(Math.random());
+    }
 
-	public List<String> getDistributionOptions() {
-		final List<String> distributionList = new ArrayList<String>();
-		for (final DistributionEnum distribution : DistributionEnum.values()) {
-			if (distribution != DistributionEnum.UNKNOWNDISTRIBUTION) {
-				distributionList.add(distribution.getDisplayValue());
-			}
-		}
+    public List<String> getPhaseOptions() {
+        final List<String> phaseList = new ArrayList<String>();
+        for (final PhaseEnum phase : PhaseEnum.values()) {
+            if (phase != PhaseEnum.UNKNOWNPHASE) {
+                phaseList.add(phase.getDisplayValue());
+            }
+        }
 
-		return distributionList;
-	}
+        return phaseList;
+    }
+
+    public List<String> getDistributionOptions() {
+        final List<String> distributionList = new ArrayList<String>();
+        for (final DistributionEnum distribution : DistributionEnum.values()) {
+            if (distribution != DistributionEnum.UNKNOWNDISTRIBUTION) {
+                distributionList.add(distribution.getDisplayValue());
+            }
+        }
+
+        return distributionList;
+    }
 
 }

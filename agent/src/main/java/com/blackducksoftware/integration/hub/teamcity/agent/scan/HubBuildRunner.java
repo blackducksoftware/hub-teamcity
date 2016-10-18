@@ -36,37 +36,37 @@ import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import jetbrains.buildServer.agent.plugins.beans.AgentPluginInfoImpl;
 
 public class HubBuildRunner implements AgentBuildRunner {
-	@NotNull
-	private final ArtifactsWatcher artifactsWatcher;
+    @NotNull
+    private final ArtifactsWatcher artifactsWatcher;
 
-	@NotNull
-	private final AgentPluginInfoImpl pluginInfo;
+    @NotNull
+    private final AgentPluginInfoImpl pluginInfo;
 
-	public HubBuildRunner(@NotNull final ArtifactsWatcher artifactsWatcher,
-			@NotNull final AgentPluginInfoImpl pluginInfo) {
-		this.artifactsWatcher = artifactsWatcher;
-		this.pluginInfo = pluginInfo;
-	}
+    public HubBuildRunner(@NotNull final ArtifactsWatcher artifactsWatcher,
+            @NotNull final AgentPluginInfoImpl pluginInfo) {
+        this.artifactsWatcher = artifactsWatcher;
+        this.pluginInfo = pluginInfo;
+    }
 
-	@Override
-	public BuildProcess createBuildProcess(@NotNull final AgentRunningBuild runningBuild,
-			@NotNull final BuildRunnerContext context) throws RunBuildException {
-		return new HubBuildProcess(runningBuild, context, artifactsWatcher, pluginInfo);
-	}
+    @Override
+    public BuildProcess createBuildProcess(@NotNull final AgentRunningBuild runningBuild,
+            @NotNull final BuildRunnerContext context) throws RunBuildException {
+        return new HubBuildProcess(runningBuild, context, artifactsWatcher, pluginInfo);
+    }
 
-	@Override
-	public AgentBuildRunnerInfo getRunnerInfo() {
-		return new AgentBuildRunnerInfo() {
-			@Override
-			public boolean canRun(final BuildAgentConfiguration arg0) {
-				return true;
-			}
+    @Override
+    public AgentBuildRunnerInfo getRunnerInfo() {
+        return new AgentBuildRunnerInfo() {
+            @Override
+            public boolean canRun(final BuildAgentConfiguration arg0) {
+                return true;
+            }
 
-			@Override
-			public String getType() {
-				return HubBundle.RUNNER_TYPE;
-			}
-		};
-	}
+            @Override
+            public String getType() {
+                return HubBundle.RUNNER_TYPE;
+            }
+        };
+    }
 
 }

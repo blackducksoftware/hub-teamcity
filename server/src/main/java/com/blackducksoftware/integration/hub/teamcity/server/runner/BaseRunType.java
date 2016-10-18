@@ -39,59 +39,63 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 
 public abstract class BaseRunType extends RunType {
-	private final PluginDescriptor pluginDescriptor;
-	private final WebControllerManager webControllerManager;
-	private final ServerHubConfigPersistenceManager serverPeristanceManager;
-	private String viewUrl;
-	private String editUrl;
+    private final PluginDescriptor pluginDescriptor;
 
-	public BaseRunType(@NotNull final WebControllerManager webControllerManager,
-			@NotNull final PluginDescriptor pluginDescriptor,
-			@NotNull final ServerHubConfigPersistenceManager serverPeristanceManager) {
-		this.webControllerManager = webControllerManager;
-		this.pluginDescriptor = pluginDescriptor;
-		this.serverPeristanceManager = serverPeristanceManager;
-	}
+    private final WebControllerManager webControllerManager;
 
-	@Override
-	public String getEditRunnerParamsJspFilePath() {
-		return editUrl;
-	}
+    private final ServerHubConfigPersistenceManager serverPeristanceManager;
 
-	@Override
-	public String getViewRunnerParamsJspFilePath() {
-		return viewUrl;
-	}
+    private String viewUrl;
 
-	@Override
-	public Map<String, String> getDefaultRunnerProperties() {
-		return null;
-	}
+    private String editUrl;
 
-	protected void registerEdit(@NotNull final String url, @NotNull final String jsp) {
-		editUrl = pluginDescriptor.getPluginResourcesPath(url);
-		final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
-		webControllerManager.registerController(editUrl,
-				new HubRunTypeConfigController(editUrl, actualJsp, serverPeristanceManager));
-	}
+    public BaseRunType(@NotNull final WebControllerManager webControllerManager,
+            @NotNull final PluginDescriptor pluginDescriptor,
+            @NotNull final ServerHubConfigPersistenceManager serverPeristanceManager) {
+        this.webControllerManager = webControllerManager;
+        this.pluginDescriptor = pluginDescriptor;
+        this.serverPeristanceManager = serverPeristanceManager;
+    }
 
-	protected void registerView(@NotNull final String url, @NotNull final String jsp) {
-		viewUrl = pluginDescriptor.getPluginResourcesPath(url);
-		final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
+    @Override
+    public String getEditRunnerParamsJspFilePath() {
+        return editUrl;
+    }
 
-		webControllerManager.registerController(viewUrl, new BaseController() {
-			@Override
-			protected ModelAndView doHandle(final HttpServletRequest request, final HttpServletResponse response) {
-				final ModelAndView modelAndView = new ModelAndView(actualJsp);
-				modelAndView.getModel().put("controllerUrl", viewUrl);
-				return modelAndView;
-			}
-		});
-	}
+    @Override
+    public String getViewRunnerParamsJspFilePath() {
+        return viewUrl;
+    }
 
-	@Override
-	public PropertiesProcessor getRunnerPropertiesProcessor() {
-		return null;
-	}
+    @Override
+    public Map<String, String> getDefaultRunnerProperties() {
+        return null;
+    }
+
+    protected void registerEdit(@NotNull final String url, @NotNull final String jsp) {
+        editUrl = pluginDescriptor.getPluginResourcesPath(url);
+        final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
+        webControllerManager.registerController(editUrl,
+                new HubRunTypeConfigController(editUrl, actualJsp, serverPeristanceManager));
+    }
+
+    protected void registerView(@NotNull final String url, @NotNull final String jsp) {
+        viewUrl = pluginDescriptor.getPluginResourcesPath(url);
+        final String actualJsp = pluginDescriptor.getPluginResourcesPath(jsp);
+
+        webControllerManager.registerController(viewUrl, new BaseController() {
+            @Override
+            protected ModelAndView doHandle(final HttpServletRequest request, final HttpServletResponse response) {
+                final ModelAndView modelAndView = new ModelAndView(actualJsp);
+                modelAndView.getModel().put("controllerUrl", viewUrl);
+                return modelAndView;
+            }
+        });
+    }
+
+    @Override
+    public PropertiesProcessor getRunnerPropertiesProcessor() {
+        return null;
+    }
 
 }

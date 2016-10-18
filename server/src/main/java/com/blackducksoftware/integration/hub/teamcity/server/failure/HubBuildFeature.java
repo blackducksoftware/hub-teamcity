@@ -34,63 +34,63 @@ import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
 public class HubBuildFeature extends BuildFeature {
-	public final static String DISPLAY_NAME = "Fail build on Black Duck Hub Failure Conditions";
+    public final static String DISPLAY_NAME = "Fail build on Black Duck Hub Failure Conditions";
 
-	private final PluginDescriptor pluginDescriptor;
+    private final PluginDescriptor pluginDescriptor;
 
-	public HubBuildFeature(@NotNull final PluginDescriptor pluginDescriptor) {
-		this.pluginDescriptor = pluginDescriptor;
-	}
+    public HubBuildFeature(@NotNull final PluginDescriptor pluginDescriptor) {
+        this.pluginDescriptor = pluginDescriptor;
+    }
 
-	@Override
-	@NotNull
-	public String getDisplayName() {
-		return DISPLAY_NAME;
-	}
+    @Override
+    @NotNull
+    public String getDisplayName() {
+        return DISPLAY_NAME;
+    }
 
-	@Override
-	@Nullable
-	public String getEditParametersUrl() {
-		return pluginDescriptor.getPluginResourcesPath("hubBuildFeatureEdit.html");
-	}
+    @Override
+    @Nullable
+    public String getEditParametersUrl() {
+        return pluginDescriptor.getPluginResourcesPath("hubBuildFeatureEdit.html");
+    }
 
-	@Override
-	@NotNull
-	public String getType() {
-		return HubBundle.POLICY_FAILURE_CONDITION;
-	}
+    @Override
+    @NotNull
+    public String getType() {
+        return HubBundle.POLICY_FAILURE_CONDITION;
+    }
 
-	@Override
-	public BuildFeature.PlaceToShow getPlaceToShow() {
-		return BuildFeature.PlaceToShow.FAILURE_REASON;
-	}
+    @Override
+    public BuildFeature.PlaceToShow getPlaceToShow() {
+        return BuildFeature.PlaceToShow.FAILURE_REASON;
+    }
 
-	@Override
-	public String describeParameters(final Map<String, String> params) {
-		String output = "";
+    @Override
+    public String describeParameters(final Map<String, String> params) {
+        String output = "";
 
-		if (params != null && params.containsKey(HubConstantValues.HUB_FAILURE_TYPE)) {
-			final String status = params.get(HubConstantValues.HUB_FAILURE_TYPE);
-			final HubFailureType hubFailureType = HubFailureType.getHubFailureType(status);
-			if (hubFailureType != null) {
-				output = hubFailureType.getParameterDescription();
-			}
-		}
+        if (params != null && params.containsKey(HubConstantValues.HUB_FAILURE_TYPE)) {
+            final String status = params.get(HubConstantValues.HUB_FAILURE_TYPE);
+            final HubFailureType hubFailureType = HubFailureType.getHubFailureType(status);
+            if (hubFailureType != null) {
+                output = hubFailureType.getParameterDescription();
+            }
+        }
 
-		return output;
-	}
+        return output;
+    }
 
-	@Override
-	public Map<String, String> getDefaultParameters() {
-		final Map<String, String> defaultParams = new HashMap<>();
-		defaultParams.put(HubConstantValues.HUB_FAILURE_TYPE, HubFailureType.POLICY_VIOLATIONS.toString());
+    @Override
+    public Map<String, String> getDefaultParameters() {
+        final Map<String, String> defaultParams = new HashMap<>();
+        defaultParams.put(HubConstantValues.HUB_FAILURE_TYPE, HubFailureType.POLICY_VIOLATIONS.toString());
 
-		return defaultParams;
-	}
+        return defaultParams;
+    }
 
-	@Override
-	public boolean isMultipleFeaturesPerBuildTypeAllowed() {
-		return false;
-	}
+    @Override
+    public boolean isMultipleFeaturesPerBuildTypeAllowed() {
+        return false;
+    }
 
 }

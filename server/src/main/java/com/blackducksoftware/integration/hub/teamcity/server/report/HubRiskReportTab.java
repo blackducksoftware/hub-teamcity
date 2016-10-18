@@ -45,60 +45,60 @@ import jetbrains.buildServer.web.openapi.SimpleCustomTab;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 
 public class HubRiskReportTab extends SimpleCustomTab {
-	private final SBuildServer server;
+    private final SBuildServer server;
 
-	public HubRiskReportTab(@NotNull final WebControllerManager webControllerManager, final SBuildServer server) {
-		super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "hubRiskReportTab.jsp",
-				"Black Duck Hub Risk Report");
+    public HubRiskReportTab(@NotNull final WebControllerManager webControllerManager, final SBuildServer server) {
+        super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "hubRiskReportTab.jsp",
+                "Black Duck Hub Risk Report");
 
-		this.server = server;
+        this.server = server;
 
-		register();
-	}
+        register();
+    }
 
-	@Override
-	public void fillModel(final Map<String, Object> model, final HttpServletRequest request) {
-		try {
-			final File riskReportFile = getRiskReportFile(request, server);
-			final FileReader fileReader = new FileReader(riskReportFile);
+    @Override
+    public void fillModel(final Map<String, Object> model, final HttpServletRequest request) {
+        try {
+            final File riskReportFile = getRiskReportFile(request, server);
+            final FileReader fileReader = new FileReader(riskReportFile);
 
-			final Gson gson = new Gson();
-			final HubRiskReportData hubRiskReportData = gson.fromJson(fileReader, HubRiskReportData.class);
+            final Gson gson = new Gson();
+            final HubRiskReportData hubRiskReportData = gson.fromJson(fileReader, HubRiskReportData.class);
 
-			model.put("hubRiskReportData", hubRiskReportData);
+            model.put("hubRiskReportData", hubRiskReportData);
 
-			final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
-			bundle.setKeyPrefix("hub.riskreport");
-			if (request.getLocale() != null) {
-				bundle.setLocale(request.getLocale());
-			}
-			model.put("bundle", bundle);
-		} catch (final IOException e) {
-			Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());
-		}
+            final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
+            bundle.setKeyPrefix("hub.riskreport");
+            if (request.getLocale() != null) {
+                bundle.setLocale(request.getLocale());
+            }
+            model.put("bundle", bundle);
+        } catch (final IOException e) {
+            Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());
+        }
 
-		model.put("teamcityBaseUrl", UrlUtil.createTeamcityBaseUrl(request));
-	}
+        model.put("teamcityBaseUrl", UrlUtil.createTeamcityBaseUrl(request));
+    }
 
-	@Override
-	public boolean isAvailable(final HttpServletRequest request) {
-		final File riskReportFile = getRiskReportFile(request, server);
+    @Override
+    public boolean isAvailable(final HttpServletRequest request) {
+        final File riskReportFile = getRiskReportFile(request, server);
 
-		return riskReportFile != null && riskReportFile.exists();
-	}
+        return riskReportFile != null && riskReportFile.exists();
+    }
 
-	private File getRiskReportFile(final HttpServletRequest request, final SBuildServer server) {
-		try {
-			final SBuild build = BuildDataExtensionUtil.retrieveBuild(request, server);
-			if (build.getArtifactsDirectory() == null) {
-				return null;
-			}
-			return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator
-					+ HubConstantValues.HUB_RISK_REPORT_FILENAME);
-		} catch (final IOException e) {
-			Loggers.SERVER.error("Could not create the risk report file: " + e.getMessage());
-			return null;
-		}
-	}
+    private File getRiskReportFile(final HttpServletRequest request, final SBuildServer server) {
+        try {
+            final SBuild build = BuildDataExtensionUtil.retrieveBuild(request, server);
+            if (build.getArtifactsDirectory() == null) {
+                return null;
+            }
+            return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator
+                    + HubConstantValues.HUB_RISK_REPORT_FILENAME);
+        } catch (final IOException e) {
+            Loggers.SERVER.error("Could not create the risk report file: " + e.getMessage());
+            return null;
+        }
+    }
 
 }
