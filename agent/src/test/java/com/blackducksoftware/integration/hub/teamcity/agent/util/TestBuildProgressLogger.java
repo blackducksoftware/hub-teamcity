@@ -33,279 +33,283 @@ import jetbrains.buildServer.agent.FlowLogger;
 import jetbrains.buildServer.messages.BuildMessage1;
 
 public class TestBuildProgressLogger implements BuildProgressLogger {
-	private List<String> messages = new ArrayList<String>();
-	private List<String> progressMessages = new ArrayList<String>();
-	private List<String> errorMessages = new ArrayList<String>();
-	private List<String> startedMessages = new ArrayList<String>();
-	private List<String> finishedMessages = new ArrayList<String>();
+    private List<String> messages = new ArrayList<String>();
 
-	public String getMessagesString() {
-		final StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (final String message : messages) {
-			if (i != 0) {
-				sb.append("\n");
-			}
-			sb.append(message);
-			i++;
-		}
+    private List<String> progressMessages = new ArrayList<String>();
 
-		return sb.toString();
-	}
+    private List<String> errorMessages = new ArrayList<String>();
 
-	public String getProgressMessagesString() {
-		final StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (final String message : progressMessages) {
-			if (i != 0) {
-				sb.append("\n");
-			}
-			sb.append(message);
-			i++;
-		}
+    private List<String> startedMessages = new ArrayList<String>();
 
-		return sb.toString();
-	}
+    private List<String> finishedMessages = new ArrayList<String>();
 
-	public String getErrorMessagesString() {
-		final StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (final String message : errorMessages) {
-			if (i != 0) {
-				sb.append("\n");
-			}
-			sb.append(message);
-			i++;
-		}
+    public String getMessagesString() {
+        final StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (final String message : messages) {
+            if (i != 0) {
+                sb.append("\n");
+            }
+            sb.append(message);
+            i++;
+        }
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	public String getStartedMessagesString() {
-		final StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (final String message : startedMessages) {
-			if (i != 0) {
-				sb.append("\n");
-			}
-			sb.append(message);
-			i++;
-		}
-		return sb.toString();
-	}
+    public String getProgressMessagesString() {
+        final StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (final String message : progressMessages) {
+            if (i != 0) {
+                sb.append("\n");
+            }
+            sb.append(message);
+            i++;
+        }
 
-	public String getFinishedMessagesString() {
-		final StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for (final String message : finishedMessages) {
-			if (i != 0) {
-				sb.append("\n");
-			}
-			sb.append(message);
-			i++;
-		}
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	public void clearMessages() {
-		messages = new ArrayList<String>();
-	}
+    public String getErrorMessagesString() {
+        final StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (final String message : errorMessages) {
+            if (i != 0) {
+                sb.append("\n");
+            }
+            sb.append(message);
+            i++;
+        }
 
-	public void clearProgressMessages() {
-		progressMessages = new ArrayList<String>();
-	}
+        return sb.toString();
+    }
 
-	public void clearErrorMessages() {
-		errorMessages = new ArrayList<String>();
-	}
+    public String getStartedMessagesString() {
+        final StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (final String message : startedMessages) {
+            if (i != 0) {
+                sb.append("\n");
+            }
+            sb.append(message);
+            i++;
+        }
+        return sb.toString();
+    }
 
-	public void clearStartedMessages() {
-		startedMessages = new ArrayList<String>();
-	}
+    public String getFinishedMessagesString() {
+        final StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (final String message : finishedMessages) {
+            if (i != 0) {
+                sb.append("\n");
+            }
+            sb.append(message);
+            i++;
+        }
+        return sb.toString();
+    }
 
-	public void clearFinishedMessages() {
-		finishedMessages = new ArrayList<String>();
-	}
+    public void clearMessages() {
+        messages = new ArrayList<String>();
+    }
 
-	public void clearAllOutput() {
-		clearMessages();
-		clearProgressMessages();
-		clearErrorMessages();
-		clearStartedMessages();
-		clearFinishedMessages();
-	}
+    public void clearProgressMessages() {
+        progressMessages = new ArrayList<String>();
+    }
 
-	public List<String> getMessages() {
-		return messages;
-	}
+    public void clearErrorMessages() {
+        errorMessages = new ArrayList<String>();
+    }
 
-	public List<String> getProgressMessages() {
-		return progressMessages;
-	}
+    public void clearStartedMessages() {
+        startedMessages = new ArrayList<String>();
+    }
 
-	public List<String> getErrorMessages() {
-		return errorMessages;
-	}
+    public void clearFinishedMessages() {
+        finishedMessages = new ArrayList<String>();
+    }
 
-	public List<String> getStartedMessages() {
-		return startedMessages;
-	}
+    public void clearAllOutput() {
+        clearMessages();
+        clearProgressMessages();
+        clearErrorMessages();
+        clearStartedMessages();
+        clearFinishedMessages();
+    }
 
-	public List<String> getFinishedMessages() {
-		return finishedMessages;
-	}
+    public List<String> getMessages() {
+        return messages;
+    }
 
-	@Override
-	public void error(final String text) {
-		errorMessages.add(text);
-	}
+    public List<String> getProgressMessages() {
+        return progressMessages;
+    }
 
-	@Override
-	public void exception(final Throwable e) {
-		if (e != null) {
-			final StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			errorMessages.add(sw.toString());
-		}
-	}
+    public List<String> getErrorMessages() {
+        return errorMessages;
+    }
 
-	@Override
-	public void message(final String text) {
-		messages.add(text);
-	}
+    public List<String> getStartedMessages() {
+        return startedMessages;
+    }
 
-	@Override
-	public void progressMessage(final String text) {
-		progressMessages.add(text);
-	}
+    public List<String> getFinishedMessages() {
+        return finishedMessages;
+    }
 
-	@Override
-	public void warning(final String text) {
-	}
+    @Override
+    public void error(final String text) {
+        errorMessages.add(text);
+    }
 
-	@Override
-	public void logComparisonFailure(final String text, final Throwable e, final String text2, final String text3) {
-	}
+    @Override
+    public void exception(final Throwable e) {
+        if (e != null) {
+            final StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            errorMessages.add(sw.toString());
+        }
+    }
 
-	@Override
-	public void logSuiteFinished(final String text) {
-	}
+    @Override
+    public void message(final String text) {
+        messages.add(text);
+    }
 
-	@Override
-	public void logSuiteFinished(final String text, final Date date) {
-	}
+    @Override
+    public void progressMessage(final String text) {
+        progressMessages.add(text);
+    }
 
-	@Override
-	public void logSuiteStarted(final String text) {
-	}
+    @Override
+    public void warning(final String text) {
+    }
 
-	@Override
-	public void logSuiteStarted(final String text, final Date date) {
-	}
+    @Override
+    public void logComparisonFailure(final String text, final Throwable e, final String text2, final String text3) {
+    }
 
-	@Override
-	public void logTestFailed(final String text, final Throwable e) {
-	}
+    @Override
+    public void logSuiteFinished(final String text) {
+    }
 
-	@Override
-	public void logTestFailed(final String text, final String text1, final String text2) {
-	}
+    @Override
+    public void logSuiteFinished(final String text, final Date date) {
+    }
 
-	@Override
-	public void logTestFinished(final String text) {
-	}
+    @Override
+    public void logSuiteStarted(final String text) {
+    }
 
-	@Override
-	public void logTestFinished(final String text, final Date date) {
-	}
+    @Override
+    public void logSuiteStarted(final String text, final Date date) {
+    }
 
-	@Override
-	public void logTestIgnored(final String text, final String text1) {
-	}
+    @Override
+    public void logTestFailed(final String text, final Throwable e) {
+    }
 
-	@Override
-	public void logTestStarted(final String text) {
-	}
+    @Override
+    public void logTestFailed(final String text, final String text1, final String text2) {
+    }
 
-	@Override
-	public void logTestStarted(final String text, final Date date) {
-	}
+    @Override
+    public void logTestFinished(final String text) {
+    }
 
-	@Override
-	public void logTestStdErr(final String text, final String text1) {
-	}
+    @Override
+    public void logTestFinished(final String text, final Date date) {
+    }
 
-	@Override
-	public void logTestStdOut(final String text, final String text1) {
-	}
+    @Override
+    public void logTestIgnored(final String text, final String text1) {
+    }
 
-	@Override
-	public void activityFinished(final String text, final String text1) {
-	}
+    @Override
+    public void logTestStarted(final String text) {
+    }
 
-	@Override
-	public void activityStarted(final String text, final String text1) {
-	}
+    @Override
+    public void logTestStarted(final String text, final Date date) {
+    }
 
-	@Override
-	public void activityStarted(final String text, final String text1, final String text2) {
-	}
+    @Override
+    public void logTestStdErr(final String text, final String text1) {
+    }
 
-	@Override
-	public void buildFailureDescription(final String text) {
-	}
+    @Override
+    public void logTestStdOut(final String text, final String text1) {
+    }
 
-	@Override
-	public void flush() {
-	}
+    @Override
+    public void activityFinished(final String text, final String text1) {
+    }
 
-	@Override
-	public String getFlowId() {
-		return null;
-	}
+    @Override
+    public void activityStarted(final String text, final String text1) {
+    }
 
-	@Override
-	public FlowLogger getFlowLogger(final String text) {
-		return null;
-	}
+    @Override
+    public void activityStarted(final String text, final String text1, final String text2) {
+    }
 
-	@Override
-	public FlowLogger getThreadLogger() {
-		return null;
-	}
+    @Override
+    public void buildFailureDescription(final String text) {
+    }
 
-	@Override
-	public void ignoreServiceMessages(final Runnable arg0) {
-	}
+    @Override
+    public void flush() {
+    }
 
-	@Override
-	public void internalError(final String text, final String text1, final Throwable e) {
-	}
+    @Override
+    public String getFlowId() {
+        return null;
+    }
 
-	@Override
-	public void logBuildProblem(final BuildProblemData arg0) {
-	}
+    @Override
+    public FlowLogger getFlowLogger(final String text) {
+        return null;
+    }
 
-	@Override
-	public void logMessage(final BuildMessage1 arg0) {
-	}
+    @Override
+    public FlowLogger getThreadLogger() {
+        return null;
+    }
 
-	@Override
-	public void progressFinished() {
-	}
+    @Override
+    public void ignoreServiceMessages(final Runnable arg0) {
+    }
 
-	@Override
-	public void progressStarted(final String text) {
-	}
+    @Override
+    public void internalError(final String text, final String text1, final Throwable e) {
+    }
 
-	@Override
-	public void targetFinished(final String text) {
-		finishedMessages.add(text);
-	}
+    @Override
+    public void logBuildProblem(final BuildProblemData arg0) {
+    }
 
-	@Override
-	public void targetStarted(final String text) {
-		startedMessages.add(text);
-	}
+    @Override
+    public void logMessage(final BuildMessage1 arg0) {
+    }
+
+    @Override
+    public void progressFinished() {
+    }
+
+    @Override
+    public void progressStarted(final String text) {
+    }
+
+    @Override
+    public void targetFinished(final String text) {
+        finishedMessages.add(text);
+    }
+
+    @Override
+    public void targetStarted(final String text) {
+        startedMessages.add(text);
+    }
 
 }

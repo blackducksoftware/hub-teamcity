@@ -33,44 +33,44 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProcess;
 
 abstract public class HubCallableBuildProcess implements BuildProcess, Callable<BuildFinishedStatus> {
-	private Future<BuildFinishedStatus> future;
+    private Future<BuildFinishedStatus> future;
 
-	@Override
-	public void interrupt() {
-		future.cancel(true);
-	}
+    @Override
+    public void interrupt() {
+        future.cancel(true);
+    }
 
-	@Override
-	public boolean isFinished() {
-		return future.isDone();
-	}
+    @Override
+    public boolean isFinished() {
+        return future.isDone();
+    }
 
-	@Override
-	public boolean isInterrupted() {
-		return future.isCancelled() && isFinished();
-	}
+    @Override
+    public boolean isInterrupted() {
+        return future.isCancelled() && isFinished();
+    }
 
-	@Override
-	public void start() throws RunBuildException {
-		try {
-			future = Executors.newSingleThreadExecutor().submit(this);
-		} catch (final RejectedExecutionException e) {
-			throw new RunBuildException(e);
-		}
-	}
+    @Override
+    public void start() throws RunBuildException {
+        try {
+            future = Executors.newSingleThreadExecutor().submit(this);
+        } catch (final RejectedExecutionException e) {
+            throw new RunBuildException(e);
+        }
+    }
 
-	@Override
-	public BuildFinishedStatus waitFor() throws RunBuildException {
-		try {
-			final BuildFinishedStatus status = future.get();
-			return status;
-		} catch (final ExecutionException e) {
-			throw new RunBuildException(e);
-		} catch (final InterruptedException e) {
-			throw new RunBuildException(e);
-		} catch (final CancellationException e) {
-			return BuildFinishedStatus.INTERRUPTED;
-		}
-	}
+    @Override
+    public BuildFinishedStatus waitFor() throws RunBuildException {
+        try {
+            final BuildFinishedStatus status = future.get();
+            return status;
+        } catch (final ExecutionException e) {
+            throw new RunBuildException(e);
+        } catch (final InterruptedException e) {
+            throw new RunBuildException(e);
+        } catch (final CancellationException e) {
+            return BuildFinishedStatus.INTERRUPTED;
+        }
+    }
 
 }

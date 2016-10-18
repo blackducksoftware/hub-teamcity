@@ -1,13 +1,13 @@
 <com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean>
-  <hubUrl></hubUrl>
-  <globalCredentials>
-    <hubUser></hubUser>
-    <hubPass></hubPass>
-  </globalCredentials>
-  <proxyInfo>
-    <host></host>
-    <proxyUsername></proxyUsername>
-    <proxyPassword></proxyPassword>
-    <ignoredProxyHosts></ignoredProxyHosts>
-  </proxyInfo>
+	<hubUrl></hubUrl>
+	<globalCredentials>
+		<hubUser></hubUser>
+		<hubPass></hubPass>
+	</globalCredentials>
+	<proxyInfo>
+		<host></host>
+		<proxyUsername></proxyUsername>
+		<proxyPassword></proxyPassword>
+		<ignoredProxyHosts></ignoredProxyHosts>
+	</proxyInfo>
 </com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean>

@@ -35,50 +35,50 @@ import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
 public class HubBuildFeatureTest {
-	private PluginDescriptor getMockedPluginDescriptor() {
-		return MockPluginDescriptor.getMockedPluginDescriptor();
-	}
+    private PluginDescriptor getMockedPluginDescriptor() {
+        return MockPluginDescriptor.getMockedPluginDescriptor();
+    }
 
-	@Test
-	public void testConstructor() {
-		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
-		assertNotNull(feature);
-	}
+    @Test
+    public void testConstructor() {
+        final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+        assertNotNull(feature);
+    }
 
-	@Test
-	public void testDisplayName() {
-		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
-		assertEquals(HubBuildFeature.DISPLAY_NAME, feature.getDisplayName());
-	}
+    @Test
+    public void testDisplayName() {
+        final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+        assertEquals(HubBuildFeature.DISPLAY_NAME, feature.getDisplayName());
+    }
 
-	@Test
-	public void testEditParametersUrl() {
-		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
-		assertEquals(feature.getEditParametersUrl(), feature.getEditParametersUrl());
-	}
+    @Test
+    public void testEditParametersUrl() {
+        final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+        assertEquals(feature.getEditParametersUrl(), feature.getEditParametersUrl());
+    }
 
-	@Test
-	public void testType() {
-		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
-		assertEquals(HubBundle.POLICY_FAILURE_CONDITION, feature.getType());
-	}
+    @Test
+    public void testType() {
+        final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+        assertEquals(HubBundle.POLICY_FAILURE_CONDITION, feature.getType());
+    }
 
-	@Test
-	public void testPlaceToShow() {
-		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
-		assertEquals(BuildFeature.PlaceToShow.FAILURE_REASON, feature.getPlaceToShow());
-	}
+    @Test
+    public void testPlaceToShow() {
+        final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+        assertEquals(BuildFeature.PlaceToShow.FAILURE_REASON, feature.getPlaceToShow());
+    }
 
-	@Test
-	public void testDescribeParameters() {
-		final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
-		assertEquals("", feature.describeParameters(null));
-	}
+    @Test
+    public void testDescribeParameters() {
+        final HubBuildFeature feature = new HubBuildFeature(getMockedPluginDescriptor());
+        assertEquals("", feature.describeParameters(null));
+    }
 
-	@Test
-	public void testMultipleFeaturesPerBuildTypeAllowed() {
-		final HubBuildFeature buildFeature = new HubBuildFeature(null);
-		assertFalse(buildFeature.isMultipleFeaturesPerBuildTypeAllowed());
-	}
+    @Test
+    public void testMultipleFeaturesPerBuildTypeAllowed() {
+        final HubBuildFeature buildFeature = new HubBuildFeature(null);
+        assertFalse(buildFeature.isMultipleFeaturesPerBuildTypeAllowed());
+    }
 
 }

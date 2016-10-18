@@ -45,235 +45,236 @@ import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 public class TeamCityScanExecutor extends ScanExecutor {
-	private final HubAgentBuildLogger logger;
-	private CIEnvironmentVariables commonVariables;
+    private final HubAgentBuildLogger logger;
 
-	protected TeamCityScanExecutor(final String hubUrl, final String hubUsername, final String hubPassword,
-			final List<String> scanTargets, final String buildIdentifier, final HubSupportHelper supportHelper,
-			final HubAgentBuildLogger logger) {
-		super(hubUrl, hubUsername, hubPassword, scanTargets, buildIdentifier, supportHelper);
-		this.logger = logger;
-		setLogger(logger);
-	}
+    private CIEnvironmentVariables commonVariables;
 
-	public CIEnvironmentVariables getCommonVariables() {
-		return commonVariables;
-	}
+    protected TeamCityScanExecutor(final String hubUrl, final String hubUsername, final String hubPassword,
+            final List<String> scanTargets, final String buildIdentifier, final HubSupportHelper supportHelper,
+            final HubAgentBuildLogger logger) {
+        super(hubUrl, hubUsername, hubPassword, scanTargets, buildIdentifier, supportHelper);
+        this.logger = logger;
+        setLogger(logger);
+    }
 
-	public void setCommonVariables(final CIEnvironmentVariables commonVariables) {
-		this.commonVariables = commonVariables;
-	}
+    public CIEnvironmentVariables getCommonVariables() {
+        return commonVariables;
+    }
 
-	@Override
-	public IntLogger getLogger() {
-		return logger;
-	}
+    public void setCommonVariables(final CIEnvironmentVariables commonVariables) {
+        this.commonVariables = commonVariables;
+    }
 
-	@Override
-	protected String getLogDirectoryPath() throws IOException {
-		File logDirectory = new File(getWorkingDirectory());
-		logDirectory = new File(logDirectory, "HubScanLogs");
-		logDirectory = new File(logDirectory, String.valueOf(getBuildIdentifier()));
-		logDirectory.mkdirs();
+    @Override
+    public IntLogger getLogger() {
+        return logger;
+    }
 
-		return logDirectory.getAbsolutePath();
-	}
+    @Override
+    protected String getLogDirectoryPath() throws IOException {
+        File logDirectory = new File(getWorkingDirectory());
+        logDirectory = new File(logDirectory, "HubScanLogs");
+        logDirectory = new File(logDirectory, String.valueOf(getBuildIdentifier()));
+        logDirectory.mkdirs();
 
-	@Override
-	protected Result executeScan(final List<String> cmd, final String logDirectoryPath)
-			throws HubIntegrationException, InterruptedException {
-		try {
-			final File logBaseDirectory = new File(getLogDirectoryPath());
-			logBaseDirectory.mkdirs();
-			final File standardOutFile = new File(logBaseDirectory, "CLI_Output.txt");
-			standardOutFile.createNewFile();
+        return logDirectory.getAbsolutePath();
+    }
 
-			// ////////////////////// Code to mask the password in the logs
-			final List<String> cmdToOutput = new ArrayList<>();
-			cmdToOutput.addAll(cmd);
+    @Override
+    protected Result executeScan(final List<String> cmd, final String logDirectoryPath)
+            throws HubIntegrationException, InterruptedException {
+        try {
+            final File logBaseDirectory = new File(getLogDirectoryPath());
+            logBaseDirectory.mkdirs();
+            final File standardOutFile = new File(logBaseDirectory, "CLI_Output.txt");
+            standardOutFile.createNewFile();
 
-			final ArrayList<Integer> indexToMask = new ArrayList<>();
-			if (cmdToOutput.indexOf("--password") != -1) {
-				// The User's password will be at the next index
-				indexToMask.add(cmdToOutput.indexOf("--password") + 1);
-			}
+            // ////////////////////// Code to mask the password in the logs
+            final List<String> cmdToOutput = new ArrayList<>();
+            cmdToOutput.addAll(cmd);
 
-			for (int i = 0; i < cmdToOutput.size(); i++) {
-				if (cmdToOutput.get(i).contains("-Dhttp") && cmdToOutput.get(i).contains("proxyPassword")) {
-					indexToMask.add(i);
-				}
-			}
-			for (final Integer index : indexToMask) {
-				maskIndex(cmdToOutput, index);
-			}
+            final ArrayList<Integer> indexToMask = new ArrayList<>();
+            if (cmdToOutput.indexOf("--password") != -1) {
+                // The User's password will be at the next index
+                indexToMask.add(cmdToOutput.indexOf("--password") + 1);
+            }
 
-			logger.alwaysLog("Hub CLI command :");
-			for (final String current : cmdToOutput) {
-				logger.alwaysLog(current);
-			}
+            for (int i = 0; i < cmdToOutput.size(); i++) {
+                if (cmdToOutput.get(i).contains("-Dhttp") && cmdToOutput.get(i).contains("proxyPassword")) {
+                    indexToMask.add(i);
+                }
+            }
+            for (final Integer index : indexToMask) {
+                maskIndex(cmdToOutput, index);
+            }
 
-			// Should use the split stream for the process
-			final FileOutputStream outputFileStream = new FileOutputStream(standardOutFile);
+            logger.alwaysLog("Hub CLI command :");
+            for (final String current : cmdToOutput) {
+                logger.alwaysLog(current);
+            }
 
-			String outputString = "";
-			ScannerSplitStream splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
+            // Should use the split stream for the process
+            final FileOutputStream outputFileStream = new FileOutputStream(standardOutFile);
 
-			final ProcessBuilder processBuilder = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE);
+            String outputString = "";
+            ScannerSplitStream splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
-			processBuilder.environment().put("BD_HUB_PASSWORD", getHubPassword());
+            final ProcessBuilder processBuilder = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE);
 
-			if (commonVariables != null) {
-				final String bdioEnvVar = getCommonVariables().getValue("BD_HUB_DECLARED_COMPONENTS");
-				if (StringUtils.isNotBlank(bdioEnvVar)) {
-					processBuilder.environment().put("BD_HUB_DECLARED_COMPONENTS", bdioEnvVar);
-				}
-			}
+            processBuilder.environment().put("BD_HUB_PASSWORD", getHubPassword());
 
-			Process hubCliProcess = processBuilder.start();
+            if (commonVariables != null) {
+                final String bdioEnvVar = getCommonVariables().getValue("BD_HUB_DECLARED_COMPONENTS");
+                if (StringUtils.isNotBlank(bdioEnvVar)) {
+                    processBuilder.environment().put("BD_HUB_DECLARED_COMPONENTS", bdioEnvVar);
+                }
+            }
 
-			// The Cli logs go the error stream for some reason
-			StreamRedirectThread redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(),
-					splitOutputStream);
-			redirectThread.start();
+            Process hubCliProcess = processBuilder.start();
 
-			int returnCode = hubCliProcess.waitFor();
+            // The Cli logs go the error stream for some reason
+            StreamRedirectThread redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(),
+                    splitOutputStream);
+            redirectThread.start();
 
-			// the join method on the redirect thread will wait until the thread
-			// is dead
-			// the thread will die when it reaches the end of stream and the run
-			// method is finished
-			redirectThread.join();
+            int returnCode = hubCliProcess.waitFor();
 
-			splitOutputStream.flush();
-			splitOutputStream.close();
+            // the join method on the redirect thread will wait until the thread
+            // is dead
+            // the thread will die when it reaches the end of stream and the run
+            // method is finished
+            redirectThread.join();
 
-			if (splitOutputStream.hasOutput()) {
-				outputString = splitOutputStream.getOutput();
-			}
-			logger.info(readStream(hubCliProcess.getInputStream()));
+            splitOutputStream.flush();
+            splitOutputStream.close();
 
-			if (outputString.contains("Illegal character in path")
-					&& (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
-				standardOutFile.delete();
-				standardOutFile.createNewFile();
+            if (splitOutputStream.hasOutput()) {
+                outputString = splitOutputStream.getOutput();
+            }
+            logger.info(readStream(hubCliProcess.getInputStream()));
 
-				splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
+            if (outputString.contains("Illegal character in path")
+                    && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
+                standardOutFile.delete();
+                standardOutFile.createNewFile();
 
-				// This version of the CLI can not handle spaces in the log
-				// directory
-				// Not sure which version of the CLI this issue was fixed
-				final int indexOfLogOption = cmd.indexOf("--logDir") + 1;
+                splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
-				String logPath = cmd.get(indexOfLogOption);
-				logPath = logPath.replace(" ", "%20");
-				cmd.remove(indexOfLogOption);
-				cmd.add(indexOfLogOption, logPath);
+                // This version of the CLI can not handle spaces in the log
+                // directory
+                // Not sure which version of the CLI this issue was fixed
+                final int indexOfLogOption = cmd.indexOf("--logDir") + 1;
 
-				hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
-				// The Cli logs go the error stream for some reason
-				redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
-				redirectThread.start();
+                String logPath = cmd.get(indexOfLogOption);
+                logPath = logPath.replace(" ", "%20");
+                cmd.remove(indexOfLogOption);
+                cmd.add(indexOfLogOption, logPath);
 
-				returnCode = hubCliProcess.waitFor();
+                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+                // The Cli logs go the error stream for some reason
+                redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
+                redirectThread.start();
 
-				// the join method on the redirect thread will wait until the
-				// thread is dead
-				// the thread will die when it reaches the end of stream and the
-				// run method is finished
-				redirectThread.join();
+                returnCode = hubCliProcess.waitFor();
 
-				splitOutputStream.flush();
-				splitOutputStream.close();
+                // the join method on the redirect thread will wait until the
+                // thread is dead
+                // the thread will die when it reaches the end of stream and the
+                // run method is finished
+                redirectThread.join();
 
-				if (splitOutputStream.hasOutput()) {
-					outputString = splitOutputStream.getOutput();
-				}
-				logger.info(readStream(hubCliProcess.getInputStream()));
-			} else if (outputString.contains("Illegal character in opaque")
-					&& (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
-				standardOutFile.delete();
-				standardOutFile.createNewFile();
+                splitOutputStream.flush();
+                splitOutputStream.close();
 
-				splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
+                if (splitOutputStream.hasOutput()) {
+                    outputString = splitOutputStream.getOutput();
+                }
+                logger.info(readStream(hubCliProcess.getInputStream()));
+            } else if (outputString.contains("Illegal character in opaque")
+                    && (outputString.contains("Finished in") && outputString.contains("with status FAILURE"))) {
+                standardOutFile.delete();
+                standardOutFile.createNewFile();
 
-				final int indexOfLogOption = cmd.indexOf("--logDir") + 1;
+                splitOutputStream = new ScannerSplitStream(logger, outputFileStream);
 
-				String logPath = cmd.get(indexOfLogOption);
+                final int indexOfLogOption = cmd.indexOf("--logDir") + 1;
 
-				final File logFile = new File(logPath);
+                String logPath = cmd.get(indexOfLogOption);
 
-				logPath = logFile.toURI().toString();
-				cmd.remove(indexOfLogOption);
-				cmd.add(indexOfLogOption, logPath);
+                final File logFile = new File(logPath);
 
-				hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
-				// The Cli logs go the error stream for some reason
-				redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
-				redirectThread.start();
+                logPath = logFile.toURI().toString();
+                cmd.remove(indexOfLogOption);
+                cmd.add(indexOfLogOption, logPath);
 
-				returnCode = hubCliProcess.waitFor();
+                hubCliProcess = new ProcessBuilder(cmd).redirectError(PIPE).redirectOutput(PIPE).start();
+                // The Cli logs go the error stream for some reason
+                redirectThread = new StreamRedirectThread(hubCliProcess.getErrorStream(), splitOutputStream);
+                redirectThread.start();
 
-				// the join method on the redirect thread will wait until the
-				// thread is dead
-				// the thread will die when it reaches the end of stream and the
-				// run method is finished
-				redirectThread.join();
+                returnCode = hubCliProcess.waitFor();
 
-				splitOutputStream.flush();
-				splitOutputStream.close();
+                // the join method on the redirect thread will wait until the
+                // thread is dead
+                // the thread will die when it reaches the end of stream and the
+                // run method is finished
+                redirectThread.join();
 
-				if (splitOutputStream.hasOutput()) {
-					outputString = splitOutputStream.getOutput();
-				}
-				logger.info(readStream(hubCliProcess.getInputStream()));
-			}
+                splitOutputStream.flush();
+                splitOutputStream.close();
 
-			logger.alwaysLog("Hub CLI return code : " + returnCode);
-			if (logDirectoryPath != null) {
-				final File logDirectory = new File(logDirectoryPath);
-				if (logDirectory.exists()) {
-					logger.alwaysLog(
-							"You can view the BlackDuck Scan CLI logs at : '" + logDirectory.getAbsolutePath() + "'");
-					logger.alwaysLog("");
-				}
-			}
+                if (splitOutputStream.hasOutput()) {
+                    outputString = splitOutputStream.getOutput();
+                }
+                logger.info(readStream(hubCliProcess.getInputStream()));
+            }
 
-			if (outputString.contains("Finished in") && outputString.contains("with status SUCCESS")) {
-				return Result.SUCCESS;
-			} else {
-				return Result.FAILURE;
-			}
-		} catch (final MalformedURLException e) {
-			throw new HubIntegrationException("The server URL provided was not a valid", e);
-		} catch (final IOException e) {
-			throw new HubIntegrationException(e.getMessage(), e);
-		} catch (final InterruptedException e) {
-			throw new HubIntegrationException(e.getMessage(), e);
-		}
-	}
+            logger.alwaysLog("Hub CLI return code : " + returnCode);
+            if (logDirectoryPath != null) {
+                final File logDirectory = new File(logDirectoryPath);
+                if (logDirectory.exists()) {
+                    logger.alwaysLog(
+                            "You can view the BlackDuck Scan CLI logs at : '" + logDirectory.getAbsolutePath() + "'");
+                    logger.alwaysLog("");
+                }
+            }
 
-	private void maskIndex(final List<String> cmd, final int indexToMask) {
-		final String cmdToMask = cmd.get(indexToMask);
-		final String[] maskedArray = new String[cmdToMask.length()];
-		Arrays.fill(maskedArray, "*");
-		final StringBuilder stringBuilder = new StringBuilder();
-		for (final String current : maskedArray) {
-			stringBuilder.append(current);
-		}
-		final String maskedCmd = stringBuilder.toString();
+            if (outputString.contains("Finished in") && outputString.contains("with status SUCCESS")) {
+                return Result.SUCCESS;
+            } else {
+                return Result.FAILURE;
+            }
+        } catch (final MalformedURLException e) {
+            throw new HubIntegrationException("The server URL provided was not a valid", e);
+        } catch (final IOException e) {
+            throw new HubIntegrationException(e.getMessage(), e);
+        } catch (final InterruptedException e) {
+            throw new HubIntegrationException(e.getMessage(), e);
+        }
+    }
 
-		cmd.remove(indexToMask);
-		cmd.add(indexToMask, maskedCmd);
-	}
+    private void maskIndex(final List<String> cmd, final int indexToMask) {
+        final String cmdToMask = cmd.get(indexToMask);
+        final String[] maskedArray = new String[cmdToMask.length()];
+        Arrays.fill(maskedArray, "*");
+        final StringBuilder stringBuilder = new StringBuilder();
+        for (final String current : maskedArray) {
+            stringBuilder.append(current);
+        }
+        final String maskedCmd = stringBuilder.toString();
 
-	private String readStream(final InputStream stream) throws IOException {
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-		final StringBuilder stringBuilder = new StringBuilder();
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			stringBuilder.append(line + System.lineSeparator());
-		}
-		return stringBuilder.toString();
-	}
+        cmd.remove(indexToMask);
+        cmd.add(indexToMask, maskedCmd);
+    }
+
+    private String readStream(final InputStream stream) throws IOException {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        final StringBuilder stringBuilder = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line + System.lineSeparator());
+        }
+        return stringBuilder.toString();
+    }
 
 }

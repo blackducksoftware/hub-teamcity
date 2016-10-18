@@ -33,122 +33,127 @@ import jetbrains.buildServer.agent.ToolCannotBeFoundException;
 import jetbrains.buildServer.parameters.ValueResolver;
 
 public class TestBuildRunnerContext implements BuildRunnerContext {
-	private Map<String, String> runnerParameters = null;
-	private File workingDirectory;
-	private Map<String, String> environmentParameters = null;
-	private Map<String, String> configParameters = null;
-	private Map<String, String> systemParameters = null;
-	private AgentRunningBuild build;
+    private Map<String, String> runnerParameters = null;
 
-	public void setWorkingDirectory(final File workingDirectory) {
-		this.workingDirectory = workingDirectory;
-	}
+    private File workingDirectory;
 
-	public TestBuildRunnerContext() {
-		runnerParameters = new HashMap<String, String>();
-		environmentParameters = new HashMap<String, String>();
-		configParameters = new HashMap<String, String>();
-		systemParameters = new HashMap<String, String>();
-	}
+    private Map<String, String> environmentParameters = null;
 
-	@Override
-	public File getWorkingDirectory() {
-		return workingDirectory;
-	}
+    private Map<String, String> configParameters = null;
 
-	@Override
-	public void addRunnerParameter(final String key, final String value) {
-		runnerParameters.put(key, value);
-	}
+    private Map<String, String> systemParameters = null;
 
-	public void removeRunnerParameter(final String key) {
-		runnerParameters.remove(key);
-	}
+    private AgentRunningBuild build;
 
-	public String getRunnerParameter(final String key) {
-		return runnerParameters.get(key);
-	}
+    public void setWorkingDirectory(final File workingDirectory) {
+        this.workingDirectory = workingDirectory;
+    }
 
-	@Override
-	public Map<String, String> getRunnerParameters() {
-		return runnerParameters;
-	}
+    public TestBuildRunnerContext() {
+        runnerParameters = new HashMap<String, String>();
+        environmentParameters = new HashMap<String, String>();
+        configParameters = new HashMap<String, String>();
+        systemParameters = new HashMap<String, String>();
+    }
 
-	@Override
-	public void addConfigParameter(final String key, final String value) {
-		configParameters.put(key, value);
-	}
+    @Override
+    public File getWorkingDirectory() {
+        return workingDirectory;
+    }
 
-	@Override
-	public void addEnvironmentVariable(final String key, final String value) {
-		environmentParameters.put(key, value);
-	}
+    @Override
+    public void addRunnerParameter(final String key, final String value) {
+        runnerParameters.put(key, value);
+    }
 
-	@Override
-	public void addSystemProperty(final String key, final String value) {
-		systemParameters.put(key, value);
-	}
+    public void removeRunnerParameter(final String key) {
+        runnerParameters.remove(key);
+    }
 
-	@Override
-	public AgentRunningBuild getBuild() {
-		return build;
-	}
+    public String getRunnerParameter(final String key) {
+        return runnerParameters.get(key);
+    }
 
-	public void setBuild(final AgentRunningBuild build) {
-		this.build = build;
-	}
+    @Override
+    public Map<String, String> getRunnerParameters() {
+        return runnerParameters;
+    }
 
-	@Override
-	public BuildParametersMap getBuildParameters() {
-		final BuildParametersMap buildParameterMap = new BuildParametersMap() {
-			@Override
-			public Map<String, String> getAllParameters() {
-				// TODO Auto-generated function stub
-				return null;
-			}
+    @Override
+    public void addConfigParameter(final String key, final String value) {
+        configParameters.put(key, value);
+    }
 
-			@Override
-			public Map<String, String> getEnvironmentVariables() {
-				return environmentParameters;
-			}
+    @Override
+    public void addEnvironmentVariable(final String key, final String value) {
+        environmentParameters.put(key, value);
+    }
 
-			@Override
-			public Map<String, String> getSystemProperties() {
-				return systemParameters;
-			}
-		};
+    @Override
+    public void addSystemProperty(final String key, final String value) {
+        systemParameters.put(key, value);
+    }
 
-		return buildParameterMap;
-	}
+    @Override
+    public AgentRunningBuild getBuild() {
+        return build;
+    }
 
-	@Override
-	public Map<String, String> getConfigParameters() {
-		return configParameters;
-	}
+    public void setBuild(final AgentRunningBuild build) {
+        this.build = build;
+    }
 
-	@Override
-	public String getName() {
-		return null;
-	}
+    @Override
+    public BuildParametersMap getBuildParameters() {
+        final BuildParametersMap buildParameterMap = new BuildParametersMap() {
+            @Override
+            public Map<String, String> getAllParameters() {
+                // TODO Auto-generated function stub
+                return null;
+            }
 
-	@Override
-	public ValueResolver getParametersResolver() {
-		return null;
-	}
+            @Override
+            public Map<String, String> getEnvironmentVariables() {
+                return environmentParameters;
+            }
 
-	@Override
-	public String getRunType() {
-		return null;
-	}
+            @Override
+            public Map<String, String> getSystemProperties() {
+                return systemParameters;
+            }
+        };
 
-	@Override
-	public String getToolPath(final String arg0) throws ToolCannotBeFoundException {
-		return null;
-	}
+        return buildParameterMap;
+    }
 
-	@Override
-	public boolean parametersHaveReferencesTo(final Collection<String> arg0) {
-		return false;
-	}
+    @Override
+    public Map<String, String> getConfigParameters() {
+        return configParameters;
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public ValueResolver getParametersResolver() {
+        return null;
+    }
+
+    @Override
+    public String getRunType() {
+        return null;
+    }
+
+    @Override
+    public String getToolPath(final String arg0) throws ToolCannotBeFoundException {
+        return null;
+    }
+
+    @Override
+    public boolean parametersHaveReferencesTo(final Collection<String> arg0) {
+        return false;
+    }
 
 }

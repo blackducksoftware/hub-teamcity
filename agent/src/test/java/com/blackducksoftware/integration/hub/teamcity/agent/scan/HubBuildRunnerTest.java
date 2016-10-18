@@ -22,28 +22,28 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 public class HubBuildRunnerTest {
-	// @Test
-	// public void testConstructor() {
-	// assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
-	// }
-	//
-	// @Test
-	// public void testCreateBuildProcess() throws Exception {
-	// final HubBuildRunner runner = new HubBuildRunner(new
-	// TestArtifactsWatcher());
-	// assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new
-	// TestBuildRunnerContext()));
-	// }
-	//
-	// @Test
-	// public void testGetRunnerInfo() {
-	// final HubBuildRunner runner = new HubBuildRunner(new
-	// TestArtifactsWatcher());
-	// final AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
-	//
-	// assertTrue(runnerInfo.canRun(null));
-	//
-	// assertEquals(HubBundle.RUNNER_TYPE, runnerInfo.getType());
-	// }
+    // @Test
+    // public void testConstructor() {
+    // assertNotNull(new HubBuildRunner(new TestArtifactsWatcher()));
+    // }
+    //
+    // @Test
+    // public void testCreateBuildProcess() throws Exception {
+    // final HubBuildRunner runner = new HubBuildRunner(new
+    // TestArtifactsWatcher());
+    // assertNotNull(runner.createBuildProcess(new TestAgentRunningBuild(), new
+    // TestBuildRunnerContext()));
+    // }
+    //
+    // @Test
+    // public void testGetRunnerInfo() {
+    // final HubBuildRunner runner = new HubBuildRunner(new
+    // TestArtifactsWatcher());
+    // final AgentBuildRunnerInfo runnerInfo = runner.getRunnerInfo();
+    //
+    // assertTrue(runnerInfo.canRun(null));
+    //
+    // assertEquals(HubBundle.RUNNER_TYPE, runnerInfo.getType());
+    // }
 
 }

@@ -31,26 +31,27 @@ import jetbrains.buildServer.serverSide.ServerPaths;
 import jetbrains.buildServer.util.EventDispatcher;
 
 public class HubServerListener extends BuildServerAdapter {
-	private final SBuildServer server;
-	private final ServerHubConfigPersistenceManager configPersistenceManager;
+    private final SBuildServer server;
 
-	public HubServerListener(@NotNull final EventDispatcher<BuildServerListener> dispatcher,
-			@NotNull final SBuildServer server, @NotNull final ServerPaths serverPaths) {
-		this.server = server;
+    private final ServerHubConfigPersistenceManager configPersistenceManager;
 
-		dispatcher.addListener(this);
+    public HubServerListener(@NotNull final EventDispatcher<BuildServerListener> dispatcher,
+            @NotNull final SBuildServer server, @NotNull final ServerPaths serverPaths) {
+        this.server = server;
 
-		configPersistenceManager = new ServerHubConfigPersistenceManager(serverPaths);
-	}
+        dispatcher.addListener(this);
 
-	@Override
-	public void serverStartup() {
-		Loggers.SERVER.info("The Black Duck Software Hub Plugin is running on server version '"
-				+ server.getFullServerVersion() + "'.");
-	}
+        configPersistenceManager = new ServerHubConfigPersistenceManager(serverPaths);
+    }
 
-	public ServerHubConfigPersistenceManager getConfigManager() {
-		return configPersistenceManager;
-	}
+    @Override
+    public void serverStartup() {
+        Loggers.SERVER.info("The Black Duck Software Hub Plugin is running on server version '"
+                + server.getFullServerVersion() + "'.");
+    }
+
+    public ServerHubConfigPersistenceManager getConfigManager() {
+        return configPersistenceManager;
+    }
 
 }

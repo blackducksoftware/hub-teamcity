@@ -22,21 +22,21 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.exceptions;
 
 public class TeamCityHubPluginException extends Exception {
-	private static final long serialVersionUID = -1471078296882978823L;
+    private static final long serialVersionUID = -1471078296882978823L;
 
-	public TeamCityHubPluginException() {
-	}
+    public TeamCityHubPluginException() {
+    }
 
-	public TeamCityHubPluginException(final String message) {
-		super(message);
-	}
+    public TeamCityHubPluginException(final String message) {
+        super(message);
+    }
 
-	public TeamCityHubPluginException(final Throwable cause) {
-		super(cause);
-	}
+    public TeamCityHubPluginException(final Throwable cause) {
+        super(cause);
+    }
 
-	public TeamCityHubPluginException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
+    public TeamCityHubPluginException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 
 }
