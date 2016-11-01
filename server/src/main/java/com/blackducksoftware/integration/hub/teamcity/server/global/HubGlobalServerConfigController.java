@@ -151,7 +151,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             configPersistenceManager.getConfiguredServer().setHubTimeout(Integer.valueOf(hubConnectionTimeout));
             HubProxyInfo proxyInfo = null;
             if (config.getProxyInfo() != null && StringUtils.isNotBlank(config.getProxyInfo().getHost())) {
-                proxyInfo = new HubProxyInfo(config.getProxyInfo().getHost(), config.getProxyInfo().getPort(),
+                proxyInfo = new HubProxyInfo(config.getProxyInfo().getHost(), Integer.toString(config.getProxyInfo().getPort()),
                         config.getProxyInfo().getIgnoredProxyHosts(), config.getProxyInfo().getUsername(),
                         config.getProxyInfo().getDecryptedPassword());
             } else {

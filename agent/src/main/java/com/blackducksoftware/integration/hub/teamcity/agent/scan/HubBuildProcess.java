@@ -173,7 +173,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         originalProxyInfo.setHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
         if (getParameter(HubConstantValues.HUB_PROXY_PORT) != null) {
-            originalProxyInfo.setPort(Integer.valueOf(getParameter(HubConstantValues.HUB_PROXY_PORT)));
+            originalProxyInfo.setPort(getParameter(HubConstantValues.HUB_PROXY_PORT));
         }
         originalProxyInfo.setIgnoredProxyHosts(getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS));
         originalProxyInfo.setProxyUsername(getParameter(HubConstantValues.HUB_PROXY_USER));
@@ -185,9 +185,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         configBuilder.setUsername(credential.getHubUser());
         configBuilder.setPassword(credential.getDecryptedPassword());
         configBuilder.setProxyHost(originalProxyInfo.getHost());
-        if (originalProxyInfo.getPort() != null) {
-            configBuilder.setProxyPort(originalProxyInfo.getPort());
-        }
+        configBuilder.setProxyPort(originalProxyInfo.getPort());
         configBuilder.setIgnoredProxyHosts(originalProxyInfo.getIgnoredProxyHosts());
         configBuilder.setProxyUsername(originalProxyInfo.getProxyUsername());
         configBuilder.setProxyPassword(originalProxyInfo.getProxyPassword());
