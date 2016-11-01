@@ -37,7 +37,7 @@ public class HubProxyInfo implements Serializable {
 
     private String host = "";
 
-    private Integer port = null;
+    private String port;
 
     private String proxyUsername = "";
 
@@ -48,7 +48,7 @@ public class HubProxyInfo implements Serializable {
     public HubProxyInfo() {
     }
 
-    public HubProxyInfo(final String host, final Integer port, final List<Pattern> noProxyHostsPatterns,
+    public HubProxyInfo(final String host, final String port, final List<Pattern> noProxyHostsPatterns,
             final String proxyUsername, final String proxyPassword) {
         this.host = host;
         this.port = port;
@@ -70,7 +70,7 @@ public class HubProxyInfo implements Serializable {
         this.proxyPassword = proxyPassword;
     }
 
-    public HubProxyInfo(final String host, final Integer port, final String noProxyHosts, final String proxyUsername,
+    public HubProxyInfo(final String host, final String port, final String noProxyHosts, final String proxyUsername,
             final String proxyPassword) {
         this.host = host;
         this.port = port;
@@ -98,11 +98,11 @@ public class HubProxyInfo implements Serializable {
         this.host = host;
     }
 
-    public Integer getPort() {
+    public String getPort() {
         return port;
     }
 
-    public void setPort(final Integer port) {
+    public void setPort(final String port) {
         this.port = port;
     }
 
@@ -131,7 +131,7 @@ public class HubProxyInfo implements Serializable {
     }
 
     public List<Pattern> getNoProxyHostPatterns() {
-        final List<Pattern> noProxyHostsPatterns = new ArrayList<Pattern>();
+        final List<Pattern> noProxyHostsPatterns = new ArrayList<>();
         if (StringUtils.isNotBlank(ignoredProxyHosts)) {
             String[] ignoreHosts = null;
             if (StringUtils.isNotBlank(ignoredProxyHosts)) {
@@ -195,60 +195,33 @@ public class HubProxyInfo implements Serializable {
         int result = 1;
         result = prime * result + ((host == null) ? 0 : host.hashCode());
         result = prime * result + ((ignoredProxyHosts == null) ? 0 : ignoredProxyHosts.hashCode());
-        result = prime * result + ((port == null) ? 0 : port);
+        result = prime * result + ((port == null) ? 0 : port.hashCode());
         result = prime * result + ((proxyPassword == null) ? 0 : proxyPassword.hashCode());
         result = prime * result + ((proxyUsername == null) ? 0 : proxyUsername.hashCode());
         return result;
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final HubProxyInfo other = (HubProxyInfo) obj;
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        HubProxyInfo other = (HubProxyInfo) obj;
         if (host == null) {
-            if (other.host != null) {
-                return false;
-            }
-        } else if (!host.equals(other.host)) {
-            return false;
-        }
+            if (other.host != null) return false;
+        } else if (!host.equals(other.host)) return false;
         if (ignoredProxyHosts == null) {
-            if (other.ignoredProxyHosts != null) {
-                return false;
-            }
-        } else if (!ignoredProxyHosts.equals(other.ignoredProxyHosts)) {
-            return false;
-        }
+            if (other.ignoredProxyHosts != null) return false;
+        } else if (!ignoredProxyHosts.equals(other.ignoredProxyHosts)) return false;
         if (port == null) {
-            if (other.port != null) {
-                return false;
-            }
-        } else if (!port.equals(other.port)) {
-            return false;
-        }
-
+            if (other.port != null) return false;
+        } else if (!port.equals(other.port)) return false;
         if (proxyPassword == null) {
-            if (other.proxyPassword != null) {
-                return false;
-            }
-        } else if (!proxyPassword.equals(other.proxyPassword)) {
-            return false;
-        }
+            if (other.proxyPassword != null) return false;
+        } else if (!proxyPassword.equals(other.proxyPassword)) return false;
         if (proxyUsername == null) {
-            if (other.proxyUsername != null) {
-                return false;
-            }
-        } else if (!proxyUsername.equals(other.proxyUsername)) {
-            return false;
-        }
+            if (other.proxyUsername != null) return false;
+        } else if (!proxyUsername.equals(other.proxyUsername)) return false;
         return true;
     }
 

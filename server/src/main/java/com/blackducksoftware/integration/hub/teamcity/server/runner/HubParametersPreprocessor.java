@@ -84,7 +84,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
                         StringUtils.trimToEmpty(proxyInfo.getIgnoredProxyHosts()));
             }
 
-            if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != null) {
+            if (StringUtils.isNotBlank(proxyInfo.getHost()) && StringUtils.isNotBlank(proxyInfo.getPort())) {
                 if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
                     runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyInfo.getHost()));
                 }
