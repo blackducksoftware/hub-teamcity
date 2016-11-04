@@ -23,7 +23,6 @@ package com.blackducksoftware.integration.hub.teamcity.server.global;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -39,21 +38,15 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.builder.ValidationResults;
-import com.blackducksoftware.integration.encryption.PasswordEncrypter;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.exception.BDRestException;
-import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
+import com.blackducksoftware.integration.hub.global.HubCredentials;
 import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubProxyInfoFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.global.HubServerConfigFieldEnum;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
-import com.blackducksoftware.integration.hub.rest.RestConnection;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.ServerHubConfigBean;
 
 import jetbrains.buildServer.controllers.ActionErrors;
 import jetbrains.buildServer.controllers.BaseFormXmlController;
@@ -116,7 +109,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
     public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
             EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        final HubCredentialsBean credentials = getCredentialsFromRequest(request, "hubUser");
+        final HubCredentials credentials = getCredentialsFromRequest(request, "hubUser");
 
         final String url = request.getParameter("hubUrl");
         final String proxyServer = request.getParameter("hubProxyServer");
@@ -128,7 +121,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
         final HubServerConfigBuilder builder = new HubServerConfigBuilder();
         builder.setHubUrl(url);
-        builder.setUsername(credentials.getHubUser());
+        builder.setUsername(credentials.getUsername());
         builder.setPassword(credentials.getDecryptedPassword());
         builder.setProxyHost(proxyServer);
         builder.setProxyPort(proxyPort);
@@ -138,28 +131,14 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
         String proxyPass = getDecryptedWebPassword(encProxyPassword);
         if (StringUtils.isBlank(proxyPass)) {
-            proxyPass = configPersistenceManager.getConfiguredServer().getProxyInfo().getProxyPassword();
+            proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
         }
         builder.setProxyPassword(proxyPass);
 
         final ValidationResults<GlobalFieldKey, HubServerConfig> results = builder.buildResults();
-
         if (results.isSuccess()) {
             final HubServerConfig config = results.getConstructedObject();
-            configPersistenceManager.getConfiguredServer().setGlobalCredentials(credentials);
-            configPersistenceManager.getConfiguredServer().setHubUrl(url);
-            configPersistenceManager.getConfiguredServer().setHubTimeout(Integer.valueOf(hubConnectionTimeout));
-            HubProxyInfo proxyInfo = null;
-            if (config.getProxyInfo() != null && StringUtils.isNotBlank(config.getProxyInfo().getHost())) {
-                proxyInfo = new HubProxyInfo(config.getProxyInfo().getHost(), Integer.toString(config.getProxyInfo().getPort()),
-                        config.getProxyInfo().getIgnoredProxyHosts(), config.getProxyInfo().getUsername(),
-                        config.getProxyInfo().getDecryptedPassword());
-            } else {
-                proxyInfo = new HubProxyInfo();
-            }
-            // Need to add this here to make sure the proxy settings are used in
-            // the checkUrl
-            configPersistenceManager.getConfiguredServer().setProxyInfo(proxyInfo);
+            configPersistenceManager.setHubServerConfig(config);
         } else {
             checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
             checkForErrors(HubServerConfigFieldEnum.HUBTIMEOUT, "errorTimeout", results, errors);
@@ -190,28 +169,15 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             IllegalAccessException, InvocationTargetException {
         final ActionErrors errors = new ActionErrors();
         checkInput(request, errors);
-        final ServerHubConfigBean serverConfig = configPersistenceManager.getConfiguredServer();
-        final HubProxyInfo proxyInfo = configPersistenceManager.getConfiguredServer().getProxyInfo();
+        final HubServerConfig hubServerConfig = configPersistenceManager.getHubServerConfig();
 
         if (errors.hasNoErrors()) {
             final HubServerLogger serverLogger = new HubServerLogger();
             try {
-                serverLogger.info("Validating the credentials for the Server : " + serverConfig.getHubUrl());
-
-                final RestConnection restConnection = getRestConnection(serverConfig, proxyInfo, true);
-
-                final int responseCode = restConnection.setCookies(serverConfig.getGlobalCredentials().getHubUser(),
-                        serverConfig.getGlobalCredentials().getDecryptedPassword());
-
-                if (responseCode == 401) {
-                    // If User is Not Authorized, 401 error, an exception should
-                    // be thrown by the ClientResource
-                    errors.addError("errorConnection", "The provided credentials are not valid for the Hub server '"
-                            + serverConfig.getHubUrl() + "'");
-                } else if (responseCode != 200 && responseCode != 204 && responseCode != 202) {
-                    errors.addError("errorConnection", "Connection failed to the Hub server '"
-                            + serverConfig.getHubUrl() + "'. With response code " + responseCode);
-                }
+                // if you can construct a CredentialsRestConnection, it calls setCookies and connects to the hub,
+                // throwing an Exception if things go wrong
+                serverLogger.info("Validating the credentials for the Server : " + hubServerConfig.getHubUrl());
+                new CredentialsRestConnection(hubServerConfig);
             } catch (final Exception e) {
                 serverLogger.error(e);
                 errors.addError("errorConnection", e.toString());
@@ -220,31 +186,28 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         return errors;
     }
 
-    public HubCredentialsBean getCredentialsFromRequest(final HttpServletRequest request, final String usernameKey)
+    public HubCredentials getCredentialsFromRequest(final HttpServletRequest request, final String usernameKey)
             throws IllegalArgumentException, EncryptionException {
-        final HubCredentialsBean credentialsBean = new HubCredentialsBean(request.getParameter(usernameKey));
+        String username = request.getParameter(usernameKey);
         String password = "";
         password = request.getParameter("encryptedHubPass");
 
+        HubCredentials hubCredentials = null;
         if (StringUtils.isNotBlank(getDecryptedWebPassword(password))) {
             // Do not change the saved password unless the User has provided a
             // new one
             final String decryptedWebPassword = getDecryptedWebPassword(password);
             if (StringUtils.isNotBlank(decryptedWebPassword)) {
-                credentialsBean.setEncryptedPassword(PasswordEncrypter.encrypt(decryptedWebPassword));
-                credentialsBean.setActualPasswordLength(decryptedWebPassword.length());
+                hubCredentials = new HubCredentials(username, decryptedWebPassword);
             }
         } else {
-            if (configPersistenceManager.getConfiguredServer().getGlobalCredentials() != null) {
-                credentialsBean.setEncryptedPassword(
-                        configPersistenceManager.getConfiguredServer().getGlobalCredentials().getEncryptedPassword());
-
-                credentialsBean.setActualPasswordLength(configPersistenceManager.getConfiguredServer()
-                        .getGlobalCredentials().getActualPasswordLength());
+            if (configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
+                String decryptedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
+                hubCredentials = new HubCredentials(username, decryptedPassword);
             }
         }
 
-        return credentialsBean;
+        return hubCredentials;
     }
 
     private String getDecryptedWebPassword(final String webEncryptedPass)
@@ -281,31 +244,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         }
         final String savingParamValue = request.getParameter("saving");
         return Boolean.valueOf(savingParamValue);
-    }
-
-    private RestConnection getRestConnection(final ServerHubConfigBean serverConfig, final HubProxyInfo proxyInfo,
-            final boolean isTestConnection) throws HubIntegrationException, URISyntaxException, IOException,
-            NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-            BDRestException, EncryptionException {
-        if (serverConfig == null) {
-            return null;
-        }
-        HubServerConfigBuilder hubServerConfigBuilder = new HubServerConfigBuilder();
-        hubServerConfigBuilder.setHubUrl(serverConfig.getHubUrl());
-        hubServerConfigBuilder.setTimeout(serverConfig.getHubTimeout());
-        hubServerConfigBuilder.setUsername(serverConfig.getGlobalCredentials().getHubUser());
-        hubServerConfigBuilder.setPassword(serverConfig.getGlobalCredentials().getDecryptedPassword());
-
-        if (proxyInfo != null) {
-            hubServerConfigBuilder.setProxyHost(proxyInfo.getHost());
-            hubServerConfigBuilder.setProxyPort(proxyInfo.getPort());
-            hubServerConfigBuilder.setProxyUsername(proxyInfo.getProxyUsername());
-            hubServerConfigBuilder.setProxyPassword(proxyInfo.getProxyPassword());
-            hubServerConfigBuilder.setIgnoredProxyHosts(proxyInfo.getIgnoredProxyHosts());
-        }
-
-        HubServerConfig hubServerConfig = hubServerConfigBuilder.build();
-        return new CredentialsRestConnection(hubServerConfig);
     }
 
 }

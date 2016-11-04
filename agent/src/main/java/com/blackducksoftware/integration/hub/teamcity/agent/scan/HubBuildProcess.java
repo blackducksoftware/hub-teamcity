@@ -81,7 +81,6 @@ import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.phone.home.PhoneHomeClient;
@@ -166,32 +165,28 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
         // read the credentials and proxy info using the existing objects.
-        final HubCredentialsBean credential = new HubCredentialsBean(getParameter(HubConstantValues.HUB_USERNAME),
-                getParameter(HubConstantValues.HUB_PASSWORD));
-
-        final com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo originalProxyInfo = new com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo();
-
-        originalProxyInfo.setHost(getParameter(HubConstantValues.HUB_PROXY_HOST));
-        if (getParameter(HubConstantValues.HUB_PROXY_PORT) != null) {
-            originalProxyInfo.setPort(getParameter(HubConstantValues.HUB_PROXY_PORT));
-        }
-        originalProxyInfo.setIgnoredProxyHosts(getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS));
-        originalProxyInfo.setProxyUsername(getParameter(HubConstantValues.HUB_PROXY_USER));
-        originalProxyInfo.setProxyPassword(getParameter(HubConstantValues.HUB_PROXY_PASS));
-
         final String serverUrl = getParameter(HubConstantValues.HUB_URL);
         final String timeout = getParameter(HubConstantValues.HUB_CONNECTION_TIMEOUT);
-        configBuilder.setHubUrl(serverUrl);
-        configBuilder.setUsername(credential.getHubUser());
-        configBuilder.setPassword(credential.getDecryptedPassword());
-        configBuilder.setProxyHost(originalProxyInfo.getHost());
-        configBuilder.setProxyPort(originalProxyInfo.getPort());
-        configBuilder.setIgnoredProxyHosts(originalProxyInfo.getIgnoredProxyHosts());
-        configBuilder.setProxyUsername(originalProxyInfo.getProxyUsername());
-        configBuilder.setProxyPassword(originalProxyInfo.getProxyPassword());
-        configBuilder.setTimeout(timeout);
-        final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.buildResults();
+        String username = getParameter(HubConstantValues.HUB_USERNAME);
+        String password = getParameter(HubConstantValues.HUB_PASSWORD);
 
+        String proxyHost = getParameter(HubConstantValues.HUB_PROXY_HOST);
+        String proxyPort = getParameter(HubConstantValues.HUB_PROXY_PORT);
+        String ignoredProxyHosts = getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS);
+        String proxyUsername = getParameter(HubConstantValues.HUB_PROXY_USER);
+        String proxyPassword = getParameter(HubConstantValues.HUB_PROXY_PASS);
+
+        configBuilder.setHubUrl(serverUrl);
+        configBuilder.setUsername(username);
+        configBuilder.setPassword(password);
+        configBuilder.setTimeout(timeout);
+        configBuilder.setProxyHost(proxyHost);
+        configBuilder.setProxyPort(proxyPort);
+        configBuilder.setIgnoredProxyHosts(ignoredProxyHosts);
+        configBuilder.setProxyUsername(proxyUsername);
+        configBuilder.setProxyPassword(proxyPassword);
+
+        final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.buildResults();
         if (builderResults.hasErrors()) {
             logger.error(builderResults.getAllResultString(ValidationResultEnum.ERROR));
         }

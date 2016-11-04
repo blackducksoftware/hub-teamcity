@@ -30,9 +30,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubProxyInfo;
 import com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener;
 import com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager;
 
@@ -55,52 +54,49 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
             @NotNull final Map<String, String> runParameters, @NotNull final Map<String, String> buildParameters) {
         log = build.getBuildLog();
 
-        // This condition checks that the Protex Build step has been added to
-        // this Build
         if (isHubBuildStepConfigured(runParameters)) {
             handleLog("Hub Plugin enabled.", null);
 
-            final HubCredentialsBean credentials = serverPeristanceManager.getConfiguredServer().getGlobalCredentials();
-            final HubProxyInfo proxyInfo = serverPeristanceManager.getConfiguredServer().getProxyInfo();
-
+            HubServerConfig hubServerConfig = serverPeristanceManager.getHubServerConfig();
             if (!runParameters.containsKey(HubConstantValues.HUB_URL)) {
                 runParameters.put(HubConstantValues.HUB_URL,
-                        StringUtils.trimToEmpty(serverPeristanceManager.getConfiguredServer().getHubUrl()));
+                        StringUtils.trimToEmpty(hubServerConfig.getHubUrl().toString()));
             }
             if (!runParameters.containsKey(HubConstantValues.HUB_USERNAME)) {
-                runParameters.put(HubConstantValues.HUB_USERNAME, StringUtils.trimToEmpty(credentials.getHubUser()));
+                runParameters.put(HubConstantValues.HUB_USERNAME, StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getUsername()));
             }
             if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD)) {
                 runParameters.put(HubConstantValues.HUB_PASSWORD,
-                        StringUtils.trimToEmpty(credentials.getEncryptedPassword()));
+                        StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getEncryptedPassword()));
             }
             if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
                 runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
-                        String.valueOf(serverPeristanceManager.getConfiguredServer().getHubTimeout()));
+                        String.valueOf(hubServerConfig.getTimeout()));
             }
-            if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS)
-                    && StringUtils.isNotBlank(proxyInfo.getIgnoredProxyHosts())) {
-                runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS,
-                        StringUtils.trimToEmpty(proxyInfo.getIgnoredProxyHosts()));
+            String ignoredProxyHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
+            if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS) && StringUtils.isNotBlank(ignoredProxyHosts)) {
+                runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, StringUtils.trimToEmpty(ignoredProxyHosts));
             }
 
-            if (StringUtils.isNotBlank(proxyInfo.getHost()) && StringUtils.isNotBlank(proxyInfo.getPort())) {
+            String proxyHost = hubServerConfig.getProxyInfo().getHost();
+            int proxyPort = hubServerConfig.getProxyInfo().getPort();
+            String proxyUsername = hubServerConfig.getProxyInfo().getUsername();
+            String proxyPassword = hubServerConfig.getProxyInfo().getEncryptedPassword();
+            if (StringUtils.isNotBlank(proxyHost) && proxyPort > 0) {
                 if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyInfo.getHost()));
-                }
-                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyInfo.getPort()));
+                    runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyHost));
                 }
 
-                if (StringUtils.isNotBlank(proxyInfo.getProxyUsername())
-                        && StringUtils.isNotBlank(proxyInfo.getProxyPassword())) {
+                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
+                    runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyPort));
+                }
+
+                if (StringUtils.isNotBlank(proxyUsername) && StringUtils.isNotBlank(proxyPassword)) {
                     if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_USER)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_USER,
-                                StringUtils.trimToEmpty(proxyInfo.getProxyUsername()));
+                        runParameters.put(HubConstantValues.HUB_PROXY_USER, StringUtils.trimToEmpty(proxyUsername));
                     }
                     if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_PASS,
-                                StringUtils.trimToEmpty(proxyInfo.getProxyPassword()));
+                        runParameters.put(HubConstantValues.HUB_PROXY_PASS, StringUtils.trimToEmpty(proxyPassword));
                     }
                 }
             }

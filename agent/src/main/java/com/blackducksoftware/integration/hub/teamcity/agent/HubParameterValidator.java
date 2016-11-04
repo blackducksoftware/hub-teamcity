@@ -26,7 +26,7 @@ import java.net.URL;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
+import com.blackducksoftware.integration.hub.global.HubCredentials;
 
 public class HubParameterValidator {
     private final HubAgentBuildLogger logger;
@@ -51,13 +51,13 @@ public class HubParameterValidator {
         return validUrl;
     }
 
-    public boolean isHubCredentialConfigured(final HubCredentialsBean credential) {
+    public boolean isHubCredentialConfigured(final HubCredentials credential) {
         boolean validCredential = true;
         if (credential == null) {
             logger.error("There are no credentials configured.");
             validCredential = false;
         } else {
-            if (StringUtils.isBlank(credential.getHubUser())) {
+            if (StringUtils.isBlank(credential.getUsername())) {
                 logger.error("There is no Hub username specified");
                 validCredential = false;
             }
