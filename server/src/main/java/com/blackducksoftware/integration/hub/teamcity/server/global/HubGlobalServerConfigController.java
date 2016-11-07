@@ -101,7 +101,6 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             try {
                 configPersistenceManager.persist();
             } catch (final Exception e) {
-                Loggers.SERVER.error("Error saving Hub configuration", e);
                 errors.addError("errorSaving", e.toString());
             }
         }
@@ -120,9 +119,11 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         final String hubConnectionTimeout = request.getParameter("hubTimeout");
 
         final HubServerConfigBuilder builder = new HubServerConfigBuilder();
+        if (credentials != null) {
+            builder.setUsername(credentials.getUsername());
+            builder.setPassword(credentials.getDecryptedPassword());
+        }
         builder.setHubUrl(url);
-        builder.setUsername(credentials.getUsername());
-        builder.setPassword(credentials.getDecryptedPassword());
         builder.setProxyHost(proxyServer);
         builder.setProxyPort(proxyPort);
         builder.setIgnoredProxyHosts(noProxyHosts);
@@ -130,7 +131,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         builder.setTimeout(hubConnectionTimeout);
 
         String proxyPass = getDecryptedWebPassword(encProxyPassword);
-        if (StringUtils.isBlank(proxyPass)) {
+        if (StringUtils.isBlank(proxyPass) && configPersistenceManager.getHubServerConfig() != null
+                && configPersistenceManager.getHubServerConfig().getProxyInfo() != null) {
             proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
         }
         builder.setProxyPassword(proxyPass);
@@ -201,7 +203,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
                 hubCredentials = new HubCredentials(username, decryptedWebPassword);
             }
         } else {
-            if (configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
+            if (configPersistenceManager.getHubServerConfig() != null && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
                 String decryptedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
                 hubCredentials = new HubCredentials(username, decryptedPassword);
             }

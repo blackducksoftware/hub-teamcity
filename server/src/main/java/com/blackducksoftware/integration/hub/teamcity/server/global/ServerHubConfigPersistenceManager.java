@@ -21,17 +21,15 @@
  *******************************************************************************/
 package com.blackducksoftware.integration.hub.teamcity.server.global;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
@@ -72,30 +70,28 @@ public class ServerHubConfigPersistenceManager {
 
     public void loadSettings() {
         if (configFile.exists()) {
-            synchronized (this) {
-                try (InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(configFile), "UTF8")) {
-                    hubServerConfig = gson.fromJson(inputStreamReader, HubServerConfig.class);
-                } catch (final IOException e) {
-                    Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
-                }
+            try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
+                hubServerConfig = gson.fromJson(reader, HubServerConfig.class);
+            } catch (final IOException e) {
+                Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
             }
         }
     }
 
     public void persist() throws IOException {
-        try (OutputStream outputStream = new FileOutputStream(configFile)) {
-            if (!configFile.getParentFile().exists() && configFile.getParentFile().mkdirs()) {
-                Loggers.SERVER.info("Directory created for the Hub configuration file at : "
-                        + configFile.getParentFile().getCanonicalPath());
-            } else if (configFile.exists() && configFile.delete()) {
-                Loggers.SERVER.info("Old Hub configuration file removed, to be replaced by a new configuration.");
-            }
+        if (!configFile.getParentFile().exists() && configFile.getParentFile().mkdirs()) {
+            Loggers.SERVER.info("Directory created for the Hub configuration file at : "
+                    + configFile.getParentFile().getCanonicalPath());
+        } else if (configFile.exists() && configFile.delete()) {
+            Loggers.SERVER.info("Old Hub configuration file removed, to be replaced by a new configuration.");
+        }
 
-            synchronized (this) {
-                String hubServerConfigJson = gson.toJson(hubServerConfig);
-                IOUtils.write(hubServerConfigJson, outputStream, "UTF8");
-            }
-        } catch (final FileNotFoundException e) {
+        configFile.createNewFile();
+
+        String hubServerConfigJson = gson.toJson(hubServerConfig);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
+            writer.write(hubServerConfigJson);
+        } catch (final IOException e) {
             Loggers.SERVER.error("Failed to save Hub config file: " + configFile, e);
         }
     }

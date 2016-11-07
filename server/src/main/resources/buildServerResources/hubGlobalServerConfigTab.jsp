@@ -1,8 +1,11 @@
 <%@ include file="/include.jsp" %>
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
+<link href="${teamcityBaseUrl}${teamcityPluginResourcesPath}font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
 <jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" scope="request" />
 <jsp:useBean id="teamcityBaseUrl" type="java.lang.String" scope="request"/>
+
 <bs:linkScript>
     /js/bs/testConnection.js
 </bs:linkScript>
@@ -113,15 +116,18 @@
             this.showCentered();
         },
         load: function() {
-            $('hubUrl').value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
-            $('hubUser').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
-            $('hubPass').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
-            $('hubTimeout').value = "${hubConfigPersistenceManager.configuredServer.getHubTimeout()}";
-            $('hubProxyServer').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
-            $('hubProxyPort').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
-            $('hubNoProxyHost').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
-            $('hubProxyUser').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
-            $('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
+            $('hubUrl').value = "${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}";
+            $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
+            $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
+            $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
+            $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
+            $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
+            if ($('hubProxyPort').value == 0) {
+                $('hubProxyPort').value = "";
+            }
+            $('hubNoProxyHost').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getIgnoredProxyHosts()}";
+            $('hubProxyUser').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}";
+            $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
         },
         save: function() {
             var that = this;
@@ -129,15 +135,18 @@
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?saving=true', OO.extend(BS.ErrorsAwareListener, {
                 load: function() {
-                    $('hubUrl').value = "${hubConfigPersistenceManager.configuredServer.getHubUrl()}";
-                    $('hubUser').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getHubUser()}";
-                    $('hubPass').value = "${hubConfigPersistenceManager.configuredServer.globalCredentials.getMaskedPassword()}";
-                    $('hubTimeout').value = "${hubConfigPersistenceManager.configuredServer.getHubTimeout()}";
-                    $('hubProxyServer').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getHost()}";
-                    $('hubProxyPort').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getPort()}";
-                    $('hubNoProxyHost').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getIgnoredProxyHosts()}";
-                    $('hubProxyUser').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyUsername()}";
-                    $('hubProxyPass').value = "${hubConfigPersistenceManager.configuredServer.getProxyInfo().getProxyPassword()}";
+                    $('hubUrl').value = "${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}";
+                    $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
+                    $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
+                    $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
+                    $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
+                    $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
+                    if ($('hubProxyPort').value == 0) {
+                        $('hubProxyPort').value = "";
+                    }
+                    $('hubNoProxyHost').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getIgnoredProxyHosts()}";
+                    $('hubProxyUser').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}";
+                    $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
                 },
                 errorUrl: function(elem) {
                     $('errorUrl').innerHTML = elem.firstChild.nodeValue;
@@ -354,7 +363,7 @@
         <div class="saveButtonsBlock" id="saveButtonsBlock">
             <input type="button" value="Save" id=saveButton class="btn btn_primary submitButton" onclick="Config.save();"></input>
             <input type="button" value="Test connection" class="btn btn_primary submitButton" id="testConnection" onclick="TestConnectionDialog.testConnection();"></input>
-            <img id="saving" style="display: none; " class="progressRing progressRingDefault" src="${teamcityBaseUrl}${teamcityPluginResourcesPath}img/ajax-loader.gif" width="16" height="16" alt="Please wait..." title="Please wait..." />
+            <i id="saving" style="display: none;" class="fa fa-spinner fa-spin fa-fw"></i>
             <input type="hidden" id="publicKey" name="publicKey" value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>" />
         </div>
     </form>

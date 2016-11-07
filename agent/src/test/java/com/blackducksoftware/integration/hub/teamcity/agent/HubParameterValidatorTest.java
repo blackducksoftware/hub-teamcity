@@ -109,17 +109,6 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testIsHubCredentialConfiguredEmptyCredentials() throws EncryptionException {
-        final HubParameterValidator validator = new HubParameterValidator(buildLogger);
-        assertTrue(!validator.isHubCredentialConfigured(new HubCredentials("", "")));
-
-        final String output = testLogger.getErrorMessagesString();
-
-        assertTrue(output, output.contains("There is no Hub username specified"));
-        assertTrue(output, output.contains("There is no Hub password specified."));
-    }
-
-    @Test
     public void testIsHubCredentialConfiguredValidCredentials() throws EncryptionException {
         final HubParameterValidator validator = new HubParameterValidator(buildLogger);
         final HubCredentials credential = new HubCredentials("user", "password");
