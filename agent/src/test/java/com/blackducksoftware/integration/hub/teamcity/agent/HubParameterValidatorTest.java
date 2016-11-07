@@ -30,8 +30,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.blackducksoftware.integration.exception.EncryptionException;
+import com.blackducksoftware.integration.hub.global.HubCredentials;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
-import com.blackducksoftware.integration.hub.teamcity.common.beans.HubCredentialsBean;
 
 public class HubParameterValidatorTest {
     private static String testWorkspace;
@@ -108,20 +109,9 @@ public class HubParameterValidatorTest {
     }
 
     @Test
-    public void testIsHubCredentialConfiguredEmptyCredentials() {
+    public void testIsHubCredentialConfiguredValidCredentials() throws EncryptionException {
         final HubParameterValidator validator = new HubParameterValidator(buildLogger);
-        assertTrue(!validator.isHubCredentialConfigured(new HubCredentialsBean("")));
-
-        final String output = testLogger.getErrorMessagesString();
-
-        assertTrue(output, output.contains("There is no Hub username specified"));
-        assertTrue(output, output.contains("There is no Hub password specified."));
-    }
-
-    @Test
-    public void testIsHubCredentialConfiguredValidCredentials() {
-        final HubParameterValidator validator = new HubParameterValidator(buildLogger);
-        final HubCredentialsBean credential = new HubCredentialsBean("user", "password");
+        final HubCredentials credential = new HubCredentials("user", "password");
         assertTrue(validator.isHubCredentialConfigured(credential));
         assertTrue(testLogger.getErrorMessages().size() == 0);
     }

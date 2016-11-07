@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.blackducksoftware.integration</groupId>
     <artifactId>hub-teamcity</artifactId>
-    <version>1.4.3-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>hub-teamcity-agent</artifactId>
@@ -37,10 +37,6 @@
     <dependency>
       <groupId>com.blackducksoftware.integration</groupId>
       <artifactId>hub-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.blackducksoftware.integration</groupId>
-      <artifactId>integration-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
