@@ -52,6 +52,8 @@ public final class HubConstantValues {
 
     public static final String HUB_PASSWORD = PLUGIN_PREFIX + "hubPass";
 
+    public static final String HUB_PASSWORD_LENGTH = PLUGIN_PREFIX + "hubPassLength";
+
     public static final String HUB_PROXY_HOST = PLUGIN_PREFIX + "hubProxyServer";
 
     public static final String HUB_PROXY_PORT = PLUGIN_PREFIX + "hubProxyPort";
@@ -61,6 +63,8 @@ public final class HubConstantValues {
     public static final String HUB_PROXY_USER = PLUGIN_PREFIX + "hubProxyUser";
 
     public static final String HUB_PROXY_PASS = PLUGIN_PREFIX + "hubProxyPass";
+
+    public static final String HUB_PROXY_PASS_LENGTH = PLUGIN_PREFIX + "hubProxyPassLength";
 
     public static final String HUB_MAVEN_SCOPES = PLUGIN_PREFIX + "mavenScopes";
 

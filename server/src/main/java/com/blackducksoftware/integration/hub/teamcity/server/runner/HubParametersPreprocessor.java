@@ -69,6 +69,9 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
                 runParameters.put(HubConstantValues.HUB_PASSWORD,
                         StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getEncryptedPassword()));
             }
+            if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD_LENGTH)) {
+                runParameters.put(HubConstantValues.HUB_PASSWORD_LENGTH, Integer.toString(hubServerConfig.getGlobalCredentials().getActualPasswordLength()));
+            }
             if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
                 runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
                         String.valueOf(hubServerConfig.getTimeout()));
@@ -82,6 +85,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
             int proxyPort = hubServerConfig.getProxyInfo().getPort();
             String proxyUsername = hubServerConfig.getProxyInfo().getUsername();
             String proxyPassword = hubServerConfig.getProxyInfo().getEncryptedPassword();
+            String proxyPasswordLength = Integer.toString(hubServerConfig.getProxyInfo().getActualPasswordLength());
             if (StringUtils.isNotBlank(proxyHost) && proxyPort > 0) {
                 if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
                     runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyHost));
@@ -97,6 +101,9 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
                     }
                     if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
                         runParameters.put(HubConstantValues.HUB_PROXY_PASS, StringUtils.trimToEmpty(proxyPassword));
+                    }
+                    if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS_LENGTH)) {
+                        runParameters.put(HubConstantValues.HUB_PROXY_PASS_LENGTH, proxyPasswordLength);
                     }
                 }
             }

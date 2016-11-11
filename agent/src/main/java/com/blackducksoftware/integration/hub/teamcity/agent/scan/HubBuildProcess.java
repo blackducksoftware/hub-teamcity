@@ -36,6 +36,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.restlet.resource.ResourceException;
@@ -169,22 +170,26 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String timeout = getParameter(HubConstantValues.HUB_CONNECTION_TIMEOUT);
         String username = getParameter(HubConstantValues.HUB_USERNAME);
         String password = getParameter(HubConstantValues.HUB_PASSWORD);
+        String passwordLength = getParameter(HubConstantValues.HUB_PASSWORD_LENGTH);
 
         String proxyHost = getParameter(HubConstantValues.HUB_PROXY_HOST);
         String proxyPort = getParameter(HubConstantValues.HUB_PROXY_PORT);
         String ignoredProxyHosts = getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS);
         String proxyUsername = getParameter(HubConstantValues.HUB_PROXY_USER);
         String proxyPassword = getParameter(HubConstantValues.HUB_PROXY_PASS);
+        String proxyPasswordLength = getParameter(HubConstantValues.HUB_PROXY_PASS_LENGTH);
 
         configBuilder.setHubUrl(serverUrl);
         configBuilder.setUsername(username);
         configBuilder.setPassword(password);
+        configBuilder.setPasswordLength(NumberUtils.toInt(passwordLength));
         configBuilder.setTimeout(timeout);
         configBuilder.setProxyHost(proxyHost);
         configBuilder.setProxyPort(proxyPort);
         configBuilder.setIgnoredProxyHosts(ignoredProxyHosts);
         configBuilder.setProxyUsername(proxyUsername);
         configBuilder.setProxyPassword(proxyPassword);
+        configBuilder.setProxyPasswordLength(NumberUtils.toInt(proxyPasswordLength));
 
         final ValidationResults<GlobalFieldKey, HubServerConfig> builderResults = configBuilder.buildResults();
         if (builderResults.hasErrors()) {
