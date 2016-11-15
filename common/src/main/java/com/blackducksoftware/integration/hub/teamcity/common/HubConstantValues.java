@@ -84,4 +84,6 @@ public final class HubConstantValues {
 
     public static final String HUB_CONNECTION_TIMEOUT = "hubTimeout";
 
+    public static final String HUB_RISK_REPORT_DIRECTORY_NAME = "Hub_Risk_Report";
+
 }

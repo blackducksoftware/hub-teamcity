@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -48,6 +49,7 @@ import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
+import com.blackducksoftware.integration.hub.api.HubVersionRestService;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
 import com.blackducksoftware.integration.hub.api.project.ProjectItem;
@@ -56,6 +58,7 @@ import com.blackducksoftware.integration.hub.api.report.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.api.report.ReportCategoriesEnum;
 import com.blackducksoftware.integration.hub.api.report.RiskReportGenerator;
+import com.blackducksoftware.integration.hub.api.report.RiskReportResourceCopier;
 import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
 import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
 import com.blackducksoftware.integration.hub.api.version.ReleaseItem;
@@ -64,6 +67,7 @@ import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.capabilities.HubCapabilitiesEnum;
 import com.blackducksoftware.integration.hub.cli.CLIInstaller;
 import com.blackducksoftware.integration.hub.cli.CLILocation;
+import com.blackducksoftware.integration.hub.dataservices.DataServicesFactory;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.MissingUUIDException;
@@ -82,7 +86,6 @@ import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
-import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.phone.home.PhoneHomeClient;
 import com.blackducksoftware.integration.phone.home.enums.BlackDuckName;
@@ -224,7 +227,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scanTargetPaths.add(workingDirectory.getAbsolutePath());
         }
 
-        final String localHostName = HostnameHelper.getMyHostname();
+        final String localHostName = InetAddress.getLocalHost().getHostName();
         logger.info("Running on machine : " + localHostName);
 
         try {
@@ -271,7 +274,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
             if (jobConfigResults.isSuccess()) {
                 final RestConnection restConnection = new CredentialsRestConnection(globalConfig);
+                DataServicesFactory dataServicesFactory = new DataServicesFactory(restConnection);
                 final HubIntRestService restService = new HubIntRestService(restConnection);
+                HubVersionRestService versionRestService = dataServicesFactory.getHubVersionRestService();
+                final String hubVersion = versionRestService.getHubVersion();
                 final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
                         .getEnvironmentVariables();
                 final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
@@ -286,7 +292,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     installer.setProxyUserName(globalConfig.getProxyInfo().getUsername());
                     installer.setProxyPassword(globalConfig.getProxyInfo().getDecryptedPassword());
                 }
-                installer.performInstallation(logger, restService, localHostName);
+                installer.performInstallation(logger, globalConfig.getHubUrl().toString(), hubVersion, localHostName);
 
                 File hubCLI = null;
                 if (cliLocation.getCLIExists(hubLogger)) {
@@ -312,10 +318,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 }
 
                 final HubSupportHelper hubSupport = new HubSupportHelper();
-                hubSupport.checkHubSupport(restService, hubLogger);
+                hubSupport.checkHubSupport(versionRestService, hubLogger);
 
                 try {
-                    final String hubVersion = hubSupport.getHubVersion(restService);
                     String regId = null;
                     String hubHostName = null;
                     try {
@@ -359,8 +364,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger,
                             reportCategories);
                     waitForBom = false;
-                    final String reportPath = workingDirectoryPath + File.separator
-                            + HubConstantValues.HUB_RISK_REPORT_FILENAME;
+                    final String reportDirectory = workingDirectoryPath + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
+                    final String reportPath = reportDirectory + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
 
                     final Gson gson = new Gson();
                     final String contents = gson.toJson(hubRiskReportData);
@@ -369,7 +374,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     writer.write(contents);
                     writer.close();
 
-                    artifactsWatcher.addNewArtifactsPath(reportPath);
+                    artifactsWatcher.addNewArtifactsPath(reportPath + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
+                    RiskReportResourceCopier resourceCopier = new RiskReportResourceCopier(reportDirectory);
+                    resourceCopier.copy();
+                    artifactsWatcher.addNewArtifactsPath(reportDirectory + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
+
                     // If we do not wait, the report tab will not be added and
                     // it will appear that the report was unsuccessful
                     Thread.sleep(2000);
@@ -707,7 +716,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         if (supportHelper.hasCapability(HubCapabilitiesEnum.CLI_STATUS_DIRECTORY_OPTION)) {
             hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
         } else {
-            hubEventPolling.assertBomUpToDate(bomUpdateInfo);
+            hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
         }
     }
 

@@ -94,7 +94,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
                 return null;
             }
             return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator
-                    + HubConstantValues.HUB_RISK_REPORT_FILENAME);
+                    + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME);
         } catch (final IOException e) {
             Loggers.SERVER.error("Could not create the risk report file: " + e.getMessage());
             return null;
