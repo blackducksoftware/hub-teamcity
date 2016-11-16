@@ -86,4 +86,7 @@ public final class HubConstantValues {
 
     public static final String HUB_RISK_REPORT_DIRECTORY_NAME = "Hub_Risk_Report";
 
+    public static final String PLUGIN_VERSION = PLUGIN_PREFIX + "hubPluginVersion";
+
+    public static final String PLUGIN_NAME = PLUGIN_PREFIX + "hubPluginName";
 }

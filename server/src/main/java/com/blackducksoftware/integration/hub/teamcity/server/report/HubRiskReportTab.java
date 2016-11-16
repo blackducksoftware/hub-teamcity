@@ -22,7 +22,6 @@
 package com.blackducksoftware.integration.hub.teamcity.server.report;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
@@ -30,11 +29,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.server.UrlUtil;
 import com.blackducksoftware.integration.hub.util.HubResourceBundleHelper;
-import com.google.gson.Gson;
 
 import jetbrains.buildServer.controllers.BuildDataExtensionUtil;
 import jetbrains.buildServer.log.Loggers;
@@ -50,40 +47,30 @@ public class HubRiskReportTab extends SimpleCustomTab {
     public HubRiskReportTab(@NotNull final WebControllerManager webControllerManager, final SBuildServer server) {
         super(webControllerManager, PlaceId.BUILD_RESULTS_TAB, "hub", "hubRiskReportTab.jsp",
                 "Black Duck Hub Risk Report");
-
         this.server = server;
-
         register();
     }
 
     @Override
     public void fillModel(final Map<String, Object> model, final HttpServletRequest request) {
         try {
-            final File riskReportFile = getRiskReportFile(request, server);
-            final FileReader fileReader = new FileReader(riskReportFile);
-
-            final Gson gson = new Gson();
-            final HubRiskReportData hubRiskReportData = gson.fromJson(fileReader, HubRiskReportData.class);
-
-            model.put("hubRiskReportData", hubRiskReportData);
-
+            final String hubRiskReportUrl = getRiskReportUrl(request, server);
+            model.put("hubRiskReportUrl", hubRiskReportUrl);
             final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
             bundle.setKeyPrefix("hub.riskreport");
             if (request.getLocale() != null) {
                 bundle.setLocale(request.getLocale());
             }
             model.put("bundle", bundle);
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             Loggers.SERVER.error("Could not read the risk report file: " + e.getMessage());
         }
-
         model.put("teamcityBaseUrl", UrlUtil.createTeamcityBaseUrl(request));
     }
 
     @Override
     public boolean isAvailable(final HttpServletRequest request) {
         final File riskReportFile = getRiskReportFile(request, server);
-
         return riskReportFile != null && riskReportFile.exists();
     }
 
@@ -101,4 +88,17 @@ public class HubRiskReportTab extends SimpleCustomTab {
         }
     }
 
+    private String getRiskReportUrl(final HttpServletRequest request, final SBuildServer server) {
+        final SBuild build = BuildDataExtensionUtil.retrieveBuild(request, server);
+        if (build.getArtifactsDirectory() == null) {
+            return null;
+        }
+        String externalId = build.getBuildTypeExternalId();
+        // based on information found in the TeamCity blog:
+        // https://blog.jetbrains.com/teamcity/2012/06/teamcity-ivy-gradle-maven/
+        final String prefix = "/repository/download/";
+        final String indexHtml = "Hub_Risk_Report/riskreport.html";
+        final String reportUrl = prefix + externalId + "/" + build.getBuildId() + ":id/" + indexHtml;
+        return reportUrl;
+    }
 }

@@ -45,33 +45,13 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.jetbrains.teamcity.agent</groupId>
-      <artifactId>agent</artifactId>
+      <groupId>org.jetbrains.teamcity</groupId>
+      <artifactId>agent-api</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.jetbrains.teamcity.agent</groupId>
-      <artifactId>agent-openapi</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jetbrains.teamcity.agent</groupId>
-      <artifactId>annotations</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jetbrains.teamcity.agent</groupId>
-      <artifactId>common</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jetbrains.teamcity.agent</groupId>
-      <artifactId>runtime-util</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jetbrains.teamcity.webapp</groupId>
-      <artifactId>server</artifactId>
+      <groupId>org.jetbrains.teamcity</groupId>
+      <artifactId>server-api</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>

@@ -39,14 +39,18 @@ import jetbrains.buildServer.messages.Status;
 import jetbrains.buildServer.serverSide.ParametersPreprocessor;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.buildLog.BuildLog;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
 public class HubParametersPreprocessor implements ParametersPreprocessor {
     private final ServerHubConfigPersistenceManager serverPeristanceManager;
 
     private BuildLog log = null;
 
-    public HubParametersPreprocessor(@NotNull final HubServerListener serverListener) {
+    private final PluginDescriptor pluginDescriptor;
+
+    public HubParametersPreprocessor(@NotNull final HubServerListener serverListener, @NotNull PluginDescriptor pluginDescriptor) {
         serverPeristanceManager = serverListener.getConfigManager();
+        this.pluginDescriptor = pluginDescriptor;
     }
 
     @Override
@@ -56,57 +60,71 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
 
         if (isHubBuildStepConfigured(runParameters)) {
             handleLog("Hub Plugin enabled.", null);
+            addGlobalParameterMap(runParameters);
+            addPluginData(runParameters);
+        }
+    }
 
-            HubServerConfig hubServerConfig = serverPeristanceManager.getHubServerConfig();
-            if (!runParameters.containsKey(HubConstantValues.HUB_URL)) {
-                runParameters.put(HubConstantValues.HUB_URL,
-                        StringUtils.trimToEmpty(hubServerConfig.getHubUrl().toString()));
-            }
-            if (!runParameters.containsKey(HubConstantValues.HUB_USERNAME)) {
-                runParameters.put(HubConstantValues.HUB_USERNAME, StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getUsername()));
-            }
-            if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD)) {
-                runParameters.put(HubConstantValues.HUB_PASSWORD,
-                        StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getEncryptedPassword()));
-            }
-            if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD_LENGTH)) {
-                runParameters.put(HubConstantValues.HUB_PASSWORD_LENGTH, Integer.toString(hubServerConfig.getGlobalCredentials().getActualPasswordLength()));
-            }
-            if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
-                runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
-                        String.valueOf(hubServerConfig.getTimeout()));
-            }
-            String ignoredProxyHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
-            if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS) && StringUtils.isNotBlank(ignoredProxyHosts)) {
-                runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, StringUtils.trimToEmpty(ignoredProxyHosts));
+    private void addGlobalParameterMap(final Map<String, String> runParameters) {
+        HubServerConfig hubServerConfig = serverPeristanceManager.getHubServerConfig();
+        if (!runParameters.containsKey(HubConstantValues.HUB_URL)) {
+            runParameters.put(HubConstantValues.HUB_URL,
+                    StringUtils.trimToEmpty(hubServerConfig.getHubUrl().toString()));
+        }
+        if (!runParameters.containsKey(HubConstantValues.HUB_USERNAME)) {
+            runParameters.put(HubConstantValues.HUB_USERNAME, StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getUsername()));
+        }
+        if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD)) {
+            runParameters.put(HubConstantValues.HUB_PASSWORD,
+                    StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getEncryptedPassword()));
+        }
+        if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD_LENGTH)) {
+            runParameters.put(HubConstantValues.HUB_PASSWORD_LENGTH, Integer.toString(hubServerConfig.getGlobalCredentials().getActualPasswordLength()));
+        }
+        if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
+            runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
+                    String.valueOf(hubServerConfig.getTimeout()));
+        }
+        String ignoredProxyHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
+        if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS) && StringUtils.isNotBlank(ignoredProxyHosts)) {
+            runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, StringUtils.trimToEmpty(ignoredProxyHosts));
+        }
+
+        String proxyHost = hubServerConfig.getProxyInfo().getHost();
+        int proxyPort = hubServerConfig.getProxyInfo().getPort();
+        String proxyUsername = hubServerConfig.getProxyInfo().getUsername();
+        String proxyPassword = hubServerConfig.getProxyInfo().getEncryptedPassword();
+        String proxyPasswordLength = Integer.toString(hubServerConfig.getProxyInfo().getActualPasswordLength());
+        if (StringUtils.isNotBlank(proxyHost) && proxyPort > 0) {
+            if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
+                runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyHost));
             }
 
-            String proxyHost = hubServerConfig.getProxyInfo().getHost();
-            int proxyPort = hubServerConfig.getProxyInfo().getPort();
-            String proxyUsername = hubServerConfig.getProxyInfo().getUsername();
-            String proxyPassword = hubServerConfig.getProxyInfo().getEncryptedPassword();
-            String proxyPasswordLength = Integer.toString(hubServerConfig.getProxyInfo().getActualPasswordLength());
-            if (StringUtils.isNotBlank(proxyHost) && proxyPort > 0) {
-                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyHost));
+            if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
+                runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyPort));
+            }
+
+            if (StringUtils.isNotBlank(proxyUsername) && StringUtils.isNotBlank(proxyPassword)) {
+                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_USER)) {
+                    runParameters.put(HubConstantValues.HUB_PROXY_USER, StringUtils.trimToEmpty(proxyUsername));
                 }
-
-                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PORT)) {
-                    runParameters.put(HubConstantValues.HUB_PROXY_PORT, String.valueOf(proxyPort));
+                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
+                    runParameters.put(HubConstantValues.HUB_PROXY_PASS, StringUtils.trimToEmpty(proxyPassword));
                 }
-
-                if (StringUtils.isNotBlank(proxyUsername) && StringUtils.isNotBlank(proxyPassword)) {
-                    if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_USER)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_USER, StringUtils.trimToEmpty(proxyUsername));
-                    }
-                    if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_PASS, StringUtils.trimToEmpty(proxyPassword));
-                    }
-                    if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS_LENGTH)) {
-                        runParameters.put(HubConstantValues.HUB_PROXY_PASS_LENGTH, proxyPasswordLength);
-                    }
+                if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_PASS_LENGTH)) {
+                    runParameters.put(HubConstantValues.HUB_PROXY_PASS_LENGTH, proxyPasswordLength);
                 }
             }
+        }
+    }
+
+    private void addPluginData(final Map<String, String> runParameters) {
+        if (!runParameters.containsKey(HubConstantValues.PLUGIN_VERSION)) {
+            runParameters.put(HubConstantValues.PLUGIN_VERSION, pluginDescriptor.getPluginVersion());
+        }
+
+        if (!runParameters.containsKey(HubConstantValues.PLUGIN_NAME)) {
+            runParameters.put(HubConstantValues.PLUGIN_NAME, pluginDescriptor.getPluginName());
         }
     }
 

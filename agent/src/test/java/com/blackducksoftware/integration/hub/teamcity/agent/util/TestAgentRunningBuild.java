@@ -284,4 +284,14 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
     public void stopBuild(final String arg0) {
     }
 
+    @Override
+    public boolean isBuildFailingOnServer() throws InterruptedException {
+        return false;
+    }
+
+    @Override
+    public boolean isInAlwaysExecutingStage() {
+        return false;
+    }
+
 }

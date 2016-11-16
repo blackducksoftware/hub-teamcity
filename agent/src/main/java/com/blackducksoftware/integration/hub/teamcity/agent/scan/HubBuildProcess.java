@@ -101,7 +101,6 @@ import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
-import jetbrains.buildServer.agent.plugins.beans.AgentPluginInfoImpl;
 import jetbrains.buildServer.version.ServerVersionHolder;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
@@ -114,9 +113,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     @NotNull
     private final ArtifactsWatcher artifactsWatcher;
 
-    @NotNull
-    private final AgentPluginInfoImpl pluginInfo;
-
     private HubAgentBuildLogger logger;
 
     private BuildFinishedStatus result;
@@ -124,11 +120,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     private Boolean verbose;
 
     public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context,
-            @NotNull final ArtifactsWatcher artifactsWatcher, @NotNull final AgentPluginInfoImpl pluginInfo) {
+            @NotNull final ArtifactsWatcher artifactsWatcher) {
         this.build = build;
         this.context = context;
         this.artifactsWatcher = artifactsWatcher;
-        this.pluginInfo = pluginInfo;
     }
 
     public void setverbose(final boolean verbose) {
@@ -721,9 +716,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private String getPluginVersion() {
-        String pluginVersion = pluginInfo.getPluginVersion();
+        String pluginVersion = getParameter(HubConstantValues.PLUGIN_VERSION);
         if (StringUtils.isBlank(pluginVersion)) {
-            final String pluginName = pluginInfo.getPluginName();
+            final String pluginName = getParameter(HubConstantValues.PLUGIN_NAME);
             int indexStartOfVersion = 0;
             if (pluginName.endsWith("-SNAPSHOT")) {
                 indexStartOfVersion = pluginName.replace("-SNAPSHOT", "").lastIndexOf("-") + 1;
