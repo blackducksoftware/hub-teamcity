@@ -239,7 +239,7 @@ public class TeamCityScanExecutor extends ScanExecutor {
                 }
             }
 
-            if (outputString.contains("Finished in") && outputString.contains("with status SUCCESS")) {
+            if (returnCode == 0) {
                 return Result.SUCCESS;
             } else {
                 return Result.FAILURE;
