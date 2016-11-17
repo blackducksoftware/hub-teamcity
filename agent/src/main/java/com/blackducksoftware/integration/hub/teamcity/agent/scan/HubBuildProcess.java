@@ -329,9 +329,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
                         globalConfig, jobConfig, hubSupport);
 
-                ProjectVersionItem version = getProjectVersionFromScanStatus(scanExecutor.getScanStatusDirectoryPath(), services);
-                ProjectItem project = getProjectFromVersion(version, services);
-
+                ProjectVersionItem version = null;
+                ProjectItem project = null;
+                if (StringUtils.isNotBlank(projectName) && StringUtils.isNotBlank(projectVersion) && !jobConfig.isDryRun()) {
+                    version = getProjectVersionFromScanStatus(scanExecutor.getScanStatusDirectoryPath(), services);
+                    project = getProjectFromVersion(version, services);
+                }
                 final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
                 hubReportGenerationInfo.setService(restService);
                 hubReportGenerationInfo.setHostname(localHostName);
