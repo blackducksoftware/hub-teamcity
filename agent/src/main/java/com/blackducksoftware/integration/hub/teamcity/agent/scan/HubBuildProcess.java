@@ -49,6 +49,7 @@ import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
+import com.blackducksoftware.integration.hub.api.HubVersionRestService;
 import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationItem;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
@@ -276,6 +277,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 final RestConnection restConnection = new CredentialsRestConnection(globalConfig);
                 final HubIntRestService restService = new HubIntRestService(restConnection);
                 final DataServicesFactory services = new DataServicesFactory(restConnection);
+                final HubVersionRestService versionRestService = services.getHubVersionRestService();
+                final String hubVersion = versionRestService.getHubVersion();
                 final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
                         .getEnvironmentVariables();
                 final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
@@ -290,7 +293,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     installer.setProxyUserName(globalConfig.getProxyInfo().getUsername());
                     installer.setProxyPassword(globalConfig.getProxyInfo().getDecryptedPassword());
                 }
-                installer.performInstallation(logger, restService, localHostName);
+                installer.performInstallation(logger, globalConfig.getHubUrl().toString(), hubVersion, localHostName);
 
                 File hubCLI = null;
                 if (cliLocation.getCLIExists(hubLogger)) {
@@ -304,10 +307,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 final File javaExec = cliLocation.getProvidedJavaExec();
 
                 final HubSupportHelper hubSupport = new HubSupportHelper();
-                hubSupport.checkHubSupport(restService, hubLogger);
+                hubSupport.checkHubSupport(versionRestService, hubLogger);
 
                 try {
-                    final String hubVersion = hubSupport.getHubVersion(restService);
                     String regId = null;
                     String hubHostName = null;
                     try {
@@ -644,7 +646,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         if (supportHelper.hasCapability(HubCapabilitiesEnum.CLI_STATUS_DIRECTORY_OPTION)) {
             hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
         } else {
-            hubEventPolling.assertBomUpToDate(bomUpdateInfo);
+            hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
         }
     }
 
