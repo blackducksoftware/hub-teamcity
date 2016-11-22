@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -58,7 +57,6 @@ import com.blackducksoftware.integration.hub.api.report.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.api.report.ReportCategoriesEnum;
 import com.blackducksoftware.integration.hub.api.report.RiskReportGenerator;
-import com.blackducksoftware.integration.hub.api.report.RiskReportResourceCopier;
 import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
 import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
 import com.blackducksoftware.integration.hub.api.version.ReleaseItem;
@@ -86,6 +84,7 @@ import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
+import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.phone.home.PhoneHomeClient;
 import com.blackducksoftware.integration.phone.home.enums.BlackDuckName;
@@ -222,7 +221,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scanTargetPaths.add(workingDirectory.getAbsolutePath());
         }
 
-        final String localHostName = InetAddress.getLocalHost().getHostName();
+        final String localHostName = HostnameHelper.getMyHostname();
         logger.info("Running on machine : " + localHostName);
 
         try {
@@ -359,8 +358,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger,
                             reportCategories);
                     waitForBom = false;
-                    final String reportDirectory = workingDirectoryPath + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
-                    final String reportPath = reportDirectory + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
+                    final String reportPath = workingDirectoryPath + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
 
                     final Gson gson = new Gson();
                     final String contents = gson.toJson(hubRiskReportData);
@@ -369,10 +367,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     writer.write(contents);
                     writer.close();
 
-                    artifactsWatcher.addNewArtifactsPath(reportPath + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
-                    RiskReportResourceCopier resourceCopier = new RiskReportResourceCopier(reportDirectory);
-                    resourceCopier.copy();
-                    artifactsWatcher.addNewArtifactsPath(reportDirectory + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
+                    artifactsWatcher.addNewArtifactsPath(reportPath);
 
                     // If we do not wait, the report tab will not be added and
                     // it will appear that the report was unsuccessful

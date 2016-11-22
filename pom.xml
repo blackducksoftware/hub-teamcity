@@ -31,6 +31,7 @@
   </scm>
 
   <properties>
+    <hub.common.version>2.1.1-SNAPSHOT</hub.common.version>
     <plugin.version>${project.version}</plugin.version>
     <teamcity.version>8.0</teamcity.version>
   </properties>
@@ -47,7 +48,7 @@
       <dependency>
         <groupId>com.blackducksoftware.integration</groupId>
         <artifactId>hub-common</artifactId>
-        <version>2.0.1-SNAPSHOT</version>
+        <version>${hub.common.version}</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>

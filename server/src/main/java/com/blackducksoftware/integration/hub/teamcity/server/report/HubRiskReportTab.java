@@ -55,7 +55,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
     public void fillModel(final Map<String, Object> model, final HttpServletRequest request) {
         try {
             final String hubRiskReportUrl = getRiskReportUrl(request, server);
-            model.put("hubRiskReportUrl", hubRiskReportUrl);
+            model.put("hubRiskReportJsonUrl", hubRiskReportUrl);
             final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
             bundle.setKeyPrefix("hub.riskreport");
             if (request.getLocale() != null) {
@@ -97,7 +97,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
         // based on information found in the TeamCity blog:
         // https://blog.jetbrains.com/teamcity/2012/06/teamcity-ivy-gradle-maven/
         final String prefix = "/repository/download/";
-        final String indexHtml = "Hub_Risk_Report/riskreport.html";
+        final String indexHtml = "hub_risk_report.json";
         final String reportUrl = prefix + externalId + "/" + build.getBuildId() + ":id/" + indexHtml;
         return reportUrl;
     }
