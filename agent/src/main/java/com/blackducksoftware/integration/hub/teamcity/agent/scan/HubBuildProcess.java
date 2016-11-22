@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,6 +50,7 @@ import com.blackducksoftware.integration.hub.HubSupportHelper;
 import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
 import com.blackducksoftware.integration.hub.api.HubVersionRestService;
+import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationItem;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
 import com.blackducksoftware.integration.hub.api.project.ProjectItem;
@@ -57,6 +59,7 @@ import com.blackducksoftware.integration.hub.api.report.HubReportGenerationInfo;
 import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
 import com.blackducksoftware.integration.hub.api.report.ReportCategoriesEnum;
 import com.blackducksoftware.integration.hub.api.report.RiskReportGenerator;
+import com.blackducksoftware.integration.hub.api.scan.ScanSummaryItem;
 import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
 import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
 import com.blackducksoftware.integration.hub.api.version.ReleaseItem;
@@ -71,7 +74,6 @@ import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.exception.MissingUUIDException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.exception.UnexpectedHubResponseException;
-import com.blackducksoftware.integration.hub.exception.VersionDoesNotExistException;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
 import com.blackducksoftware.integration.hub.global.HubProxyInfo;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
@@ -81,7 +83,6 @@ import com.blackducksoftware.integration.hub.polling.HubEventPolling;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
-import com.blackducksoftware.integration.hub.teamcity.agent.exceptions.TeamCityHubPluginException;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
@@ -93,6 +94,7 @@ import com.blackducksoftware.integration.phone.home.exception.PhoneHomeException
 import com.blackducksoftware.integration.phone.home.exception.PropertiesLoaderException;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import jetbrains.buildServer.agent.AgentBuildFeature;
 import jetbrains.buildServer.agent.AgentRunningBuild;
@@ -268,9 +270,9 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
             if (jobConfigResults.isSuccess()) {
                 final RestConnection restConnection = new CredentialsRestConnection(globalConfig);
-                DataServicesFactory dataServicesFactory = new DataServicesFactory(restConnection);
+                DataServicesFactory services = new DataServicesFactory(restConnection);
                 final HubIntRestService restService = new HubIntRestService(restConnection);
-                HubVersionRestService versionRestService = dataServicesFactory.getHubVersionRestService();
+                HubVersionRestService versionRestService = services.getHubVersionRestService();
                 final String hubVersion = versionRestService.getHubVersion();
                 final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
                         .getEnvironmentVariables();
@@ -299,18 +301,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 final File oneJarFile = cliLocation.getOneJarFile();
                 final File javaExec = cliLocation.getProvidedJavaExec();
 
-                ProjectItem project = null;
-                ProjectVersionItem version = null;
-                if (!jobConfig.isDryRun() && jobConfig.getProjectName() != null && jobConfig.getVersion() != null) {
-                    project = ensureProjectExists(restService, logger, projectName);
-                    if (!project.getMeta().isAccessible()) {
-                        hubLogger.error("This Project exists but this User does not have access to it.");
-                        result = BuildFinishedStatus.FINISHED_FAILED;
-                        return result;
-                    }
-                    version = ensureVersionExists(restService, logger, projectVersion, project, jobConfig);
-                }
-
                 final HubSupportHelper hubSupport = new HubSupportHelper();
                 hubSupport.checkHubSupport(versionRestService, hubLogger);
 
@@ -336,6 +326,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
                         globalConfig, jobConfig, hubSupport);
 
+                ProjectVersionItem version = null;
+                ProjectItem project = null;
+                if (StringUtils.isNotBlank(projectName) && StringUtils.isNotBlank(projectVersion) && !jobConfig.isDryRun()) {
+                    version = getProjectVersionFromScanStatus(scanExecutor.getScanStatusDirectoryPath(), services);
+                    project = getProjectFromVersion(version, services);
+                }
                 final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
                 hubReportGenerationInfo.setService(restService);
                 hubReportGenerationInfo.setHostname(localHostName);
@@ -459,94 +455,33 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         logger.alwaysLog("-> Dry Run : " + jobConfig.isDryRun());
     }
 
-    private ProjectItem ensureProjectExists(final HubIntRestService service, final IntLogger logger,
-            final String projectName) throws IOException, URISyntaxException, TeamCityHubPluginException {
-        ProjectItem project = null;
-        try {
-            project = service.getProjectByName(projectName);
-
-        } catch (final NullPointerException npe) {
-            project = createProject(service, logger, projectName);
-        } catch (final ProjectDoesNotExistException e) {
-            project = createProject(service, logger, projectName);
-        } catch (final BDRestException e) {
-            if (e.getResource() != null) {
-                if (e.getResource() != null) {
-                    logger.error("Status : " + e.getResource().getStatus().getCode());
-                    logger.error("Response : " + e.getResource().getResponse().getEntityAsText());
-                }
-                throw new TeamCityHubPluginException("Problem getting the Project. ", e);
-            }
+    private ProjectVersionItem getProjectVersionFromScanStatus(String statusDirectory, DataServicesFactory services)
+            throws IOException, InterruptedException, HubIntegrationException, BDRestException, URISyntaxException, UnexpectedHubResponseException {
+        final File statusDirectoryFilePath = new File(statusDirectory);
+        if (!statusDirectoryFilePath.exists()) {
+            throw new HubIntegrationException("The scan status directory does not exist.");
         }
+        if (!statusDirectoryFilePath.isDirectory()) {
+            throw new HubIntegrationException("The scan status directory provided is not a directory.");
+        }
+        final File[] statusFiles = statusDirectoryFilePath.listFiles();
+        if (statusFiles == null || statusFiles.length == 0) {
+            throw new HubIntegrationException("Can not find the scan status files in the directory provided.");
+        }
+        byte[] rawBytes = Files.readAllBytes(statusFiles[0].toPath());
+        final String fileContent = new String(rawBytes);
+        final Gson gson = new GsonBuilder().create();
+        final ScanSummaryItem scanSummaryItem = gson.fromJson(fileContent, ScanSummaryItem.class);
+        CodeLocationItem codeLocationItem = services.getCodeLocationRestService().getItem(scanSummaryItem.getLink("codelocation"));
+        String projectVersionUrl = codeLocationItem.getMappedProjectVersion();
+        ProjectVersionItem projectVersion = services.getProjectVersionRestService().getItem(projectVersionUrl);
+        return projectVersion;
+    }
 
+    private ProjectItem getProjectFromVersion(ProjectVersionItem version, DataServicesFactory services)
+            throws IOException, BDRestException, URISyntaxException, UnexpectedHubResponseException {
+        ProjectItem project = services.getProjectRestService().getItem(version.getLink("project"));
         return project;
-    }
-
-    private ProjectItem createProject(final HubIntRestService service, final IntLogger logger, final String projectName)
-            throws IOException, URISyntaxException, TeamCityHubPluginException {
-        // Project was not found, try to create it
-        ProjectItem project = null;
-        try {
-            final String projectUrl = service.createHubProject(projectName);
-            project = service.getProject(projectUrl);
-        } catch (final BDRestException e1) {
-            if (e1.getResource() != null) {
-                logger.error("Status : " + e1.getResource().getStatus().getCode());
-                logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
-            }
-            throw new TeamCityHubPluginException("Problem creating the Project. ", e1);
-        }
-
-        return project;
-    }
-
-    /**
-     * Ensures the Version exists. Returns the version URL
-     *
-     * @throws UnexpectedHubResponseException
-     */
-    private ProjectVersionItem ensureVersionExists(final HubIntRestService service, final IntLogger logger,
-            final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-            throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
-        ProjectVersionItem version = null;
-        try {
-            version = service.getVersion(project, projectVersion);
-            if (!version.getPhase().equals(jobConfig.getPhase())) {
-                logger.warn(
-                        "The selected Phase does not match the Phase of this Version. If you wish to update the Phase please do so in the Hub UI.");
-            }
-            if (!version.getDistribution().equals(jobConfig.getDistribution())) {
-                logger.warn(
-                        "The selected Distribution does not match the Distribution of this Version. If you wish to update the Distribution please do so in the Hub UI.");
-            }
-        } catch (final NullPointerException npe) {
-            version = createVersion(service, logger, projectVersion, project, jobConfig);
-        } catch (final VersionDoesNotExistException e) {
-            version = createVersion(service, logger, projectVersion, project, jobConfig);
-        } catch (final BDRestException e) {
-            throw new TeamCityHubPluginException("Could not retrieve or create the specified version.", e);
-        }
-        return version;
-    }
-
-    private ProjectVersionItem createVersion(final HubIntRestService service, final IntLogger logger,
-            final String projectVersion, final ProjectItem project, final HubScanJobConfig jobConfig)
-            throws IOException, URISyntaxException, TeamCityHubPluginException, UnexpectedHubResponseException {
-        ProjectVersionItem version = null;
-
-        try {
-            final String versionURL = service.createHubVersion(project, projectVersion, jobConfig.getPhase(),
-                    jobConfig.getDistribution());
-            version = service.getProjectVersion(versionURL);
-        } catch (final BDRestException e1) {
-            if (e1.getResource() != null) {
-                logger.error("Status : " + e1.getResource().getStatus().getCode());
-                logger.error("Response : " + e1.getResource().getResponse().getEntityAsText());
-            }
-            throw new TeamCityHubPluginException("Problem creating the Version. ", e1);
-        }
-
-        return version;
     }
 
     public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
