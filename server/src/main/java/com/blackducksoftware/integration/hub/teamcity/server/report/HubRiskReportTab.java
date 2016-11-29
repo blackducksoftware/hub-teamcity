@@ -55,7 +55,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
     public void fillModel(final Map<String, Object> model, final HttpServletRequest request) {
         try {
             final String hubRiskReportUrl = getRiskReportUrl(request, server);
-            model.put("hubRiskReportJsonUrl", hubRiskReportUrl);
+            model.put("hubRiskReportUrl", hubRiskReportUrl);
             final HubResourceBundleHelper bundle = new HubResourceBundleHelper();
             bundle.setKeyPrefix("hub.riskreport");
             if (request.getLocale() != null) {
@@ -80,8 +80,8 @@ public class HubRiskReportTab extends SimpleCustomTab {
             if (build.getArtifactsDirectory() == null) {
                 return null;
             }
-            return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator
-                    + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME);
+            return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME
+                    + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME);
         } catch (final IOException e) {
             Loggers.SERVER.error("Could not create the risk report file: " + e.getMessage());
             return null;
@@ -97,7 +97,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
         // based on information found in the TeamCity blog:
         // https://blog.jetbrains.com/teamcity/2012/06/teamcity-ivy-gradle-maven/
         final String prefix = "/repository/download/";
-        final String indexHtml = "hub_risk_report.json";
+        final String indexHtml = HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME + "/riskreport.html";
         final String reportUrl = prefix + externalId + "/" + build.getBuildId() + ":id/" + indexHtml;
         return reportUrl;
     }

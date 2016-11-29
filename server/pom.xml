@@ -14,10 +14,6 @@
   <name>Black Duck Hub Plug-In for TeamCity Server</name>
   <inceptionYear>2015</inceptionYear>
 
-  <properties>
-    <risk.report.resources.directory>${project.build.directory}/maven-shared-archive-resources/riskreport/web</risk.report.resources.directory>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.blackducksoftware.integration</groupId>
@@ -69,36 +65,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>${risk.report.resources.directory}</directory>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-remote-resources-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>process</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <attachToMain>false</attachToMain>
-          <resourceBundles>
-            <resourceBundle>com.blackducksoftware.integration:hub-common:${hub.common.version}</resourceBundle>
-          </resourceBundles>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

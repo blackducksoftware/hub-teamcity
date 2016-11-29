@@ -22,21 +22,16 @@
 package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -47,39 +42,30 @@ import com.blackducksoftware.integration.builder.ValidationResults;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.HubIntRestService;
 import com.blackducksoftware.integration.hub.HubSupportHelper;
-import com.blackducksoftware.integration.hub.ScanExecutor;
 import com.blackducksoftware.integration.hub.ScanExecutor.Result;
+import com.blackducksoftware.integration.hub.api.HubServicesFactory;
 import com.blackducksoftware.integration.hub.api.HubVersionRestService;
-import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationItem;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
-import com.blackducksoftware.integration.hub.api.project.ProjectItem;
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionItem;
-import com.blackducksoftware.integration.hub.api.report.HubReportGenerationInfo;
-import com.blackducksoftware.integration.hub.api.report.HubRiskReportData;
-import com.blackducksoftware.integration.hub.api.report.ReportCategoriesEnum;
-import com.blackducksoftware.integration.hub.api.report.RiskReportGenerator;
 import com.blackducksoftware.integration.hub.api.scan.ScanSummaryItem;
 import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
 import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
-import com.blackducksoftware.integration.hub.api.version.ReleaseItem;
 import com.blackducksoftware.integration.hub.builder.HubScanJobConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.capabilities.HubCapabilitiesEnum;
-import com.blackducksoftware.integration.hub.cli.CLIInstaller;
-import com.blackducksoftware.integration.hub.cli.CLILocation;
-import com.blackducksoftware.integration.hub.dataservices.DataServicesFactory;
+import com.blackducksoftware.integration.hub.cli.CLIDownloadService;
+import com.blackducksoftware.integration.hub.cli.SimpleScanService;
+import com.blackducksoftware.integration.hub.dataservices.policystatus.PolicyStatusDataService;
+import com.blackducksoftware.integration.hub.dataservices.policystatus.PolicyStatusDescription;
+import com.blackducksoftware.integration.hub.dataservices.report.RiskReportDataService;
+import com.blackducksoftware.integration.hub.dataservices.scan.ScanStatusDataService;
 import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.exception.MissingUUIDException;
 import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
 import com.blackducksoftware.integration.hub.exception.UnexpectedHubResponseException;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
-import com.blackducksoftware.integration.hub.global.HubProxyInfo;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobConfig;
 import com.blackducksoftware.integration.hub.job.HubScanJobFieldEnum;
-import com.blackducksoftware.integration.hub.polling.HubEventPolling;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
@@ -93,8 +79,6 @@ import com.blackducksoftware.integration.phone.home.enums.ThirdPartyName;
 import com.blackducksoftware.integration.phone.home.exception.PhoneHomeException;
 import com.blackducksoftware.integration.phone.home.exception.PropertiesLoaderException;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import jetbrains.buildServer.agent.AgentBuildFeature;
 import jetbrains.buildServer.agent.AgentRunningBuild;
@@ -162,6 +146,101 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         logger.targetStarted("Hub Build Step");
 
+        final HubServerConfig globalConfig = getHubServerConfig(hubLogger);
+        printGlobalConfiguration(globalConfig);
+
+        final String localHostName = HostnameHelper.getMyHostname();
+        logger.info("Running on machine : " + localHostName);
+
+        try {
+            final File workingDirectory = context.getWorkingDirectory();
+            final HubScanJobConfig jobConfig = getJobConfig(workingDirectory);
+            if (jobConfig == null) {
+                result = BuildFinishedStatus.FINISHED_FAILED;
+                return result;
+            }
+            printJobConfiguration(jobConfig);
+            final RestConnection restConnection = new CredentialsRestConnection(globalConfig);
+            HubServicesFactory services = new HubServicesFactory(restConnection);
+            final HubIntRestService restService = new HubIntRestService(restConnection);
+            HubVersionRestService versionRestService = services.createHubVersionRestService();
+            final String hubVersion = versionRestService.getHubVersion();
+
+            final File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
+
+            final HubSupportHelper hubSupport = new HubSupportHelper();
+            hubSupport.checkHubSupport(versionRestService, hubLogger);
+
+            CLIDownloadService cliDownloadService = services.createCliDownloadService(logger);
+            cliDownloadService.performInstallation(globalConfig.getProxyInfo(), hubToolDir, commonVariables, globalConfig.getHubUrl().toString(), hubVersion,
+                    localHostName);
+            try {
+                String regId = null;
+                String hubHostName = null;
+                try {
+                    regId = restService.getRegistrationId();
+                } catch (final Exception e) {
+                    logger.debug("Could not get the Hub registration Id.");
+                }
+                try {
+                    final URL url = globalConfig.getHubUrl();
+                    hubHostName = url.getHost();
+                } catch (final Exception e) {
+                    logger.debug("Could not get the Hub Host name.");
+                }
+                bdPhoneHome(hubVersion, regId, hubHostName);
+            } catch (final Exception e) {
+                logger.debug("Unable to phone-home", e);
+            }
+            int scanMemory = jobConfig.getScanMemory();
+            String workDirectory = jobConfig.getWorkingDirectory();
+            String projectName = jobConfig.getProjectName();
+            String versionName = jobConfig.getVersion();
+            boolean isDryRun = jobConfig.isDryRun();
+            final SimpleScanService simpleScanService = services.createSimpleScanService(logger, restConnection, globalConfig, hubSupport, commonVariables,
+                    hubToolDir, scanMemory, true, isDryRun, projectName, versionName, jobConfig.getScanTargetPaths(), workDirectory);
+
+            Result scanResult = simpleScanService.setupAndExecuteScan();
+
+            if (scanResult != Result.SUCCESS) {
+                logger.error("Hub Scan Failed");
+                result = BuildFinishedStatus.FINISHED_FAILED;
+            } else {
+                final List<ScanSummaryItem> scanSummaryList = simpleScanService.getScanSummaryItems();
+                final long maximumWaitTime = jobConfig.getMaxWaitTimeForBomUpdateInMilliseconds();
+                ScanStatusDataService scanStatusDataService = services.createScanStatusDataService();
+                boolean waitForBom = true;
+                if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()
+                        && !jobConfig.isDryRun()) {
+                    waitForBom = false;
+                    generateRiskReport(hubLogger, workingDirectory, scanSummaryList, scanStatusDataService, services.createRiskReportDataService(hubLogger),
+                            projectName, versionName,
+                            maximumWaitTime);
+                }
+
+                final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
+                // The feature is only allowed to have a single instance in the
+                // configuration therefore we just want to make
+                // sure the feature collection has something meaning that it was
+                // configured.
+                if (features != null && features.iterator() != null && !features.isEmpty()
+                        && features.iterator().next() != null) {
+                    if (waitForBom) {
+                        waitForHub(scanStatusDataService, scanSummaryList, hubLogger, maximumWaitTime);
+                    }
+                    checkPolicyFailures(build, hubLogger, services, projectName, versionName, jobConfig.isDryRun());
+                }
+            }
+        } catch (final Exception e) {
+            logger.error(e);
+            result = BuildFinishedStatus.FINISHED_FAILED;
+        }
+        logger.targetFinished("Hub Build Step");
+        return result;
+    }
+
+    private HubServerConfig getHubServerConfig(final IntLogger logger)
+            throws IllegalArgumentException, EncryptionException {
         final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
         // read the credentials and proxy info using the existing objects.
@@ -195,8 +274,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             logger.error(builderResults.getAllResultString(ValidationResultEnum.ERROR));
         }
 
-        final HubServerConfig globalConfig = builderResults.getConstructedObject();
-        printGlobalConfiguration(globalConfig);
+        return builderResults.getConstructedObject();
+    }
+
+    private HubScanJobConfig getJobConfig(File workingDirectory) throws IOException {
 
         final String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
         final String projectVersion = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
@@ -207,7 +288,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String dryRun = getParameter(HubConstantValues.HUB_DRY_RUN);
         final String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
 
-        final File workingDirectory = context.getWorkingDirectory();
         final String workingDirectoryPath = workingDirectory.getCanonicalPath();
 
         final List<String> scanTargetPaths = new ArrayList<>();
@@ -223,172 +303,46 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scanTargetPaths.add(workingDirectory.getAbsolutePath());
         }
 
-        final String localHostName = HostnameHelper.getMyHostname();
-        logger.info("Running on machine : " + localHostName);
-
-        try {
-            final HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder(true);
-            hubScanJobConfigBuilder.setProjectName(projectName);
-            hubScanJobConfigBuilder.setVersion(projectVersion);
-            hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
+        final HubScanJobConfigBuilder hubScanJobConfigBuilder = new HubScanJobConfigBuilder(true);
+        hubScanJobConfigBuilder.setProjectName(projectName);
+        hubScanJobConfigBuilder.setVersion(projectVersion);
+        hubScanJobConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
+        hubScanJobConfigBuilder
+                .setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
+        hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
+        hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
+        hubScanJobConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
+        if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
             hubScanJobConfigBuilder
-                    .setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
-            hubScanJobConfigBuilder.setWorkingDirectory(workingDirectoryPath);
-            hubScanJobConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
-            hubScanJobConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
-            if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
-                hubScanJobConfigBuilder
-                        .setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
-            } else {
-                hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
-            }
-            if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
-                hubScanJobConfigBuilder.setScanMemory(HubScanJobConfigBuilder.DEFAULT_MEMORY_IN_MEGABYTES);
-            } else {
-                hubScanJobConfigBuilder.setScanMemory(scanMemory);
-            }
-            hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
-
-            final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> jobConfigResults = hubScanJobConfigBuilder
-                    .buildResults();
-            if (!builderResults.isSuccess()) {
-                result = BuildFinishedStatus.FINISHED_FAILED;
-                final Set<HubScanJobFieldEnum> keys = jobConfigResults.getResultMap().keySet();
-                for (final HubScanJobFieldEnum fieldKey : keys) {
-                    if (jobConfigResults.hasErrors(fieldKey)) {
-                        logger.error(jobConfigResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
-                    }
-                    if (jobConfigResults.hasWarnings(fieldKey)) {
-                        logger.warn(jobConfigResults.getResultString(fieldKey, ValidationResultEnum.WARN));
-                    }
-                }
-                return result;
-            }
-            final HubScanJobConfig jobConfig = jobConfigResults.getConstructedObject();
-
-            printJobConfiguration(jobConfig);
-
-            if (jobConfigResults.isSuccess()) {
-                final RestConnection restConnection = new CredentialsRestConnection(globalConfig);
-                DataServicesFactory services = new DataServicesFactory(restConnection);
-                final HubIntRestService restService = new HubIntRestService(restConnection);
-                HubVersionRestService versionRestService = services.getHubVersionRestService();
-                final String hubVersion = versionRestService.getHubVersion();
-                final Map<String, String> teamCityEnvironmentVariables = context.getBuildParameters()
-                        .getEnvironmentVariables();
-                final CIEnvironmentVariables ciEnvironmentVariables = new CIEnvironmentVariables();
-                ciEnvironmentVariables.putAll(teamCityEnvironmentVariables);
-
-                final File hubToolDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
-                final CLILocation cliLocation = new CLILocation(hubToolDir);
-                final CLIInstaller installer = new CLIInstaller(cliLocation, ciEnvironmentVariables);
-                if (globalConfig.getProxyInfo().shouldUseProxyForUrl(globalConfig.getHubUrl())) {
-                    installer.setProxyHost(globalConfig.getProxyInfo().getHost());
-                    installer.setProxyPort(globalConfig.getProxyInfo().getPort());
-                    installer.setProxyUserName(globalConfig.getProxyInfo().getUsername());
-                    installer.setProxyPassword(globalConfig.getProxyInfo().getDecryptedPassword());
-                }
-                installer.performInstallation(logger, globalConfig.getHubUrl().toString(), hubVersion, localHostName);
-
-                File hubCLI = null;
-                if (cliLocation.getCLIExists(hubLogger)) {
-                    hubCLI = cliLocation.getCLI(hubLogger);
-                } else {
-                    hubLogger.error("Could not find the Hub scan CLI.");
-                    result = BuildFinishedStatus.FINISHED_FAILED;
-                    return result;
-                }
-                final File oneJarFile = cliLocation.getOneJarFile();
-                final File javaExec = cliLocation.getProvidedJavaExec();
-
-                final HubSupportHelper hubSupport = new HubSupportHelper();
-                hubSupport.checkHubSupport(versionRestService, hubLogger);
-
-                try {
-                    String regId = null;
-                    String hubHostName = null;
-                    try {
-                        regId = restService.getRegistrationId();
-                    } catch (final Exception e) {
-                        logger.debug("Could not get the Hub registration Id.");
-                    }
-                    try {
-                        final URL url = new URL(serverUrl);
-                        hubHostName = url.getHost();
-                    } catch (final Exception e) {
-                        logger.debug("Could not get the Hub Host name.");
-                    }
-                    bdPhoneHome(hubVersion, regId, hubHostName);
-                } catch (final Exception e) {
-                    logger.debug("Unable to phone-home", e);
-                }
-
-                final ScanExecutor scanExecutor = doHubScan(restService, hubLogger, oneJarFile, hubCLI, javaExec,
-                        globalConfig, jobConfig, hubSupport);
-
-                ProjectVersionItem version = null;
-                ProjectItem project = null;
-                if (StringUtils.isNotBlank(projectName) && StringUtils.isNotBlank(projectVersion) && !jobConfig.isDryRun()) {
-                    version = getProjectVersionFromScanStatus(scanExecutor.getScanStatusDirectoryPath(), services);
-                    project = getProjectFromVersion(version, services);
-                }
-                final HubReportGenerationInfo hubReportGenerationInfo = new HubReportGenerationInfo();
-                hubReportGenerationInfo.setService(restService);
-                hubReportGenerationInfo.setHostname(localHostName);
-                hubReportGenerationInfo.setProject(project);
-                hubReportGenerationInfo.setVersion(version);
-                hubReportGenerationInfo.setScanTargets(jobConfig.getScanTargetPaths());
-                hubReportGenerationInfo.setMaximumWaitTime(jobConfig.getMaxWaitTimeForBomUpdateInMilliseconds());
-                hubReportGenerationInfo.setScanStatusDirectory(scanExecutor.getScanStatusDirectoryPath());
-
-                boolean waitForBom = true;
-                if (BuildFinishedStatus.FINISHED_SUCCESS == result && jobConfig.isShouldGenerateRiskReport()
-                        && !jobConfig.isDryRun()) {
-                    final RiskReportGenerator riskReportGenerator = new RiskReportGenerator(hubReportGenerationInfo,
-                            hubSupport);
-                    // will wait for bom to be updated while generating the
-                    // report.
-                    final ReportCategoriesEnum[] reportCategories = { ReportCategoriesEnum.COMPONENTS,
-                            ReportCategoriesEnum.VERSION };
-
-                    final HubRiskReportData hubRiskReportData = riskReportGenerator.generateHubReport(logger,
-                            reportCategories);
-                    waitForBom = false;
-                    final String reportPath = workingDirectoryPath + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME;
-
-                    final Gson gson = new Gson();
-                    final String contents = gson.toJson(hubRiskReportData);
-
-                    final FileWriter writer = new FileWriter(reportPath);
-                    writer.write(contents);
-                    writer.close();
-
-                    artifactsWatcher.addNewArtifactsPath(reportPath);
-
-                    // If we do not wait, the report tab will not be added and
-                    // it will appear that the report was unsuccessful
-                    Thread.sleep(2000);
-                }
-                checkPolicyFailures(build, hubLogger, hubSupport, restService, hubReportGenerationInfo, version,
-                        waitForBom, jobConfig.isDryRun());
-            } else {
-                logger.info("Skipping Hub Build Step");
-                result = BuildFinishedStatus.FINISHED_FAILED;
-            }
-        } catch (final Exception e) {
-            logger.error(e);
-            result = BuildFinishedStatus.FINISHED_FAILED;
+                    .setMaxWaitTimeForBomUpdate(HubScanJobConfigBuilder.DEFAULT_BOM_UPDATE_WAIT_TIME_IN_MINUTES);
+        } else {
+            hubScanJobConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
         }
-        logger.targetFinished("Hub Build Step");
-        return result;
+        if (StringUtils.isBlank(maxWaitTimeForRiskReport)) {
+            hubScanJobConfigBuilder.setScanMemory(HubScanJobConfigBuilder.DEFAULT_MEMORY_IN_MEGABYTES);
+        } else {
+            hubScanJobConfigBuilder.setScanMemory(scanMemory);
+        }
+        hubScanJobConfigBuilder.addAllScanTargetPaths(scanTargetPaths);
+
+        final ValidationResults<HubScanJobFieldEnum, HubScanJobConfig> jobConfigResults = hubScanJobConfigBuilder
+                .buildResults();
+        if (!jobConfigResults.isSuccess()) {
+            final Set<HubScanJobFieldEnum> keys = jobConfigResults.getResultMap().keySet();
+            for (final HubScanJobFieldEnum fieldKey : keys) {
+                if (jobConfigResults.hasErrors(fieldKey)) {
+                    logger.error(jobConfigResults.getResultString(fieldKey, ValidationResultEnum.ERROR));
+                }
+                if (jobConfigResults.hasWarnings(fieldKey)) {
+                    logger.warn(jobConfigResults.getResultString(fieldKey, ValidationResultEnum.WARN));
+                }
+            }
+        }
+        return jobConfigResults.getConstructedObject();
     }
 
     private String getParameter(@NotNull final String parameterName) {
         return StringUtils.trimToNull(context.getRunnerParameters().get(parameterName));
-    }
-
-    private String getEnvironmentVariable(@NotNull final String parameterName) {
-        return StringUtils.trimToNull(context.getBuildParameters().getEnvironmentVariables().get(parameterName));
     }
 
     private CIEnvironmentVariables getCommonVariables() {
@@ -455,193 +409,51 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         logger.alwaysLog("-> Dry Run : " + jobConfig.isDryRun());
     }
 
-    private ProjectVersionItem getProjectVersionFromScanStatus(String statusDirectory, DataServicesFactory services)
-            throws IOException, InterruptedException, HubIntegrationException, BDRestException, URISyntaxException, UnexpectedHubResponseException {
-        final File statusDirectoryFilePath = new File(statusDirectory);
-        if (!statusDirectoryFilePath.exists()) {
-            throw new HubIntegrationException("The scan status directory does not exist.");
-        }
-        if (!statusDirectoryFilePath.isDirectory()) {
-            throw new HubIntegrationException("The scan status directory provided is not a directory.");
-        }
-        final File[] statusFiles = statusDirectoryFilePath.listFiles();
-        if (statusFiles == null || statusFiles.length == 0) {
-            throw new HubIntegrationException("Can not find the scan status files in the directory provided.");
-        }
-        byte[] rawBytes = Files.readAllBytes(statusFiles[0].toPath());
-        final String fileContent = new String(rawBytes);
-        final Gson gson = new GsonBuilder().create();
-        final ScanSummaryItem scanSummaryItem = gson.fromJson(fileContent, ScanSummaryItem.class);
-        CodeLocationItem codeLocationItem = services.getCodeLocationRestService().getItem(scanSummaryItem.getLink("codelocation"));
-        String projectVersionUrl = codeLocationItem.getMappedProjectVersion();
-        ProjectVersionItem projectVersion = services.getProjectVersionRestService().getItem(projectVersionUrl);
-        return projectVersion;
-    }
+    private void generateRiskReport(final IntLogger logger, final File workingDirectory, final List<ScanSummaryItem> scanSummaryList,
+            final ScanStatusDataService scanStatusDataService, final RiskReportDataService riskReportDataService,
+            final String projectName, final String versionName, long maximumWaitTime) throws IOException, BDRestException, URISyntaxException,
+            ProjectDoesNotExistException, HubIntegrationException, InterruptedException, UnexpectedHubResponseException {
+        logger.info("Generating Risk Report");
+        waitForHub(scanStatusDataService, scanSummaryList, logger, maximumWaitTime);
+        final String reportDirectoryPath = workingDirectory.getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
+        File reportDirectory = new File(reportDirectoryPath);
+        riskReportDataService.createRiskReport(reportDirectory, projectName, versionName);
+        artifactsWatcher.addNewArtifactsPath(reportDirectoryPath + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
 
-    private ProjectItem getProjectFromVersion(ProjectVersionItem version, DataServicesFactory services)
-            throws IOException, BDRestException, URISyntaxException, UnexpectedHubResponseException {
-        ProjectItem project = services.getProjectRestService().getItem(version.getLink("project"));
-        return project;
-    }
-
-    public ScanExecutor doHubScan(final HubIntRestService service, final HubAgentBuildLogger logger,
-            final File oneJarFile, final File scanExec, File javaExec, final HubServerConfig globalConfig,
-            final HubScanJobConfig jobConfig, final HubSupportHelper supportHelper) throws HubIntegrationException,
-            IOException, URISyntaxException, NumberFormatException, NoSuchMethodException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, EncryptionException {
-        final TeamCityScanExecutor scan = new TeamCityScanExecutor(globalConfig.getHubUrl().toString(),
-                globalConfig.getGlobalCredentials().getUsername(),
-                globalConfig.getGlobalCredentials().getDecryptedPassword(), jobConfig.getScanTargetPaths(),
-                context.getBuild().getBuildNumber(), supportHelper, logger);
-
-        if (globalConfig.getProxyInfo() != null) {
-            final URL hubUrl = globalConfig.getHubUrl();
-            if (globalConfig.getProxyInfo().shouldUseProxyForUrl(hubUrl)) {
-                addProxySettingsToScanner(logger, scan, globalConfig.getProxyInfo());
-            }
-        }
-        scan.setDryRun(jobConfig.isDryRun());
-        scan.setScanMemory(jobConfig.getScanMemory());
-        scan.setWorkingDirectory(jobConfig.getWorkingDirectory());
-        scan.setVerboseRun(isVerbose());
-        if (jobConfig.getProjectName() != null && jobConfig.getVersion() != null) {
-            scan.setProject(jobConfig.getProjectName());
-            scan.setVersion(jobConfig.getVersion());
-        }
-
-        if (javaExec == null) {
-            String javaHome = getEnvironmentVariable("JAVA_HOME");
-            if (StringUtils.isBlank(javaHome)) {
-                // We couldn't get the JAVA_HOME variable so lets try to get the
-                // home
-                // of the java that is running this process
-                javaHome = System.getProperty("java.home");
-            }
-            javaExec = new File(javaHome);
-            if (StringUtils.isBlank(javaHome) || javaExec == null || !javaExec.exists()) {
-                throw new HubIntegrationException(
-                        "The JAVA_HOME could not be determined, the Hub CLI can not be executed.");
-            }
-            javaExec = new File(javaExec, "bin");
-            if (SystemUtils.IS_OS_WINDOWS) {
-                javaExec = new File(javaExec, "java.exe");
-            } else {
-                javaExec = new File(javaExec, "java");
-            }
-        }
-
-        final Result scanResult = scan.setupAndRunScan(scanExec.getAbsolutePath(), oneJarFile.getAbsolutePath(),
-                javaExec.getAbsolutePath());
-        if (scanResult != Result.SUCCESS) {
-            result = BuildFinishedStatus.FINISHED_FAILED;
-        }
-
-        return scan;
-    }
-
-    public void addProxySettingsToScanner(final IntLogger logger, final TeamCityScanExecutor scan,
-            final HubProxyInfo proxyInfo) throws HubIntegrationException, URISyntaxException, MalformedURLException,
-            IllegalArgumentException, EncryptionException {
-        if (proxyInfo != null) {
-            if (StringUtils.isNotBlank(proxyInfo.getHost()) && proxyInfo.getPort() != 0) {
-                if (StringUtils.isNotBlank(proxyInfo.getUsername())
-                        && StringUtils.isNotBlank(proxyInfo.getMaskedPassword())) {
-                    scan.setProxyHost(proxyInfo.getHost());
-                    scan.setProxyPort(proxyInfo.getPort());
-                    scan.setProxyUsername(proxyInfo.getUsername());
-                    scan.setProxyPassword(proxyInfo.getDecryptedPassword());
-                } else {
-                    scan.setProxyHost(proxyInfo.getHost());
-                    scan.setProxyPort(proxyInfo.getPort());
-                }
-                if (logger != null) {
-                    logger.debug("Using proxy: '" + proxyInfo.getHost() + "' at Port: '" + proxyInfo.getPort() + "'");
-                }
-            }
-        }
+        // If we do not wait, the report tab will not be added and
+        // it will appear that the report was unsuccessful
+        Thread.sleep(2000);
     }
 
     private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
-            final HubSupportHelper hubSupport, final HubIntRestService restService,
-            final HubReportGenerationInfo bomUpdateInfo, final ProjectVersionItem version, final boolean waitForBom,
+            final HubServicesFactory services, final String projectName, String versionName,
             final boolean isDryRun) throws UnexpectedHubResponseException {
-        // Check if User specified our Failure Condition on policy
-        final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
-        // The feature is only allowed to have a single instance in the
-        // configuration therefore we just want to make
-        // sure the feature collection has something meaning that it was
-        // configured.
-        if (features != null && features.iterator() != null && !features.isEmpty()
-                && features.iterator().next() != null) {
+        try {
             if (isDryRun) {
                 logger.warn("Will not run the Failure conditions because this was a dry run scan.");
                 return;
             }
-            if (!hubSupport.hasCapability(HubCapabilitiesEnum.POLICY_API)) {
-                final String message = "This version of the Hub does not have support for Policies.";
+
+            final PolicyStatusDataService policyStatusDataService = services.createPolicyStatusDataService();
+
+            final PolicyStatusItem policyStatusItem = policyStatusDataService
+                    .getPolicyStatusForProjectAndVersion(projectName, versionName);
+            if (policyStatusItem == null) {
+                String message = "Could not find any information about the Policy status of the bom.";
+                logger.error(message);
                 build.stopBuild(message);
-            } else {
-                if (version == null) {
-                    logger.error("Can not check policy violations if you have not specified a Project and Version.");
-                    return;
-                }
-                final String policyStatusLink = version.getLink(ReleaseItem.POLICY_STATUS_LINK);
-                try {
-                    if (waitForBom) {
-                        logger.debug("Waiting for the bom to be updated with the scan results.");
-                        waitForBomToBeUpdated(logger, restService, hubSupport, bomUpdateInfo);
-                    }
-                    // We use this conditional in case there are other failure
-                    // conditions in the future
-                    final PolicyStatusItem policyStatus = restService.getPolicyStatus(policyStatusLink);
-                    if (policyStatus == null) {
-                        build.stopBuild("Could not find any information about the Policy status of the bom.");
-                        return;
-                    }
-                    boolean policyViolationFound = false;
-                    if (policyStatus.getOverallStatus() == PolicyStatusEnum.IN_VIOLATION) {
-                        policyViolationFound = true;
-                    }
-
-                    if (policyStatus.getCountInViolation() == null) {
-                        logger.error("Could not find the number of bom entries In Violation of a Policy.");
-                    } else {
-                        logger.info("Found " + policyStatus.getCountInViolation().getValue()
-                                + " bom entries to be In Violation of a defined Policy.");
-                    }
-                    if (policyStatus.getCountInViolationOverridden() == null) {
-                        logger.error("Could not find the number of bom entries In Violation Overridden of a Policy.");
-                    } else {
-                        logger.info("Found " + policyStatus.getCountInViolationOverridden().getValue()
-                                + " bom entries to be In Violation of a defined Policy, but they have been overridden.");
-                    }
-                    if (policyStatus.getCountNotInViolation() == null) {
-                        logger.error("Could not find the number of bom entries Not In Violation of a Policy.");
-                    } else {
-                        logger.info("Found " + policyStatus.getCountNotInViolation().getValue()
-                                + " bom entries to be Not In Violation of a defined Policy.");
-                    }
-
-                    if (policyViolationFound) {
-                        build.stopBuild("Policy Violations found");
-                    }
-                } catch (final Exception e) {
-                    logger.error(e.getMessage(), e);
-                    build.stopBuild(e.getMessage());
-                }
             }
-        }
-    }
 
-    public void waitForBomToBeUpdated(final IntLogger logger, final HubIntRestService service,
-            final HubSupportHelper supportHelper, final HubReportGenerationInfo bomUpdateInfo)
-            throws InterruptedException, BDRestException, HubIntegrationException, URISyntaxException, IOException,
-            ProjectDoesNotExistException, MissingUUIDException, UnexpectedHubResponseException {
-        final HubEventPolling hubEventPolling = new HubEventPolling(service);
-        if (supportHelper.hasCapability(HubCapabilitiesEnum.CLI_STATUS_DIRECTORY_OPTION)) {
-            hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
-        } else {
-            hubEventPolling.assertBomUpToDate(bomUpdateInfo, logger);
+            final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(policyStatusItem);
+            final String policyStatusMessage = policyStatusDescription.getPolicyStatusMessage();
+            if (policyStatusItem.getOverallStatus() == PolicyStatusEnum.IN_VIOLATION) {
+                logger.error(policyStatusMessage);
+                build.stopBuild(policyStatusMessage);
+            }
+            logger.info(policyStatusMessage);
+        } catch (final Exception e) {
+            logger.error(e.getMessage(), e);
+            build.stopBuild(e.getMessage());
         }
     }
 
@@ -681,4 +493,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 thirdPartyVersion, pluginVersion);
     }
 
+    private void waitForHub(ScanStatusDataService scanStatusDataService, List<ScanSummaryItem> pendingScans, final IntLogger logger, final long timeout) {
+        try {
+            scanStatusDataService.assertBomImportScansFinished(pendingScans, timeout);
+        } catch (IOException | BDRestException | URISyntaxException | ProjectDoesNotExistException | UnexpectedHubResponseException
+                | HubIntegrationException | InterruptedException e) {
+            logger.error(String.format("There was an error waiting for the scans: %s", e.getMessage()), e);
+        }
+    }
 }
