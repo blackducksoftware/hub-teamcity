@@ -447,10 +447,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(policyStatusItem);
             final String policyStatusMessage = policyStatusDescription.getPolicyStatusMessage();
             if (policyStatusItem.getOverallStatus() == PolicyStatusEnum.IN_VIOLATION) {
-                logger.error(policyStatusMessage);
                 build.stopBuild(policyStatusMessage);
+            } else {
+                logger.info(policyStatusMessage);
             }
-            logger.info(policyStatusMessage);
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
             build.stopBuild(e.getMessage());
