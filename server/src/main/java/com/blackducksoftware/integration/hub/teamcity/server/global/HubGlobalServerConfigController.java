@@ -97,13 +97,13 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         }
         if (errors.hasErrors()) {
             errors.serialize(xmlResponse);
-        } else {
-            try {
-                configPersistenceManager.persist();
-            } catch (final Exception e) {
-                errors.addError("errorSaving", e.toString());
-            }
         }
+        try {
+            configPersistenceManager.persist();
+        } catch (final Exception e) {
+            errors.addError("errorSaving", e.toString());
+        }
+
     }
 
     public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
@@ -131,7 +131,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         builder.setTimeout(hubConnectionTimeout);
 
         String proxyPass = getDecryptedWebPassword(encProxyPassword);
-        if (StringUtils.isBlank(proxyPass) && configPersistenceManager.getHubServerConfig() != null
+        if (isPasswordAstericks(proxyPass) && configPersistenceManager.getHubServerConfig() != null
                 && configPersistenceManager.getHubServerConfig().getProxyInfo() != null) {
             proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
         }
@@ -195,17 +195,19 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         password = request.getParameter("encryptedHubPass");
 
         HubCredentials hubCredentials = null;
-        if (StringUtils.isNotBlank(getDecryptedWebPassword(password))) {
-            // Do not change the saved password unless the User has provided a
-            // new one
-            final String decryptedWebPassword = getDecryptedWebPassword(password);
-            if (StringUtils.isNotBlank(decryptedWebPassword)) {
-                hubCredentials = new HubCredentials(username, decryptedWebPassword);
-            }
+        String decryptedPassword = getDecryptedWebPassword(password);
+        if (isPasswordAstericks(decryptedPassword) && configPersistenceManager.getHubServerConfig() != null
+                && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
+            String savedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
+            hubCredentials = new HubCredentials(username, savedPassword);
         } else {
-            if (configPersistenceManager.getHubServerConfig() != null && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
-                String decryptedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
-                hubCredentials = new HubCredentials(username, decryptedPassword);
+            if (StringUtils.isNotBlank(decryptedPassword)) {
+                // Do not change the saved password unless the User has provided a
+                // new one
+                final String decryptedWebPassword = getDecryptedWebPassword(password);
+                if (StringUtils.isNotBlank(decryptedWebPassword)) {
+                    hubCredentials = new HubCredentials(username, decryptedWebPassword);
+                }
             }
         }
 
@@ -218,18 +220,20 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             final String webDecryptedPass = RSACipher.decryptWebRequestData(webEncryptedPass);
 
             if (StringUtils.isNotBlank(webDecryptedPass)) {
-                final String maskedString = webDecryptedPass.replace("*", "");
-
-                if (StringUtils.isBlank(maskedString)) {
-                    // Then the string was just a masked version of the password
-                    // no new password to save
-                    return "";
-                } else {
-                    return webDecryptedPass;
-                }
+                return webDecryptedPass;
             }
         }
         return "";
+    }
+
+    private boolean isPasswordAstericks(String password) {
+        if (StringUtils.isNotBlank(password)) {
+            final String removedAstericks = password.replace("*", "");
+            if (StringUtils.isBlank(removedAstericks)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isTestConnectionRequest(final HttpServletRequest request) {
