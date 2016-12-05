@@ -323,7 +323,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     } catch (final Exception e) {
                         logger.debug("Could not get the Hub Host name.");
                     }
-                    bdPhoneHome(hubVersion, regId, hubHostName);
+                    bdPhoneHome(logger, hubVersion, regId, hubHostName);
                 } catch (final Exception e) {
                     logger.debug("Unable to phone-home", e);
                 }
@@ -676,12 +676,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
      *            This method "phones-home" to the internal BlackDuck
      *            Integrations server. Every time a build is kicked off,
      */
-    public void bdPhoneHome(final String blackDuckVersion, final String regId, final String hubHostName)
+    public void bdPhoneHome(final IntLogger logger, final String blackDuckVersion, final String regId, final String hubHostName)
             throws IOException, PhoneHomeException, PropertiesLoaderException, ResourceException, JSONException {
         final String thirdPartyVersion = ServerVersionHolder.getVersion().getDisplayVersion();
         final String pluginVersion = getPluginVersion();
 
-        final PhoneHomeClient phClient = new PhoneHomeClient();
+        final PhoneHomeClient phClient = new PhoneHomeClient(logger);
         phClient.callHomeIntegrations(regId, hubHostName, BlackDuckName.HUB, blackDuckVersion, ThirdPartyName.TEAM_CITY,
                 thirdPartyVersion, pluginVersion);
     }
