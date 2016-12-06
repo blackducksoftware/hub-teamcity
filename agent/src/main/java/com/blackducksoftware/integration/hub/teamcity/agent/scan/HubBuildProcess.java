@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.builder.ValidationResults;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
@@ -47,11 +46,7 @@ import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDataService;
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
-import com.blackducksoftware.integration.hub.exception.BDRestException;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.exception.ProjectDoesNotExistException;
-import com.blackducksoftware.integration.hub.exception.ScanFailedException;
-import com.blackducksoftware.integration.hub.exception.UnexpectedHubResponseException;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
@@ -73,6 +68,8 @@ import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import jetbrains.buildServer.version.ServerVersionHolder;
 
 public class HubBuildProcess extends HubCallableBuildProcess {
+    private static final int DEFAULT_MAX_WAIT_TIME_MILLISEC = 5 * 60 * 1000;
+
     @NotNull
     private final AgentRunningBuild build;
 
@@ -142,11 +139,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 return result;
             }
             hubConfig.print(logger);
+            final String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
+            final String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
+            boolean isRiskReportGenerated = false;
+            long waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
+
+            if (StringUtils.isNotBlank(shouldGenerateRiskReport)) {
+                isRiskReportGenerated = Boolean.getBoolean(shouldGenerateRiskReport);
+            }
+
+            if (StringUtils.isNotBlank(maxWaitTimeForRiskReport)) {
+                waitTimeForReport = NumberUtils.toInt(maxWaitTimeForRiskReport) * 60 * 1000; // 5 minutes is the default
+            }
 
             final RestConnection restConnection = new CredentialsRestConnection(hubConfig);
 
-            restConnection.setCookies(hubConfig.getGlobalCredentials().getUsername(),
-                    hubConfig.getGlobalCredentials().getDecryptedPassword());
+            restConnection.connect();
 
             final HubServicesFactory services = new HubServicesFactory(restConnection);
             final CLIDataService cliDataService = services.createCLIDataService(logger);
@@ -162,19 +170,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
             List<ScanSummaryItem> scanSummaryList = null;
             try {
-                scanSummaryList = cliDataService.installAndRunScan(commonVariables, hubConfig, hubScanConfig);
+                scanSummaryList = cliDataService.installAndRunScan(hubConfig, hubScanConfig);
 
-            } catch (final ScanFailedException e) {
+            } catch (final HubIntegrationException e) {
 
                 result = BuildFinishedStatus.FINISHED_FAILED;
                 return result;
             }
             if (!hubScanConfig.isDryRun()) {
-                if (hubScanConfig.isShouldGenerateRiskReport() || isFailOnPolicySelected) {
+                if (isRiskReportGenerated || isFailOnPolicySelected) {
                     services.createScanStatusDataService().assertBomImportScansFinished(scanSummaryList,
-                            hubScanConfig.getMaxWaitTimeForBomUpdateInMilliseconds());
+                            hubConfig.getTimeout());
                 }
-                if (hubScanConfig.isShouldGenerateRiskReport()) {
+                if (isRiskReportGenerated) {
                     logger.info("Generating Risk Report");
                     publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger), hubScanConfig.getProjectName(),
                             hubScanConfig.getVersion());
@@ -185,7 +193,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                             hubScanConfig.isDryRun());
                 }
             } else {
-                if (hubScanConfig.isShouldGenerateRiskReport()) {
+                if (isRiskReportGenerated) {
                     logger.warn("Will not generate the risk report because this was a dry run scan.");
                 }
                 if (isFailOnPolicySelected) {
@@ -237,12 +245,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             logger.error("Hub Server Configuration Invalid.");
             final Set<GlobalFieldKey> keySet = results.getResultMap().keySet();
             for (final GlobalFieldKey key : keySet) {
-                if (results.hasErrors(key)) {
-                    logger.error(results.getResultString(key, ValidationResultEnum.ERROR));
+                if (results.hasErrors()) {
+                    logger.error(results.getResultString(key));
                 }
 
-                if (results.hasWarnings(key)) {
-                    logger.warn(results.getResultString(key, ValidationResultEnum.ERROR));
+                if (results.hasWarnings()) {
+                    logger.warn(results.getResultString(key));
                 }
             }
 
@@ -258,8 +266,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String projectVersion = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
         final String phase = getParameter(HubConstantValues.HUB_VERSION_PHASE);
         final String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
-        final String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
-        final String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
         final String dryRun = getParameter(HubConstantValues.HUB_DRY_RUN);
         final String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
 
@@ -282,9 +288,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         hubScanConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
         hubScanConfigBuilder.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
         hubScanConfigBuilder.setWorkingDirectory(workingDirectory);
-        hubScanConfigBuilder.setShouldGenerateRiskReport(shouldGenerateRiskReport);
         hubScanConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
-        hubScanConfigBuilder.setMaxWaitTimeForBomUpdate(maxWaitTimeForRiskReport);
         hubScanConfigBuilder.setScanMemory(scanMemory);
         hubScanConfigBuilder.addAllScanTargetPaths(scanTargets);
         hubScanConfigBuilder.setToolsDir(toolsDir);
@@ -299,15 +303,14 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             logger.error("Hub Scan Configuration Invalid.");
             final Set<HubScanConfigFieldEnum> keySet = results.getResultMap().keySet();
             for (final HubScanConfigFieldEnum key : keySet) {
-                if (results.hasErrors(key)) {
-                    logger.error(results.getResultString(key, ValidationResultEnum.ERROR));
+                if (results.hasErrors()) {
+                    logger.error(results.getResultString(key));
                 }
 
-                if (results.hasWarnings(key)) {
-                    logger.warn(results.getResultString(key, ValidationResultEnum.ERROR));
+                if (results.hasWarnings()) {
+                    logger.warn(results.getResultString(key));
                 }
             }
-
         }
 
         return hubScanConfigBuilder.build();
@@ -327,8 +330,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, RiskReportDataService riskReportDataService,
-            String projectName, String projectVersion) throws IOException, BDRestException, URISyntaxException,
-            ProjectDoesNotExistException, HubIntegrationException, InterruptedException, UnexpectedHubResponseException {
+            String projectName, String projectVersion) throws IOException, URISyntaxException, InterruptedException,
+            HubIntegrationException {
 
         final String reportDirectoryPath = workingDirectory.getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
         final File reportDirectory = new File(reportDirectoryPath);
@@ -342,7 +345,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
             final HubServicesFactory services, final String projectName, String versionName,
-            final boolean isDryRun) throws UnexpectedHubResponseException {
+            final boolean isDryRun) {
         try {
             if (isDryRun) {
                 logger.warn("Will not run the Failure conditions because this was a dry run scan.");
