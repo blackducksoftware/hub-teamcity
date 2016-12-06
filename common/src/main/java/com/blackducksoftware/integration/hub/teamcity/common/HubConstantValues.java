@@ -74,7 +74,7 @@ public final class HubConstantValues {
 
     public static final String HUB_BUILD_INFO = "build-info.json";
 
-    public static final String HUB_RISK_REPORT_FILENAME = "hub_risk_report.json";
+    public static final String HUB_RISK_REPORT_FILENAME = "riskreport.html";
 
     public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
 
@@ -84,4 +84,9 @@ public final class HubConstantValues {
 
     public static final String HUB_CONNECTION_TIMEOUT = "hubTimeout";
 
+    public static final String PLUGIN_VERSION = PLUGIN_PREFIX + "hubPluginVersion";
+
+    public static final String PLUGIN_NAME = PLUGIN_PREFIX + "hubPluginName";
+
+    public static final String HUB_RISK_REPORT_DIRECTORY_NAME = "Hub_Risk_Report";
 }

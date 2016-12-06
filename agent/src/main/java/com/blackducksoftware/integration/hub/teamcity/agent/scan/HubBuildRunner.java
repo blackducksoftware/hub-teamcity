@@ -33,25 +33,19 @@ import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildProcess;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
-import jetbrains.buildServer.agent.plugins.beans.AgentPluginInfoImpl;
 
 public class HubBuildRunner implements AgentBuildRunner {
     @NotNull
     private final ArtifactsWatcher artifactsWatcher;
 
-    @NotNull
-    private final AgentPluginInfoImpl pluginInfo;
-
-    public HubBuildRunner(@NotNull final ArtifactsWatcher artifactsWatcher,
-            @NotNull final AgentPluginInfoImpl pluginInfo) {
+    public HubBuildRunner(@NotNull final ArtifactsWatcher artifactsWatcher) {
         this.artifactsWatcher = artifactsWatcher;
-        this.pluginInfo = pluginInfo;
     }
 
     @Override
     public BuildProcess createBuildProcess(@NotNull final AgentRunningBuild runningBuild,
             @NotNull final BuildRunnerContext context) throws RunBuildException {
-        return new HubBuildProcess(runningBuild, context, artifactsWatcher, pluginInfo);
+        return new HubBuildProcess(runningBuild, context, artifactsWatcher);
     }
 
     @Override

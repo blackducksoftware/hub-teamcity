@@ -105,4 +105,8 @@ public class HubServerLogger extends IntLogger {
         }
     }
 
+    @Override
+    public void alwaysLog(String txt) {
+        Loggers.SERVER.info(txt);
+    }
 }

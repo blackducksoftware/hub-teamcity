@@ -156,4 +156,9 @@ public class TestBuildRunnerContext implements BuildRunnerContext {
         return false;
     }
 
+    @Override
+    public String getId() {
+        return "testBuildId";
+    }
+
 }

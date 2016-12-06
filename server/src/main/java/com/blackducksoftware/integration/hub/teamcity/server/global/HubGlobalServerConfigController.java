@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.blackducksoftware.integration.builder.ValidationResultEnum;
 import com.blackducksoftware.integration.builder.ValidationResults;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
@@ -158,10 +157,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
     private void checkForErrors(final GlobalFieldKey key, final String fieldId,
             final ValidationResults<GlobalFieldKey, HubServerConfig> results, final ActionErrors errors) {
-        if (results.hasErrors(key)) {
-            errors.addError(fieldId, results.getResultString(key, ValidationResultEnum.ERROR));
-        } else if (results.hasWarnings(key)) {
-            errors.addError(fieldId, results.getResultString(key, ValidationResultEnum.WARN));
+        if (!results.isSuccess()) {
+            errors.addError(fieldId, results.getResultString(key));
         }
     }
 
@@ -190,15 +187,15 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
     public HubCredentials getCredentialsFromRequest(final HttpServletRequest request, final String usernameKey)
             throws IllegalArgumentException, EncryptionException {
-        String username = request.getParameter(usernameKey);
+        final String username = request.getParameter(usernameKey);
         String password = "";
         password = request.getParameter("encryptedHubPass");
 
         HubCredentials hubCredentials = null;
-        String decryptedPassword = getDecryptedWebPassword(password);
+        final String decryptedPassword = getDecryptedWebPassword(password);
         if (isPasswordAstericks(decryptedPassword) && configPersistenceManager.getHubServerConfig() != null
                 && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
-            String savedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
+            final String savedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
             hubCredentials = new HubCredentials(username, savedPassword);
         } else {
             if (StringUtils.isNotBlank(decryptedPassword)) {
