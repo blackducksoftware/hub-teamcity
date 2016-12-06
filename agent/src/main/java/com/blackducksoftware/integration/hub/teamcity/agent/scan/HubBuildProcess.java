@@ -180,7 +180,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             if (!hubScanConfig.isDryRun()) {
                 if (isRiskReportGenerated || isFailOnPolicySelected) {
                     services.createScanStatusDataService().assertBomImportScansFinished(scanSummaryList,
-                            hubConfig.getTimeout());
+                            waitTimeForReport);
                 }
                 if (isRiskReportGenerated) {
                     logger.info("Generating Risk Report");
