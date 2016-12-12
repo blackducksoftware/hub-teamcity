@@ -59,50 +59,6 @@
 					</td>
 				</tr>
 				
-				<tr class="noBorder" id="blackDuckHubVersionPhase" style="">
-					<th><label
-						for="com.blackducksoftware.integration.hub.phase">
-							Phase: <bs:helpIcon
-								iconTitle="Choose the Phase at which this Version is in its life cycle. This Phase will be used when creating the Version, changing this will NOT update the Version's Phase" />
-					</label></th>
-					<td><props:selectProperty
-							name="com.blackducksoftware.integration.hub.phase"
-							className="longField">
-							<c:forEach var="phase"
-								items="${hubConfigPersistenceManager.getPhaseOptions()}">
-								<c:set var="selected" value="false" />
-								
-								<props:option value="${phase}"
-									selected="${selected}">
-									<c:out
-										value="${phase}" />
-								</props:option>
-							</c:forEach>
-						</props:selectProperty> <span class="smallNote"> Phase at which this Version is in. </span></td>
-				</tr>
-				
-				<tr class="noBorder" id="blackDuckHubVersionDistribution" style="">
-					<th><label
-						for="com.blackducksoftware.integration.hub.distribution">
-							Distribution: <bs:helpIcon
-								iconTitle="Choose how this Version is planned to be distributed. This will be used when creating the Version, changing this will NOT update the Version's Distribution" />
-					</label></th>
-					<td><props:selectProperty
-							name="com.blackducksoftware.integration.hub.distribution"
-							className="longField">
-							<c:forEach var="distribution"
-								items="${hubConfigPersistenceManager.getDistributionOptions()}">
-								<c:set var="selected" value="false" />
-								
-								<props:option value="${distribution}"
-									selected="${selected}">
-									<c:out
-										value="${distribution}" />
-								</props:option>
-							</c:forEach>
-						</props:selectProperty> <span class="smallNote"> Distribution type for this Version. </span></td>
-				</tr>
-
 				<tr class="noBorder" id="blackDuckHubGenerateRiskReport" style="">
 					<th>
 						<label for="com.blackducksoftware.integration.hub.generateRiskReport">

@@ -26,20 +26,17 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.builder.ValidationResults;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
 import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
 import com.blackducksoftware.integration.hub.api.scan.ScanSummaryItem;
-import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
-import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
@@ -47,19 +44,20 @@ import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStat
 import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
-import com.blackducksoftware.integration.hub.scan.HubScanConfigFieldEnum;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
+import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.IntLogger;
+import com.blackducksoftware.integration.phone.home.enums.ThirdPartyName;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
+import jetbrains.buildServer.agent.AgentBuildFeature;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -130,6 +128,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String localHostName = HostnameHelper.getMyHostname();
         logger.info("Running on machine : " + localHostName);
 
+        final String thirdPartyVersion = ServerVersionHolder.getVersion().getDisplayVersion();
+        final String pluginVersion = getPluginVersion();
+        logger.info("TeamCity version : " + thirdPartyVersion);
+        logger.info("Hub TeamCity Plugin version : " + pluginVersion);
+
         try {
             final HubServerConfig hubConfig = getHubServerConfig(logger);
             if (hubConfig == null) {
@@ -139,18 +142,29 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 return result;
             }
             hubConfig.print(logger);
-            final String shouldGenerateRiskReport = getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT);
-            final String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
-            boolean isRiskReportGenerated = false;
-            long waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
 
-            if (StringUtils.isNotBlank(shouldGenerateRiskReport)) {
-                isRiskReportGenerated = Boolean.getBoolean(shouldGenerateRiskReport);
+            final boolean isRiskReportGenerated = Boolean.parseBoolean(getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT));
+
+            boolean isFailOnPolicySelected = false;
+            final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
+            // The feature is only allowed to have a single instance in the
+            // configuration therefore we just want to make
+            // sure the feature collection has something meaning that it was
+            // configured.
+            if (features != null && features.iterator() != null && !features.isEmpty()
+                    && features.iterator().next() != null) {
+                isFailOnPolicySelected = true;
             }
 
+            long waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
+            final String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
             if (StringUtils.isNotBlank(maxWaitTimeForRiskReport)) {
                 waitTimeForReport = NumberUtils.toInt(maxWaitTimeForRiskReport) * 60 * 1000; // 5 minutes is the default
             }
+
+            logger.info("--> Generate Risk Report : " + isRiskReportGenerated);
+            logger.info("--> Bom wait time : " + maxWaitTimeForRiskReport);
+            logger.info("--> Check Policies : " + isFailOnPolicySelected);
 
             final RestConnection restConnection = new CredentialsRestConnection(hubConfig);
 
@@ -161,12 +175,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             final File workingDirectory = context.getWorkingDirectory();
             final File toolsDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
 
-            final String thirdPartyVersion = ServerVersionHolder.getVersion().getDisplayVersion();
-            final String pluginVersion = getPluginVersion();
-
             final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, thirdPartyVersion, pluginVersion, hubLogger);
-
-            final boolean isFailOnPolicySelected = Boolean.parseBoolean(getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT));
 
             List<ScanSummaryItem> scanSummaryList = null;
             try {
@@ -179,6 +188,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
             if (!hubScanConfig.isDryRun()) {
                 if (isRiskReportGenerated || isFailOnPolicySelected) {
+                    logger.info("Waiting for Bom to be updated");
                     services.createScanStatusDataService().assertBomImportScansFinished(scanSummaryList,
                             waitTimeForReport);
                 }
@@ -188,6 +198,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                             hubScanConfig.getVersion());
                 }
                 if (isFailOnPolicySelected) {
+                    logger.info("Checking for Policy violations.");
                     checkPolicyFailures(build, logger, services, hubScanConfig.getProjectName(),
                             hubScanConfig.getVersion(),
                             hubScanConfig.isDryRun());
@@ -208,8 +219,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return result;
     }
 
-    private HubServerConfig getHubServerConfig(final IntLogger logger)
-            throws IllegalArgumentException, EncryptionException {
+    private HubServerConfig getHubServerConfig(final IntLogger logger) {
         final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
         // read the credentials and proxy info using the existing objects.
@@ -238,22 +248,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         configBuilder.setProxyPassword(proxyPassword);
         configBuilder.setProxyPasswordLength(NumberUtils.toInt(proxyPasswordLength));
 
-        final ValidationResults<GlobalFieldKey, HubServerConfig> results = configBuilder.buildResults();
-        if (results.isSuccess()) {
-            return results.getConstructedObject();
-        } else {
-            logger.error("Hub Server Configuration Invalid.");
-            final Set<GlobalFieldKey> keySet = results.getResultMap().keySet();
-            for (final GlobalFieldKey key : keySet) {
-                if (results.hasErrors()) {
-                    logger.error(results.getResultString(key));
-                }
-
-                if (results.hasWarnings()) {
-                    logger.warn(results.getResultString(key));
-                }
-            }
-
+        try {
+            return configBuilder.build();
+        } catch (IllegalStateException e) {
+            logger.error(e.getMessage(), e);
         }
         return null;
     }
@@ -264,8 +262,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         final String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
         final String projectVersion = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
-        final String phase = getParameter(HubConstantValues.HUB_VERSION_PHASE);
-        final String distribution = getParameter(HubConstantValues.HUB_VERSION_DISTRIBUTION);
         final String dryRun = getParameter(HubConstantValues.HUB_DRY_RUN);
         final String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
 
@@ -282,38 +278,24 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             scanTargets.add(workingDirectory.getAbsolutePath());
         }
 
-        final HubScanConfigBuilder hubScanConfigBuilder = new HubScanConfigBuilder(true);
+        final HubScanConfigBuilder hubScanConfigBuilder = new HubScanConfigBuilder();
         hubScanConfigBuilder.setProjectName(projectName);
         hubScanConfigBuilder.setVersion(projectVersion);
-        hubScanConfigBuilder.setPhase(PhaseEnum.getPhaseByDisplayValue(phase).name());
-        hubScanConfigBuilder.setDistribution(DistributionEnum.getDistributionByDisplayValue(distribution).name());
         hubScanConfigBuilder.setWorkingDirectory(workingDirectory);
         hubScanConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
         hubScanConfigBuilder.setScanMemory(scanMemory);
         hubScanConfigBuilder.addAllScanTargetPaths(scanTargets);
         hubScanConfigBuilder.setToolsDir(toolsDir);
+        hubScanConfigBuilder.setThirdPartyName(ThirdPartyName.TEAM_CITY);
         hubScanConfigBuilder.setThirdPartyVersion(thirdPartyVersion);
         hubScanConfigBuilder.setPluginVersion(pluginVersion);
 
-        final ValidationResults<HubScanConfigFieldEnum, HubScanConfig> results = hubScanConfigBuilder.buildResults();
-
-        if (results.isSuccess()) {
-            return results.getConstructedObject();
-        } else {
-            logger.error("Hub Scan Configuration Invalid.");
-            final Set<HubScanConfigFieldEnum> keySet = results.getResultMap().keySet();
-            for (final HubScanConfigFieldEnum key : keySet) {
-                if (results.hasErrors()) {
-                    logger.error(results.getResultString(key));
-                }
-
-                if (results.hasWarnings()) {
-                    logger.warn(results.getResultString(key));
-                }
-            }
+        try {
+            return hubScanConfigBuilder.build();
+        } catch (IllegalStateException e) {
+            logger.error(e.getMessage(), e);
         }
-
-        return hubScanConfigBuilder.build();
+        return null;
     }
 
     private String getParameter(@NotNull final String parameterName) {

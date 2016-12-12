@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.blackducksoftware.integration.builder.ValidationResults;
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
@@ -46,6 +45,8 @@ import com.blackducksoftware.integration.hub.global.HubProxyInfoFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.global.HubServerConfigFieldEnum;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
+import com.blackducksoftware.integration.validator.AbstractValidator;
+import com.blackducksoftware.integration.validator.ValidationResults;
 
 import jetbrains.buildServer.controllers.ActionErrors;
 import jetbrains.buildServer.controllers.BaseFormXmlController;
@@ -136,9 +137,11 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         }
         builder.setProxyPassword(proxyPass);
 
-        final ValidationResults<GlobalFieldKey, HubServerConfig> results = builder.buildResults();
+        AbstractValidator validator = builder.createValidator();
+
+        final ValidationResults results = validator.assertValid();
         if (results.isSuccess()) {
-            final HubServerConfig config = results.getConstructedObject();
+            final HubServerConfig config = builder.buildObject();
             configPersistenceManager.setHubServerConfig(config);
         } else {
             checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
@@ -156,7 +159,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
     }
 
     private void checkForErrors(final GlobalFieldKey key, final String fieldId,
-            final ValidationResults<GlobalFieldKey, HubServerConfig> results, final ActionErrors errors) {
+            final ValidationResults results, final ActionErrors errors) {
         if (!results.isSuccess()) {
             errors.addError(fieldId, results.getResultString(key));
         }
