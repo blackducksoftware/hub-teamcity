@@ -129,12 +129,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         logger.info("Running on machine : " + localHostName);
 
         final String thirdPartyVersion = ServerVersionHolder.getVersion().getDisplayVersion();
-        final String pluginVersion = getPluginVersion();
+        final String pluginVersion = getPluginVersion(commonVariables);
         logger.info("TeamCity version : " + thirdPartyVersion);
         logger.info("Hub TeamCity Plugin version : " + pluginVersion);
 
         try {
-            final HubServerConfig hubConfig = getHubServerConfig(logger);
+            final HubServerConfig hubConfig = getHubServerConfig(logger, commonVariables);
             if (hubConfig == null) {
                 logger.error("Please verify the correct dependent Hub configuration plugin is installed");
                 logger.error("Please verify the configuration is correct if the plugin is installed.");
@@ -143,7 +143,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
             hubConfig.print(logger);
 
-            final boolean isRiskReportGenerated = Boolean.parseBoolean(getParameter(HubConstantValues.HUB_GENERATE_RISK_REPORT));
+            final boolean isRiskReportGenerated = Boolean.parseBoolean(commonVariables.getValue(HubConstantValues.HUB_GENERATE_RISK_REPORT));
 
             boolean isFailOnPolicySelected = false;
             final Collection<AgentBuildFeature> features = build.getBuildFeaturesOfType(HubBundle.POLICY_FAILURE_CONDITION);
@@ -157,7 +157,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
 
             long waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
-            final String maxWaitTimeForRiskReport = getParameter(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
+            final String maxWaitTimeForRiskReport = commonVariables.getValue(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
             if (StringUtils.isNotBlank(maxWaitTimeForRiskReport)) {
                 waitTimeForReport = NumberUtils.toInt(maxWaitTimeForRiskReport) * 60 * 1000; // 5 minutes is the default
             }
@@ -175,7 +175,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             final File workingDirectory = context.getWorkingDirectory();
             final File toolsDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
 
-            final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, thirdPartyVersion, pluginVersion, hubLogger);
+            final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, thirdPartyVersion, pluginVersion, hubLogger, commonVariables);
 
             List<ScanSummaryItem> scanSummaryList = null;
             try {
@@ -219,22 +219,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return result;
     }
 
-    private HubServerConfig getHubServerConfig(final IntLogger logger) {
+    private HubServerConfig getHubServerConfig(final IntLogger logger, CIEnvironmentVariables commonVariables) {
         final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
         // read the credentials and proxy info using the existing objects.
-        final String serverUrl = getParameter(HubConstantValues.HUB_URL);
-        final String timeout = getParameter(HubConstantValues.HUB_CONNECTION_TIMEOUT);
-        final String username = getParameter(HubConstantValues.HUB_USERNAME);
-        final String password = getParameter(HubConstantValues.HUB_PASSWORD);
-        final String passwordLength = getParameter(HubConstantValues.HUB_PASSWORD_LENGTH);
+        final String serverUrl = commonVariables.getValue(HubConstantValues.HUB_URL);
+        final String timeout = commonVariables.getValue(HubConstantValues.HUB_CONNECTION_TIMEOUT);
+        final String username = commonVariables.getValue(HubConstantValues.HUB_USERNAME);
+        final String password = commonVariables.getValue(HubConstantValues.HUB_PASSWORD);
+        final String passwordLength = commonVariables.getValue(HubConstantValues.HUB_PASSWORD_LENGTH);
 
-        final String proxyHost = getParameter(HubConstantValues.HUB_PROXY_HOST);
-        final String proxyPort = getParameter(HubConstantValues.HUB_PROXY_PORT);
-        final String ignoredProxyHosts = getParameter(HubConstantValues.HUB_NO_PROXY_HOSTS);
-        final String proxyUsername = getParameter(HubConstantValues.HUB_PROXY_USER);
-        final String proxyPassword = getParameter(HubConstantValues.HUB_PROXY_PASS);
-        final String proxyPasswordLength = getParameter(HubConstantValues.HUB_PROXY_PASS_LENGTH);
+        final String proxyHost = commonVariables.getValue(HubConstantValues.HUB_PROXY_HOST);
+        final String proxyPort = commonVariables.getValue(HubConstantValues.HUB_PROXY_PORT);
+        final String ignoredProxyHosts = commonVariables.getValue(HubConstantValues.HUB_NO_PROXY_HOSTS);
+        final String proxyUsername = commonVariables.getValue(HubConstantValues.HUB_PROXY_USER);
+        final String proxyPassword = commonVariables.getValue(HubConstantValues.HUB_PROXY_PASS);
+        final String proxyPasswordLength = commonVariables.getValue(HubConstantValues.HUB_PROXY_PASS_LENGTH);
 
         configBuilder.setHubUrl(serverUrl);
         configBuilder.setUsername(username);
@@ -258,15 +258,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     private HubScanConfig getScanConfig(final File workingDirectory, final File toolsDir,
             String thirdPartyVersion, String pluginVersion,
-            final IntLogger logger) throws IOException {
+            final IntLogger logger, CIEnvironmentVariables commonVariables) throws IOException {
 
-        final String projectName = getParameter(HubConstantValues.HUB_PROJECT_NAME);
-        final String projectVersion = getParameter(HubConstantValues.HUB_PROJECT_VERSION);
-        final String dryRun = getParameter(HubConstantValues.HUB_DRY_RUN);
-        final String scanMemory = getParameter(HubConstantValues.HUB_SCAN_MEMORY);
+        final String projectName = commonVariables.getValue(HubConstantValues.HUB_PROJECT_NAME);
+        final String projectVersion = commonVariables.getValue(HubConstantValues.HUB_PROJECT_VERSION);
+        final String dryRun = commonVariables.getValue(HubConstantValues.HUB_DRY_RUN);
+        final String scanMemory = commonVariables.getValue(HubConstantValues.HUB_SCAN_MEMORY);
 
         final List<String> scanTargets = new ArrayList<>();
-        final String scanTargetParameter = getParameter(HubConstantValues.HUB_SCAN_TARGETS);
+        final String scanTargetParameter = commonVariables.getValue(HubConstantValues.HUB_SCAN_TARGETS);
         if (StringUtils.isNotBlank(scanTargetParameter)) {
             final String[] scanTargetPathsArray = scanTargetParameter.split("\\r?\\n");
             for (final String target : scanTargetPathsArray) {
@@ -296,10 +296,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             logger.error(e.getMessage(), e);
         }
         return null;
-    }
-
-    private String getParameter(@NotNull final String parameterName) {
-        return StringUtils.trimToNull(context.getRunnerParameters().get(parameterName));
     }
 
     private CIEnvironmentVariables getCommonVariables() {
@@ -357,10 +353,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
     }
 
-    private String getPluginVersion() {
-        String pluginVersion = getParameter(HubConstantValues.PLUGIN_VERSION);
+    private String getPluginVersion(CIEnvironmentVariables commonVariables) {
+        String pluginVersion = commonVariables.getValue(HubConstantValues.PLUGIN_VERSION);
         if (StringUtils.isBlank(pluginVersion)) {
-            final String pluginName = getParameter(HubConstantValues.PLUGIN_NAME);
+            final String pluginName = commonVariables.getValue(HubConstantValues.PLUGIN_NAME);
             int indexStartOfVersion = 0;
             if (pluginName.endsWith("-SNAPSHOT")) {
                 indexStartOfVersion = pluginName.replace("-SNAPSHOT", "").lastIndexOf("-") + 1;
