@@ -189,7 +189,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             if (!hubScanConfig.isDryRun()) {
                 if (isRiskReportGenerated || isFailOnPolicySelected) {
                     logger.info("Waiting for Bom to be updated");
-                    services.createScanStatusDataService().assertBomImportScansFinished(scanSummaryList,
+                    services.createScanStatusDataService(logger).assertBomImportScansFinished(scanSummaryList,
                             waitTimeForReport);
                 }
                 if (isRiskReportGenerated) {
@@ -330,7 +330,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 return;
             }
 
-            final PolicyStatusDataService policyStatusDataService = services.createPolicyStatusDataService();
+            final PolicyStatusDataService policyStatusDataService = services.createPolicyStatusDataService(logger);
 
             final PolicyStatusItem policyStatusItem = policyStatusDataService
                     .getPolicyStatusForProjectAndVersion(projectName, versionName);
