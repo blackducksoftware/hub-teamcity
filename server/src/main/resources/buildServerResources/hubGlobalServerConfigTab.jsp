@@ -27,8 +27,18 @@
     }
 </style>
 
+
 <script type="text/javascript">
-    var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
+
+	function getElementValue(elem) {
+		if(elem != null && elem.firstChild != null){
+		 	return elem.firstChild.nodeValue;
+		} else {
+			return "";
+		}
+	}
+
+	 var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
         getContainer: function() {
             return $('testConnectionDialog');
         },
@@ -52,34 +62,34 @@
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?testConnection=true', OO.extend(BS.ErrorsAwareListener, {
                 errorUrl: function(elem) {
-                    $('errorUrl').innerHTML = elem.firstChild.nodeValue;
+                    $('errorUrl').innerHTML = getElementValue(elem);
                 },
                 errorTimeout: function(elem) {
-                    $('errorTimeout').innerHTML = elem.firstChild.nodeValue;
+                    $('errorTimeout').innerHTML = getElementValue(elem);
                 },
                 errorUserName: function(elem) {
-                    $('errorUserName').innerHTML = elem.firstChild.nodeValue;
+                    $('errorUserName').innerHTML = getElementValue(elem);
                 },
                 errorPassword: function(elem) {
-                    $('errorPassword').innerHTML = elem.firstChild.nodeValue;
+                    $('errorPassword').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyServer: function(elem) {
-                    $('errorHubProxyServer').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyServer').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyPort: function(elem) {
-                    $('errorHubProxyPort').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyPort').innerHTML = getElementValue(elem);
                 },
                 errorHubNoProxyHost: function(elem) {
-                    $('errorHubNoProxyHost').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubNoProxyHost').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyUser: function(elem) {
-                    $('errorHubProxyUser').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyUser').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyPass: function(elem) {
-                    $('errorHubProxyPass').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyPass').innerHTML = getElementValue(elem);
                 },
                 errorConnection: function(elem) {
-                    TestConnectionDialog.showTestDialog(false, elem.firstChild.nodeValue);
+                    TestConnectionDialog.showTestDialog(false, getElementValue(elem));
                 },
                 onSuccessfulSave: function() {
                     TestConnectionDialog.showTestDialog(true,
@@ -149,34 +159,34 @@
                     $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
                 },
                 errorUrl: function(elem) {
-                    $('errorUrl').innerHTML = elem.firstChild.nodeValue;
+                    $('errorUrl').innerHTML = getElementValue(elem);
                 },
                 errorTimeout: function(elem) {
-                    $('errorTimeout').innerHTML = elem.firstChild.nodeValue;
+                    $('errorTimeout').innerHTML = getElementValue(elem);
                 },
                 errorUserName: function(elem) {
-                    $('errorUserName').innerHTML = elem.firstChild.nodeValue;
+                    $('errorUserName').innerHTML = getElementValue(elem);
                 },
                 errorPassword: function(elem) {
-                    $('errorPassword').innerHTML = elem.firstChild.nodeValue;
+                    $('errorPassword').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyServer: function(elem) {
-                    $('errorHubProxyServer').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyServer').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyPort: function(elem) {
-                    $('errorHubProxyPort').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyPort').innerHTML = getElementValue(elem);
                 },
                 errorHubNoProxyHost: function(elem) {
-                    $('errorHubNoProxyHost').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubNoProxyHost').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyUser: function(elem) {
-                    $('errorHubProxyUser').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyUser').innerHTML = getElementValue(elem);
                 },
                 errorHubProxyPass: function(elem) {
-                    $('errorHubProxyPass').innerHTML = elem.firstChild.nodeValue;
+                    $('errorHubProxyPass').innerHTML = getElementValue(elem);
                 },
                 errorSaving: function(elem) {
-                    Config.showConfigDialog(false, elem.firstChild.nodeValue);
+                    Config.showConfigDialog(false, getElementValue(elem));
                 },
                 onSuccessfulSave: function() {
                     Config.showConfigDialog(true, 'Saving was successful.');
@@ -188,7 +198,7 @@
             return false;
         }
     }));
-
+    
     $j(document).ready(function() {
         Config.load();
     });
