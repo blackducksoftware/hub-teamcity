@@ -121,7 +121,11 @@
               <id>enforce</id>
               <configuration>
                 <rules>
-                  <requireReleaseDeps></requireReleaseDeps>
+                  <requireReleaseDeps>
+                    <excludes>
+                      <exclude>com.blackducksoftware.integration:hub-teamcity*</exclude>
+                    </excludes>
+                  </requireReleaseDeps>
                 </rules>
               </configuration>
             </execution>
