@@ -44,6 +44,10 @@ public final class HubConstantValues {
 
     public static final String HUB_SCAN_TARGETS = PLUGIN_PREFIX + "targets";
 
+    public static final String HUB_CLEANUP_LOGS_ON_SUCCESS = PLUGIN_PREFIX + "cleanupOnSuccessfulScan";
+
+    public static final String HUB_EXCLUDE_PATTERNS = PLUGIN_PREFIX + "excludePatterns";
+
     public static final String HUB_URL = PLUGIN_PREFIX + "hubUrl";
 
     public static final String HUB_USERNAME = PLUGIN_PREFIX + "hubUser";

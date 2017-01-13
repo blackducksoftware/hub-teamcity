@@ -32,8 +32,15 @@
         <div class="parameter">
             Dry Run: <props:displayValue name="com.blackducksoftware.integration.hub.hubDryRun" />
         </div>
+         <div class="parameter">
+            Cleanup logs on successful scan: <props:displayValue name="com.blackducksoftware.integration.hub.cleanupOnSuccessfulScan" />
+        </div>
         <div class="parameter">
             Scan Targets: <props:displayValue
                 name="com.blackducksoftware.integration.hub.targets" />
+        </div>
+        <div class="parameter">
+            Directory Exclusion Patterns: <props:displayValue
+                name="com.blackducksoftware.integration.hub.excludePatterns" />
         </div>
 </l:settingsGroup>

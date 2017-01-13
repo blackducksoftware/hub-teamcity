@@ -108,6 +108,18 @@
 					</td>
 				</tr>
 				
+				<tr class="noBorder" id="cleanupOnSuccessfulScan" style="">
+					<th>
+						<label for="com.blackducksoftware.integration.hub.cleanupOnSuccessfulScan">
+							Cleanup logs on successful scan: <bs:helpIcon
+								iconTitle="If checked, then the plugin will delete the log files produced by the CLI if the scan is successful." />
+						</label>
+					</th>
+					<td>
+						<props:checkboxProperty name="com.blackducksoftware.integration.hub.cleanupOnSuccessfulScan" className="longField" />
+					</td>
+				</tr>
+				
 				<tr class="noBorder" id="blackDuckHubScanTargets" style="">
 					<th><label
 						for="com.blackducksoftware.integration.hub.targets">
@@ -119,6 +131,20 @@
 							name="com.blackducksoftware.integration.hub.targets"
 							className="bdLongTextArea" expandable="true"/> 
 							<span class="smallNote"> Path of the target, within the workspace, to be scanned. One target per line. </span>
+					</td>
+				</tr>
+				
+				<tr class="noBorder" id="excludePatterns" style="">
+					<th><label
+						for="com.blackducksoftware.integration.hub.excludePatterns">
+							Directory Exclusion Patterns: <bs:helpIcon
+								iconTitle="Excludes a directory from scanning. Exclusion guidelines: Leading and trailing slashes are required. For example, if you enter exclude /directory, a warning message will appear and the directory will not be excluded. Directory names cannot contain double asterisks (**). You cannot exclude archives or contents within archives." />
+					</label></th>
+					
+					<td> <props:textProperty
+							name="com.blackducksoftware.integration.hub.excludePatterns"
+							className="bdLongTextArea" expandable="true"/> 
+							<span class="smallNote"> Excludes a directory from scanning. Leading and trailing slashes are required. One pattern per line. </span>
 					</td>
 				</tr>
 

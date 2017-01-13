@@ -265,9 +265,17 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String projectName = commonVariables.getValue(HubConstantValues.HUB_PROJECT_NAME);
         final String projectVersion = commonVariables.getValue(HubConstantValues.HUB_PROJECT_VERSION);
         final String dryRun = commonVariables.getValue(HubConstantValues.HUB_DRY_RUN);
+        final String cleanupLogs = commonVariables.getValue(HubConstantValues.HUB_CLEANUP_LOGS_ON_SUCCESS);
+
         final String scanMemory = commonVariables.getValue(HubConstantValues.HUB_SCAN_MEMORY);
 
         final String hubWorkspaceCheck = commonVariables.getValue(HubConstantValues.HUB_WORKSPACE_CHECK);
+
+        String[] excludePatternArray = new String[0];
+        final String excludePatternParameter = commonVariables.getValue(HubConstantValues.HUB_EXCLUDE_PATTERNS);
+        if (StringUtils.isNotBlank(excludePatternParameter)) {
+            excludePatternArray = excludePatternParameter.split("\\r?\\n");
+        }
 
         final List<String> scanTargets = new ArrayList<>();
         final String scanTargetParameter = commonVariables.getValue(HubConstantValues.HUB_SCAN_TARGETS);
@@ -293,6 +301,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         hubScanConfigBuilder.setThirdPartyName(ThirdPartyName.TEAM_CITY);
         hubScanConfigBuilder.setThirdPartyVersion(thirdPartyVersion);
         hubScanConfigBuilder.setPluginVersion(pluginVersion);
+        hubScanConfigBuilder.setCleanupLogsOnSuccess(Boolean.valueOf(cleanupLogs));
+        hubScanConfigBuilder.setExcludePatterns(excludePatternArray);
         if (Boolean.valueOf(hubWorkspaceCheck)) {
             hubScanConfigBuilder.enableScanTargetPathsWithinWorkingDirectoryCheck();
         }
