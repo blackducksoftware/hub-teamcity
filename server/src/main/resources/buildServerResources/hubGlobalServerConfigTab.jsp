@@ -130,6 +130,7 @@
             $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
             $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
             $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
+            $('hubWorkspaceCheck').checked= ${hubConfigPersistenceManager.hubWorkspaceCheck};
             $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
             $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
             if ($('hubProxyPort').value == 0) {
@@ -149,6 +150,7 @@
                     $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
                     $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
                     $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
+                    $('hubWorkspaceCheck').checked= ${hubConfigPersistenceManager.hubWorkspaceCheck};
                     $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
                     $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
                     if ($('hubProxyPort').value == 0) {
@@ -281,6 +283,17 @@
                 <td/>
                 <td>
                     <span class="error" id="errorTimeout" style="margin-left: 0;"></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="200px" >
+                    <label class="label" for="hubWorkspaceCheck">Perform Workspace Check:
+                        <bs:helpIcon
+                                iconTitle="If checked the scans will only scan targets that are in the workspace. The scans will resolve all targets to their canonical paths and check to see if they are within the workspace."/>
+                    </label>
+                </td>
+                <td>
+                    <forms:checkbox name="hubWorkspaceCheck" id="hubWorkspaceCheck" />
                 </td>
             </tr>
         </table>

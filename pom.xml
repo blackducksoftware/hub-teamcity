@@ -31,7 +31,7 @@
   </scm>
 
   <properties>
-    <hub.common.version>5.4.1</hub.common.version>
+    <hub.common.version>6.0.1</hub.common.version>
     <plugin.version>${project.version}</plugin.version>
     <teamcity.version>8.0</teamcity.version>
   </properties>

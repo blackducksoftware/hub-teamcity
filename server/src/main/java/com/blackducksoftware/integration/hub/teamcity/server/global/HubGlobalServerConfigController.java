@@ -139,12 +139,13 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         }
         builder.setProxyPassword(proxyPass);
 
-        AbstractValidator validator = builder.createValidator();
+        final AbstractValidator validator = builder.createValidator();
 
         final ValidationResults results = validator.assertValid();
         if (results.isSuccess()) {
             final HubServerConfig config = builder.buildObject();
             configPersistenceManager.setHubServerConfig(config);
+            configPersistenceManager.setHubWorkspaceCheck(Boolean.valueOf(request.getParameter("hubWorkspaceCheck")));
         } else {
             checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
             checkForErrors(HubServerConfigFieldEnum.HUBTIMEOUT, "errorTimeout", results, errors);
@@ -228,7 +229,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         return "";
     }
 
-    private boolean isPasswordAstericks(String password) {
+    private boolean isPasswordAstericks(final String password) {
         if (StringUtils.isNotBlank(password)) {
             final String removedAstericks = password.replace("*", "");
             if (StringUtils.isBlank(removedAstericks)) {

@@ -221,7 +221,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return result;
     }
 
-    private HubServerConfig getHubServerConfig(final IntLogger logger, CIEnvironmentVariables commonVariables) {
+    private HubServerConfig getHubServerConfig(final IntLogger logger, final CIEnvironmentVariables commonVariables) {
         final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
         // read the credentials and proxy info using the existing objects.
@@ -252,20 +252,22 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         try {
             return configBuilder.build();
-        } catch (IllegalStateException e) {
+        } catch (final IllegalStateException e) {
             logger.error(e.getMessage(), e);
         }
         return null;
     }
 
     private HubScanConfig getScanConfig(final File workingDirectory, final File toolsDir,
-            String thirdPartyVersion, String pluginVersion,
-            final IntLogger logger, CIEnvironmentVariables commonVariables) throws IOException {
+            final String thirdPartyVersion, final String pluginVersion,
+            final IntLogger logger, final CIEnvironmentVariables commonVariables) throws IOException {
 
         final String projectName = commonVariables.getValue(HubConstantValues.HUB_PROJECT_NAME);
         final String projectVersion = commonVariables.getValue(HubConstantValues.HUB_PROJECT_VERSION);
         final String dryRun = commonVariables.getValue(HubConstantValues.HUB_DRY_RUN);
         final String scanMemory = commonVariables.getValue(HubConstantValues.HUB_SCAN_MEMORY);
+
+        final String hubWorkspaceCheck = commonVariables.getValue(HubConstantValues.HUB_WORKSPACE_CHECK);
 
         final List<String> scanTargets = new ArrayList<>();
         final String scanTargetParameter = commonVariables.getValue(HubConstantValues.HUB_SCAN_TARGETS);
@@ -291,10 +293,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         hubScanConfigBuilder.setThirdPartyName(ThirdPartyName.TEAM_CITY);
         hubScanConfigBuilder.setThirdPartyVersion(thirdPartyVersion);
         hubScanConfigBuilder.setPluginVersion(pluginVersion);
-
+        if (Boolean.valueOf(hubWorkspaceCheck)) {
+            hubScanConfigBuilder.enableScanTargetPathsWithinWorkingDirectoryCheck();
+        }
         try {
             return hubScanConfigBuilder.build();
-        } catch (IllegalStateException e) {
+        } catch (final IllegalStateException e) {
             logger.error(e.getMessage(), e);
         }
         return null;
@@ -309,8 +313,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return variables;
     }
 
-    private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, RiskReportDataService riskReportDataService,
-            String projectName, String projectVersion) throws IOException, URISyntaxException, InterruptedException,
+    private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, final RiskReportDataService riskReportDataService,
+            final String projectName, final String projectVersion) throws IOException, URISyntaxException, InterruptedException,
             HubIntegrationException {
 
         final String reportDirectoryPath = workingDirectory.getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
@@ -324,7 +328,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
-            final HubServicesFactory services, final String projectName, String versionName,
+            final HubServicesFactory services, final String projectName, final String versionName,
             final boolean isDryRun) {
         try {
             if (isDryRun) {
@@ -355,7 +359,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         }
     }
 
-    private String getPluginVersion(CIEnvironmentVariables commonVariables) {
+    private String getPluginVersion(final CIEnvironmentVariables commonVariables) {
         String pluginVersion = commonVariables.getValue(HubConstantValues.PLUGIN_VERSION);
         if (StringUtils.isBlank(pluginVersion)) {
             final String pluginName = commonVariables.getValue(HubConstantValues.PLUGIN_NAME);

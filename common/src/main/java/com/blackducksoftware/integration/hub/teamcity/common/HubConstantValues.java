@@ -34,10 +34,6 @@ public final class HubConstantValues {
 
     public static final String HUB_PROJECT_VERSION = PLUGIN_PREFIX + "projectVersion";
 
-    public static final String HUB_VERSION_PHASE = PLUGIN_PREFIX + "phase";
-
-    public static final String HUB_VERSION_DISTRIBUTION = PLUGIN_PREFIX + "distribution";
-
     public static final String HUB_GENERATE_RISK_REPORT = PLUGIN_PREFIX + "generateRiskReport";
 
     public static final String HUB_MAX_WAIT_TIME_FOR_RISK_REPORT = PLUGIN_PREFIX + "maxWaitTimeForRiskReport";
@@ -67,6 +63,8 @@ public final class HubConstantValues {
     public static final String HUB_PROXY_PASS = PLUGIN_PREFIX + "hubProxyPass";
 
     public static final String HUB_PROXY_PASS_LENGTH = PLUGIN_PREFIX + "hubProxyPassLength";
+
+    public static final String HUB_WORKSPACE_CHECK = PLUGIN_PREFIX + "hubWorkspaceCheck";
 
     public static final String HUB_MAVEN_SCOPES = PLUGIN_PREFIX + "mavenScopes";
 

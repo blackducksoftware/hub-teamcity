@@ -50,7 +50,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
 
     private final PluginDescriptor pluginDescriptor;
 
-    public HubParametersPreprocessor(@NotNull final HubServerListener serverListener, @NotNull PluginDescriptor pluginDescriptor) {
+    public HubParametersPreprocessor(@NotNull final HubServerListener serverListener, @NotNull final PluginDescriptor pluginDescriptor) {
         serverPeristanceManager = serverListener.getConfigManager();
         this.pluginDescriptor = pluginDescriptor;
     }
@@ -68,7 +68,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
     }
 
     private void addGlobalParameterMap(final Map<String, String> runParameters) {
-        HubServerConfig hubServerConfig = serverPeristanceManager.getHubServerConfig();
+        final HubServerConfig hubServerConfig = serverPeristanceManager.getHubServerConfig();
         if (!runParameters.containsKey(HubConstantValues.HUB_URL)) {
             runParameters.put(HubConstantValues.HUB_URL,
                     StringUtils.trimToEmpty(hubServerConfig.getHubUrl().toString()));
@@ -87,16 +87,21 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
             runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
                     String.valueOf(hubServerConfig.getTimeout()));
         }
-        String ignoredProxyHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
+        if (!runParameters.containsKey(HubConstantValues.HUB_WORKSPACE_CHECK)) {
+            runParameters.put(HubConstantValues.HUB_WORKSPACE_CHECK,
+                    String.valueOf(serverPeristanceManager.isHubWorkspaceCheck()));
+        }
+
+        final String ignoredProxyHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
         if (!runParameters.containsKey(HubConstantValues.HUB_NO_PROXY_HOSTS) && StringUtils.isNotBlank(ignoredProxyHosts)) {
             runParameters.put(HubConstantValues.HUB_NO_PROXY_HOSTS, StringUtils.trimToEmpty(ignoredProxyHosts));
         }
 
-        String proxyHost = hubServerConfig.getProxyInfo().getHost();
-        int proxyPort = hubServerConfig.getProxyInfo().getPort();
-        String proxyUsername = hubServerConfig.getProxyInfo().getUsername();
-        String proxyPassword = hubServerConfig.getProxyInfo().getEncryptedPassword();
-        String proxyPasswordLength = Integer.toString(hubServerConfig.getProxyInfo().getActualPasswordLength());
+        final String proxyHost = hubServerConfig.getProxyInfo().getHost();
+        final int proxyPort = hubServerConfig.getProxyInfo().getPort();
+        final String proxyUsername = hubServerConfig.getProxyInfo().getUsername();
+        final String proxyPassword = hubServerConfig.getProxyInfo().getEncryptedPassword();
+        final String proxyPasswordLength = Integer.toString(hubServerConfig.getProxyInfo().getActualPasswordLength());
         if (StringUtils.isNotBlank(proxyHost) && proxyPort > 0) {
             if (!runParameters.containsKey(HubConstantValues.HUB_PROXY_HOST)) {
                 runParameters.put(HubConstantValues.HUB_PROXY_HOST, StringUtils.trimToEmpty(proxyHost));
@@ -141,12 +146,8 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
     }
 
     private boolean isHubBuildStepConfigured(@NotNull final Map<String, String> runParameters) {
-        final boolean hubVersionPhase = runParameters.containsKey(HubConstantValues.HUB_VERSION_PHASE)
-                && StringUtils.isNotBlank(runParameters.get(HubConstantValues.HUB_VERSION_PHASE));
-        final boolean hubVersionDistribution = runParameters.containsKey(HubConstantValues.HUB_VERSION_DISTRIBUTION)
-                && StringUtils.isNotBlank(runParameters.get(HubConstantValues.HUB_VERSION_DISTRIBUTION));
-
-        return hubVersionPhase && hubVersionDistribution;
+        return runParameters.containsKey(HubConstantValues.HUB_PROJECT_NAME) || runParameters.containsKey(HubConstantValues.HUB_PROJECT_VERSION)
+                || runParameters.containsKey(HubConstantValues.HUB_SCAN_TARGETS) || runParameters.containsKey(HubConstantValues.HUB_SCAN_MEMORY);
     }
 
 }

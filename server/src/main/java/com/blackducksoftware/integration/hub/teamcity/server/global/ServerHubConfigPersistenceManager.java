@@ -29,15 +29,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.hub.api.version.DistributionEnum;
-import com.blackducksoftware.integration.hub.api.version.PhaseEnum;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.ServerPaths;
@@ -46,14 +46,19 @@ import jetbrains.buildServer.serverSide.crypt.RSACipher;
 public class ServerHubConfigPersistenceManager {
     private static final String CONFIG_FILE_NAME = "hub-config.json";
 
-    private Gson gson;
+    private final Gson gson;
+
+    private final JsonParser jsonParser;
 
     private final File configFile;
 
     private HubServerConfig hubServerConfig;
 
+    private boolean hubWorkspaceCheck;
+
     public ServerHubConfigPersistenceManager(@NotNull final ServerPaths serverPaths) {
         gson = new Gson();
+        jsonParser = new JsonParser();
         configFile = new File(serverPaths.getConfigDir(), CONFIG_FILE_NAME);
         loadSettings();
     }
@@ -66,14 +71,34 @@ public class ServerHubConfigPersistenceManager {
         return hubServerConfig;
     }
 
-    public void setHubServerConfig(HubServerConfig hubServerConfig) {
+    public void setHubServerConfig(final HubServerConfig hubServerConfig) {
         this.hubServerConfig = hubServerConfig;
+    }
+
+    public boolean isHubWorkspaceCheck() {
+        return hubWorkspaceCheck;
+    }
+
+    public void setHubWorkspaceCheck(final boolean hubWorkspaceCheck) {
+        this.hubWorkspaceCheck = hubWorkspaceCheck;
     }
 
     public void loadSettings() {
         if (configFile.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
-                hubServerConfig = gson.fromJson(reader, HubServerConfig.class);
+                final JsonObject globalConfigJson = jsonParser.parse(reader).getAsJsonObject();
+                try {
+                    if (globalConfigJson.has("hubServerConfig")) {
+                        setHubServerConfig(gson.fromJson(globalConfigJson.get("hubServerConfig"), HubServerConfig.class));
+                        setHubWorkspaceCheck(globalConfigJson.get("hubWorkspaceCheck").getAsBoolean());
+                    } else {
+                        throw new JsonParseException("The Hub Teamcity configuration must be from a previous version.");
+                    }
+                } catch (final JsonParseException e) {
+                    // try to load the old config
+                    setHubServerConfig(gson.fromJson(globalConfigJson, HubServerConfig.class));
+                    setHubWorkspaceCheck(true);
+                }
             } catch (final IOException e) {
                 Loggers.SERVER.error("Failed to load Hub config file: " + configFile, e);
             }
@@ -90,9 +115,12 @@ public class ServerHubConfigPersistenceManager {
 
         configFile.createNewFile();
 
-        String hubServerConfigJson = gson.toJson(hubServerConfig);
+        final JsonObject globalConfigJson = new JsonObject();
+        final JsonElement hubServerConfigJson = gson.toJsonTree(getHubServerConfig(), HubServerConfig.class);
+        globalConfigJson.add("hubServerConfig", hubServerConfigJson);
+        globalConfigJson.addProperty("hubWorkspaceCheck", hubWorkspaceCheck);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
-            writer.write(hubServerConfigJson);
+            writer.write(gson.toJson(globalConfigJson));
         } catch (final IOException e) {
             Loggers.SERVER.error("Failed to save Hub config file: " + configFile, e);
         }
@@ -104,28 +132,6 @@ public class ServerHubConfigPersistenceManager {
 
     public String getRandom() {
         return String.valueOf(Math.random());
-    }
-
-    public List<String> getPhaseOptions() {
-        final List<String> phaseList = new ArrayList<>();
-        for (final PhaseEnum phase : PhaseEnum.values()) {
-            if (phase != PhaseEnum.UNKNOWNPHASE) {
-                phaseList.add(phase.getDisplayValue());
-            }
-        }
-
-        return phaseList;
-    }
-
-    public List<String> getDistributionOptions() {
-        final List<String> distributionList = new ArrayList<>();
-        for (final DistributionEnum distribution : DistributionEnum.values()) {
-            if (distribution != DistributionEnum.UNKNOWNDISTRIBUTION) {
-                distributionList.add(distribution.getDisplayValue());
-            }
-        }
-
-        return distributionList;
     }
 
 }
