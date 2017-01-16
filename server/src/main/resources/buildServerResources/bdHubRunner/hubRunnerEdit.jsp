@@ -130,7 +130,7 @@
 					<td> <props:textProperty
 							name="com.blackducksoftware.integration.hub.targets"
 							className="bdLongTextArea" expandable="true"/> 
-							<span class="smallNote"> Path of the target, within the workspace, to be scanned. One target per line. </span>
+							<span class="smallNote"> Path of the target to be scanned. One target per line. </span>
 					</td>
 				</tr>
 				
