@@ -40,6 +40,8 @@ public final class HubConstantValues {
 
     public static final String HUB_SCAN_MEMORY = PLUGIN_PREFIX + "scanMemory";
 
+    public static final String HUB_CODE_LOCATION_NAME = PLUGIN_PREFIX + "codeLocationName";
+
     public static final String HUB_DRY_RUN = PLUGIN_PREFIX + "hubDryRun";
 
     public static final String HUB_SCAN_TARGETS = PLUGIN_PREFIX + "targets";

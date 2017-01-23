@@ -269,6 +269,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
         final String scanMemory = commonVariables.getValue(HubConstantValues.HUB_SCAN_MEMORY);
 
+        final String codeLocationName = commonVariables.getValue(HubConstantValues.HUB_CODE_LOCATION_NAME);
+
         final String hubWorkspaceCheck = commonVariables.getValue(HubConstantValues.HUB_WORKSPACE_CHECK);
 
         String[] excludePatternArray = new String[0];
@@ -296,6 +298,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         hubScanConfigBuilder.setWorkingDirectory(workingDirectory);
         hubScanConfigBuilder.setDryRun(Boolean.valueOf(dryRun));
         hubScanConfigBuilder.setScanMemory(scanMemory);
+        hubScanConfigBuilder.setCodeLocationAlias(codeLocationName);
         hubScanConfigBuilder.addAllScanTargetPaths(scanTargets);
         hubScanConfigBuilder.setToolsDir(toolsDir);
         hubScanConfigBuilder.setThirdPartyName(ThirdPartyName.TEAM_CITY);

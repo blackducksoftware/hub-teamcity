@@ -97,6 +97,22 @@
 					</td>
 				</tr>
 				
+				<tr class="noBorder" id="blackDuckHubCodeLocationName" style="">
+					<th><label
+						for="com.blackducksoftware.integration.hub.codeLocationName">
+							 Code Location Name: 
+							  <bs:helpIcon
+								iconTitle="An example of a Code Location Name could be %teamcity.serverUrl%-%system.teamcity.projectName%" />
+					</label></th>
+
+					<td> <props:textProperty
+							name="com.blackducksoftware.integration.hub.codeLocationName"
+							className="longField" /> 
+							<span class="smallNote"> This will change the name of the Code Location that is created by this scan. </span>
+					</td>
+				</tr>
+				
+				
 				<tr class="noBorder" id="blackDuckHubDryRun" style="">
 					<th>
 						<label for="com.blackducksoftware.integration.hub.hubDryRun">

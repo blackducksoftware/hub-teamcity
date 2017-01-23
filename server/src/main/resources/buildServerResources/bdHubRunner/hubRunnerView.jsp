@@ -30,6 +30,10 @@
                 emptyValue="4096"/>
         </div>
         <div class="parameter">
+            Code Location Name: <props:displayValue
+                name="com.blackducksoftware.integration.hub.codeLocationName" />
+        </div>
+        <div class="parameter">
             Dry Run: <props:displayValue name="com.blackducksoftware.integration.hub.hubDryRun" />
         </div>
          <div class="parameter">
