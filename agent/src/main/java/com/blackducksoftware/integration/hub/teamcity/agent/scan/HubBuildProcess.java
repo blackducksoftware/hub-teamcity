@@ -284,8 +284,13 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         if (StringUtils.isNotBlank(scanTargetParameter)) {
             final String[] scanTargetPathsArray = scanTargetParameter.split("\\r?\\n");
             for (final String target : scanTargetPathsArray) {
-                if (!StringUtils.isBlank(target)) {
-                    scanTargets.add(new File(workingDirectory, target).getAbsolutePath());
+                if (StringUtils.isNotBlank(target)) {
+                    final File tmpTarget = new File(target);
+                    if (tmpTarget.isAbsolute()) {
+                        scanTargets.add(tmpTarget.getCanonicalPath());
+                    } else {
+                        scanTargets.add(new File(workingDirectory, target).getCanonicalPath());
+                    }
                 }
             }
         } else {
