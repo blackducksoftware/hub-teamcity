@@ -178,6 +178,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             final File toolsDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
 
             final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, thirdPartyVersion, pluginVersion, hubLogger, commonVariables);
+            if (hubScanConfig == null) {
+                logger.error("Please verify the Black Duck Hub Runner configuration is correct.");
+                result = BuildFinishedStatus.FINISHED_FAILED;
+                return result;
+            }
 
             List<ScanSummaryItem> scanSummaryList = null;
             try {
