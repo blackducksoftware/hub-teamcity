@@ -191,12 +191,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             if (!hubScanConfig.isDryRun()) {
                 if (isRiskReportGenerated || isFailOnPolicySelected) {
                     logger.info("Waiting for Bom to be updated");
-                    services.createScanStatusDataService(logger).assertBomImportScansFinished(scanSummaryList,
-                            waitTimeForReport);
+                    services.createScanStatusDataService(logger, waitTimeForReport).assertBomImportScansFinished(scanSummaryList);
                 }
                 if (isRiskReportGenerated) {
                     logger.info("Generating Risk Report");
-                    publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger), hubScanConfig.getProjectName(),
+                    publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger, waitTimeForReport),
+                            hubScanConfig.getProjectName(),
                             hubScanConfig.getVersion());
                 }
                 if (isFailOnPolicySelected) {
