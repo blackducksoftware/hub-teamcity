@@ -165,7 +165,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             long waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
             final String maxWaitTimeForRiskReport = commonVariables.getValue(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
             if (StringUtils.isNotBlank(maxWaitTimeForRiskReport)) {
-                waitTimeForReport = NumberUtils.toInt(maxWaitTimeForRiskReport) * 60 * 1000; // 5 minutes is the default
+                waitTimeForReport = NumberUtils.toInt(maxWaitTimeForRiskReport);
+                if (waitTimeForReport <= 0) {
+                    // 5 minutes is the default
+                    waitTimeForReport = 5 * 60 * 1000;
+                } else {
+                    waitTimeForReport = waitTimeForReport * 60 * 1000;
+                }
+            } else {
+                waitTimeForReport = 5 * 60 * 1000;
             }
 
             logger.info("--> Generate Risk Report : " + isRiskReportGenerated);
