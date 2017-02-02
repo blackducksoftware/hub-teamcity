@@ -29,7 +29,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -116,7 +118,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             IllegalArgumentException, InvocationTargetException, EncryptionException {
         final BuildProgressLogger buildLogger = build.getBuildLogger();
         final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
-        final CIEnvironmentVariables commonVariables = getCommonVariables();
+
+        final Map<String, String> variables = getVariables();
+        final CIEnvironmentVariables commonVariables = new CIEnvironmentVariables();
+        commonVariables.putAll(variables);
         hubLogger.setLogLevel(commonVariables);
         setHubLogger(hubLogger);
 
@@ -185,6 +190,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             restConnection.connect();
 
             final HubServicesFactory services = new HubServicesFactory(restConnection);
+            services.addEnvironmentVariables(variables);
             final MetaService metaService = services.createMetaService(logger);
             final CLIDataService cliDataService = services.createCLIDataService(logger);
             final File workingDirectory = context.getWorkingDirectory();
@@ -352,8 +358,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return null;
     }
 
-    private CIEnvironmentVariables getCommonVariables() {
-        final CIEnvironmentVariables variables = new CIEnvironmentVariables();
+    private Map<String, String> getVariables() {
+        final Map<String, String> variables = new HashMap<>();
         variables.putAll(context.getBuildParameters().getEnvironmentVariables());
         variables.putAll(context.getBuildParameters().getSystemProperties());
         variables.putAll(context.getConfigParameters());
