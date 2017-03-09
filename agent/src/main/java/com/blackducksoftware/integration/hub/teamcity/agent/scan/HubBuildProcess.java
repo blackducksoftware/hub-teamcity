@@ -38,14 +38,11 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationItem;
+import com.blackducksoftware.integration.exception.IntegrationException;
 import com.blackducksoftware.integration.hub.api.codelocation.CodeLocationRequestService;
 import com.blackducksoftware.integration.hub.api.item.MetaService;
-import com.blackducksoftware.integration.hub.api.policy.PolicyStatusEnum;
-import com.blackducksoftware.integration.hub.api.policy.PolicyStatusItem;
-import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionItem;
+import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
 import com.blackducksoftware.integration.hub.api.project.version.ProjectVersionRequestService;
-import com.blackducksoftware.integration.hub.api.scan.ScanSummaryItem;
 import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
@@ -53,6 +50,13 @@ import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStat
 import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.model.enumeration.VersionBomPolicyStatusOverallStatusEnum;
+import com.blackducksoftware.integration.hub.model.view.CodeLocationView;
+import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.model.view.ProjectView;
+import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
+import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
+import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
 import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
@@ -185,7 +189,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             logger.info("--> Bom wait time : " + maxWaitTimeForRiskReport);
             logger.info("--> Check Policies : " + isFailOnPolicySelected);
 
-            final RestConnection restConnection = new CredentialsRestConnection(hubConfig);
+            final RestConnection restConnection = getRestConnection(logger, hubConfig);
 
             restConnection.connect();
 
@@ -196,16 +200,17 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             final File workingDirectory = context.getWorkingDirectory();
             final File toolsDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
 
-            final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, thirdPartyVersion, pluginVersion, hubLogger, commonVariables);
+            final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, hubLogger, commonVariables);
             if (hubScanConfig == null) {
                 logger.error("Please verify the Black Duck Hub Runner configuration is correct.");
                 result = BuildFinishedStatus.FINISHED_FAILED;
                 return result;
             }
 
-            List<ScanSummaryItem> scanSummaryList = null;
+            List<ScanSummaryView> scanSummaryList = null;
             try {
-                scanSummaryList = cliDataService.installAndRunScan(hubConfig, hubScanConfig);
+                scanSummaryList = cliDataService.installAndRunScan(hubConfig, hubScanConfig,
+                        new IntegrationInfo(ThirdPartyName.TEAM_CITY.getName(), thirdPartyVersion, pluginVersion));
 
             } catch (final HubIntegrationException e) {
 
@@ -213,9 +218,10 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 return result;
             }
             if (!hubScanConfig.isDryRun()) {
-                final ProjectVersionItem version = getProjectVersionFromScanStatus(services.createCodeLocationRequestService(),
+                final ProjectVersionView version = getProjectVersionFromScanStatus(services.createCodeLocationRequestService(logger),
                         services.createProjectVersionRequestService(logger),
                         metaService, scanSummaryList.get(0));
+                final ProjectView project = getProjectFromVersion(services.createProjectRequestService(), metaService, version);
 
                 if (isRiskReportGenerated || isFailOnPolicySelected) {
                     logger.info("Waiting for Bom to be updated");
@@ -224,7 +230,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 if (isRiskReportGenerated) {
                     logger.info("Generating Risk Report");
                     publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger, waitTimeForReport),
-                            version);
+                            project, version);
                 }
                 if (isFailOnPolicySelected) {
                     logger.info("Checking for Policy violations.");
@@ -247,13 +253,33 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return result;
     }
 
-    private ProjectVersionItem getProjectVersionFromScanStatus(final CodeLocationRequestService codeLocationRequestService,
-            final ProjectVersionRequestService projectVersionRequestService, final MetaService metaService, final ScanSummaryItem scanSummaryItem)
-            throws HubIntegrationException {
-        final CodeLocationItem codeLocationItem = codeLocationRequestService
-                .getItem(metaService.getFirstLink(scanSummaryItem, MetaService.CODE_LOCATION_BOM_STATUS_LINK));
+    public RestConnection getRestConnection(final IntLogger logger, final HubServerConfig hubServerConfig) throws EncryptionException {
+        final RestConnection restConnection = new CredentialsRestConnection(logger, hubServerConfig.getHubUrl(),
+                hubServerConfig.getGlobalCredentials().getUsername(), hubServerConfig.getGlobalCredentials().getDecryptedPassword(),
+                hubServerConfig.getTimeout());
+        restConnection.proxyHost = hubServerConfig.getProxyInfo().getHost();
+        restConnection.proxyPort = hubServerConfig.getProxyInfo().getPort();
+        restConnection.proxyNoHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
+        restConnection.proxyUsername = hubServerConfig.getProxyInfo().getUsername();
+        restConnection.proxyPassword = hubServerConfig.getProxyInfo().getDecryptedPassword();
+        return restConnection;
+    }
+
+    private ProjectVersionView getProjectVersionFromScanStatus(final CodeLocationRequestService codeLocationRequestService,
+            final ProjectVersionRequestService projectVersionRequestService, final MetaService metaService, final ScanSummaryView scanSummaryItem)
+            throws IntegrationException {
+        final CodeLocationView codeLocationItem = codeLocationRequestService
+                .getItem(metaService.getFirstLink(scanSummaryItem, MetaService.CODE_LOCATION_BOM_STATUS_LINK), CodeLocationView.class);
         final String projectVersionUrl = codeLocationItem.getMappedProjectVersion();
-        final ProjectVersionItem projectVersion = projectVersionRequestService.getItem(projectVersionUrl);
+        final ProjectVersionView projectVersion = projectVersionRequestService.getItem(projectVersionUrl, ProjectVersionView.class);
+        return projectVersion;
+    }
+
+    private ProjectView getProjectFromVersion(final ProjectRequestService projectRequestService, final MetaService metaService,
+            final ProjectVersionView version)
+            throws IntegrationException {
+        final String projectURL = metaService.getFirstLink(version, MetaService.PROJECT_LINK);
+        final ProjectView projectVersion = projectRequestService.getItem(projectURL, ProjectView.class);
         return projectVersion;
     }
 
@@ -295,7 +321,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private HubScanConfig getScanConfig(final File workingDirectory, final File toolsDir,
-            final String thirdPartyVersion, final String pluginVersion,
             final IntLogger logger, final CIEnvironmentVariables commonVariables) throws IOException {
 
         final String projectName = commonVariables.getValue(HubConstantValues.HUB_PROJECT_NAME);
@@ -342,9 +367,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         hubScanConfigBuilder.setCodeLocationAlias(codeLocationName);
         hubScanConfigBuilder.addAllScanTargetPaths(scanTargets);
         hubScanConfigBuilder.setToolsDir(toolsDir);
-        hubScanConfigBuilder.setThirdPartyName(ThirdPartyName.TEAM_CITY);
-        hubScanConfigBuilder.setThirdPartyVersion(thirdPartyVersion);
-        hubScanConfigBuilder.setPluginVersion(pluginVersion);
         hubScanConfigBuilder.setCleanupLogsOnSuccess(Boolean.valueOf(cleanupLogs));
         hubScanConfigBuilder.setExcludePatterns(excludePatternArray);
         if (Boolean.valueOf(hubWorkspaceCheck)) {
@@ -368,12 +390,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, final RiskReportDataService riskReportDataService,
-            final ProjectVersionItem version) throws IOException, URISyntaxException, InterruptedException,
-            HubIntegrationException {
+            final ProjectView project, final ProjectVersionView version) throws IOException, URISyntaxException, InterruptedException,
+            IntegrationException {
 
         final String reportDirectoryPath = workingDirectory.getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
         final File reportDirectory = new File(reportDirectoryPath);
-        riskReportDataService.createRiskReportFiles(reportDirectory, version);
+        riskReportDataService.createReportFiles(reportDirectory, project, version);
         artifactsWatcher.addNewArtifactsPath(reportDirectoryPath + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
 
         // If we do not wait, the report tab will not be added and
@@ -382,7 +404,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
-            final HubServicesFactory services, final MetaService metaService, final ProjectVersionItem version,
+            final HubServicesFactory services, final MetaService metaService, final ProjectVersionView version,
             final boolean isDryRun) {
         try {
             if (isDryRun) {
@@ -391,7 +413,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
             final String policyStatusLink = metaService.getFirstLink(version, MetaService.POLICY_STATUS_LINK);
 
-            final PolicyStatusItem policyStatusItem = services.createHubRequestService().getItem(policyStatusLink, PolicyStatusItem.class);
+            final VersionBomPolicyStatusView policyStatusItem = services.createHubResponseService().getItem(policyStatusLink, VersionBomPolicyStatusView.class);
             if (policyStatusItem == null) {
                 final String message = "Could not find any information about the Policy status of the bom.";
                 logger.error(message);
@@ -400,7 +422,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
             final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(policyStatusItem);
             final String policyStatusMessage = policyStatusDescription.getPolicyStatusMessage();
-            if (policyStatusItem.getOverallStatus() == PolicyStatusEnum.IN_VIOLATION) {
+            if (policyStatusItem.getOverallStatus() == VersionBomPolicyStatusOverallStatusEnum.IN_VIOLATION) {
                 build.stopBuild(policyStatusMessage);
             } else {
                 logger.info(policyStatusMessage);
