@@ -57,7 +57,6 @@ import com.blackducksoftware.integration.hub.model.view.ProjectView;
 import com.blackducksoftware.integration.hub.model.view.ScanSummaryView;
 import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
 import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
-import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.hub.scan.HubScanConfig;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
@@ -254,15 +253,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     public RestConnection getRestConnection(final IntLogger logger, final HubServerConfig hubServerConfig) throws EncryptionException {
-        final RestConnection restConnection = new CredentialsRestConnection(logger, hubServerConfig.getHubUrl(),
-                hubServerConfig.getGlobalCredentials().getUsername(), hubServerConfig.getGlobalCredentials().getDecryptedPassword(),
-                hubServerConfig.getTimeout());
-        restConnection.proxyHost = hubServerConfig.getProxyInfo().getHost();
-        restConnection.proxyPort = hubServerConfig.getProxyInfo().getPort();
-        restConnection.proxyNoHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
-        restConnection.proxyUsername = hubServerConfig.getProxyInfo().getUsername();
-        restConnection.proxyPassword = hubServerConfig.getProxyInfo().getDecryptedPassword();
-        return restConnection;
+        return hubServerConfig.createCredentialsRestConnection(logger);
     }
 
     private ProjectVersionView getProjectVersionFromScanStatus(final CodeLocationRequestService codeLocationRequestService,
