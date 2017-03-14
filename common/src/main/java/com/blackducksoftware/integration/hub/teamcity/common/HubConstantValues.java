@@ -48,6 +48,10 @@ public final class HubConstantValues {
 
     public static final String HUB_CLEANUP_LOGS_ON_SUCCESS = PLUGIN_PREFIX + "cleanupOnSuccessfulScan";
 
+    public static final String HUB_UNMAP_PREVIOUS_CODE_LOCATIONS = PLUGIN_PREFIX + "unmapPreviousCodeLocations";
+
+    public static final String HUB_DELETE_PREVIOUS_CODE_LOCATIONS = PLUGIN_PREFIX + "deletePreviousCodeLocations";
+
     public static final String HUB_EXCLUDE_PATTERNS = PLUGIN_PREFIX + "excludePatterns";
 
     public static final String HUB_URL = PLUGIN_PREFIX + "hubUrl";

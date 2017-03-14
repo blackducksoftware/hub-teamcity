@@ -331,6 +331,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String scanMemory = commonVariables.getValue(HubConstantValues.HUB_SCAN_MEMORY);
 
         final String codeLocationName = commonVariables.getValue(HubConstantValues.HUB_CODE_LOCATION_NAME);
+        final String unmapPreviousCodeLocations = commonVariables.getValue(HubConstantValues.HUB_UNMAP_PREVIOUS_CODE_LOCATIONS);
+        final String deletePreviousCodeLocations = commonVariables.getValue(HubConstantValues.HUB_DELETE_PREVIOUS_CODE_LOCATIONS);
 
         final String hubWorkspaceCheck = commonVariables.getValue(HubConstantValues.HUB_WORKSPACE_CHECK);
 
@@ -368,6 +370,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         hubScanConfigBuilder.addAllScanTargetPaths(scanTargets);
         hubScanConfigBuilder.setToolsDir(toolsDir);
         hubScanConfigBuilder.setCleanupLogsOnSuccess(Boolean.valueOf(cleanupLogs));
+        hubScanConfigBuilder.setUnmapPreviousCodeLocations(Boolean.valueOf(unmapPreviousCodeLocations));
+        hubScanConfigBuilder.setDeletePreviousCodeLocations(Boolean.valueOf(deletePreviousCodeLocations));
         hubScanConfigBuilder.setExcludePatterns(excludePatternArray);
         if (Boolean.valueOf(hubWorkspaceCheck)) {
             hubScanConfigBuilder.enableScanTargetPathsWithinWorkingDirectoryCheck();

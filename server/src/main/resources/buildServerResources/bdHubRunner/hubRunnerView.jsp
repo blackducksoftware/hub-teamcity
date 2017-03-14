@@ -40,6 +40,12 @@
             Cleanup logs on successful scan: <props:displayValue name="com.blackducksoftware.integration.hub.cleanupOnSuccessfulScan" />
         </div>
         <div class="parameter">
+            Unmap Previous Code Locations: <props:displayValue name="com.blackducksoftware.integration.hub.unmapPreviousCodeLocations" />
+        </div>
+        <div class="parameter">
+            Delete Previous Code Locations: <props:displayValue name="com.blackducksoftware.integration.hub.deletePreviousCodeLocations" />
+        </div>
+        <div class="parameter">
             Scan Targets: <props:displayValue
                 name="com.blackducksoftware.integration.hub.targets" />
         </div>

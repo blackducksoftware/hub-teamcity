@@ -136,6 +136,30 @@
 					</td>
 				</tr>
 				
+				<tr class="noBorder" id="unmapPreviousCodeLocations" style="">
+					<th>
+						<label for="com.blackducksoftware.integration.hub.unmapPreviousCodeLocations">
+							Unmap Previous Code Locations: <bs:helpIcon
+								iconTitle="If checked, then any Code Locations that were not part of the current scan, and are mapped to this Project and Version, will be unmapped from this Version." />
+						</label>
+					</th>
+					<td>
+						<props:checkboxProperty name="com.blackducksoftware.integration.hub.unmapPreviousCodeLocations" className="longField" />
+					</td>
+				</tr>
+				
+				<tr class="noBorder" id="deletePreviousCodeLocations" style="">
+					<th>
+						<label for="com.blackducksoftware.integration.hub.deletePreviousCodeLocations">
+							Delete Previous Code Locations: <bs:helpIcon
+								iconTitle="If checked, then any Code Locations that were not part of the current scan, and are mapped to this Project and Version, will be deleted." />
+						</label>
+					</th>
+					<td>
+						<props:checkboxProperty name="com.blackducksoftware.integration.hub.deletePreviousCodeLocations" className="longField" />
+					</td>
+				</tr>
+				
 				<tr class="noBorder" id="blackDuckHubScanTargets" style="">
 					<th><label
 						for="com.blackducksoftware.integration.hub.targets">
