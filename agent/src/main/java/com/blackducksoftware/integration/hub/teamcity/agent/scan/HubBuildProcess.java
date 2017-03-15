@@ -217,12 +217,19 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 return result;
             }
             if (!hubScanConfig.isDryRun()) {
-                final ProjectVersionView version = getProjectVersionFromScanStatus(services.createCodeLocationRequestService(logger),
-                        services.createProjectVersionRequestService(logger),
-                        metaService, scanSummaryList.get(0));
-                final ProjectView project = getProjectFromVersion(services.createProjectRequestService(), metaService, version);
+                ProjectVersionView version = null;
+                ProjectView project = null;
 
                 if (isRiskReportGenerated || isFailOnPolicySelected) {
+                    if (scanSummaryList.isEmpty()) {
+                        logger.error("Could not find the scan summaries. Check that the status directory exists.");
+                        result = BuildFinishedStatus.FINISHED_FAILED;
+                        return result;
+                    }
+                    version = getProjectVersionFromScanStatus(services.createCodeLocationRequestService(logger),
+                            services.createProjectVersionRequestService(logger),
+                            metaService, scanSummaryList.get(0));
+                    project = getProjectFromVersion(services.createProjectRequestService(), metaService, version);
                     logger.info("Waiting for Bom to be updated");
                     services.createScanStatusDataService(logger, waitTimeForReport).assertBomImportScansFinished(scanSummaryList);
                 }
