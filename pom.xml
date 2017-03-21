@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>hub-teamcity</artifactId>
-  <version>3.0.1</version>
+  <version>3.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Black Duck Hub Plugin for TeamCity</name>
