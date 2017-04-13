@@ -13,5 +13,5 @@
 	         frame.height = frame.contentWindow.document.body.scrollHeight;
 	      }, 200);
 	    };
-	    frame.src="${teamcityBaseUrl}${hubRiskReportUrl}";
+	    frame.src="${hubRiskReportUrl}";
 	</script> 
