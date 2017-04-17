@@ -1,10 +1,10 @@
 <%@ include file="/include.jsp" %>
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
-<link href="${teamcityBaseUrl}${teamcityPluginResourcesPath}font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-
 <jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" scope="request" />
-<jsp:useBean id="teamcityBaseUrl" type="java.lang.String" scope="request"/>
+
+<c:url var="controllerUrl" value="/admin/hub/serverHubConfigTab.html"/>
+<c:url var="closeLogoUrl" value="${teamcityPluginResourcesPath}images/close.gif"/>
 
 <bs:linkScript>
     /js/bs/testConnection.js
@@ -207,7 +207,7 @@
 </script>
 
 <div id="bdHubContainer">
-    <form id="bdHubForm" action="${teamcityBaseUrl}/admin/hub/serverHubConfigTab.html" autocomplete="off">
+    <form id="bdHubForm" action="${controllerUrl}" autocomplete="off">
         <h3>Hub Settings</h3>
         <table border="0" style="width: 100%">
             <tr>
@@ -386,7 +386,6 @@
         <div class="saveButtonsBlock" id="saveButtonsBlock">
             <input type="button" value="Save" id=saveButton class="btn btn_primary submitButton" onclick="Config.save();"></input>
             <input type="button" value="Test connection" class="btn btn_primary submitButton" id="testConnection" onclick="TestConnectionDialog.testConnection();"></input>
-            <i id="saving" style="display: none;" class="fa fa-spinner fa-spin fa-fw"></i>
             <input type="hidden" id="publicKey" name="publicKey" value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>" />
         </div>
     </form>
@@ -396,7 +395,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="BS.TestConnectionDialog.close();" showdiscardchangesmessage='false'>
-                <img src="${teamcityBaseUrl}${teamcityPluginResourcesPath}images/close.gif" />
+                <img src="${closeLogoUrl}" />
             </a>
         </div>
         <div class="dialogHandle">
@@ -414,7 +413,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="Config.close();" showdiscardchangesmessage='false'>
-                <img src="${teamcityBaseUrl}${teamcityPluginResourcesPath}images/close.gif" />
+                <img src="${closeLogoUrl}" />
             </a>
         </div>
         <div class="dialogHandle">
