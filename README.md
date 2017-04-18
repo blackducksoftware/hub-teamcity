@@ -8,6 +8,7 @@ Hub plugin for TeamCity. This plugin provides ability to run a scan using the BD
 
 ## Where can I get the latest release? ##
 You can download the latest source from GitHub: https://github.com/blackducksoftware/hub-teamcity
+
 You can download the latest artifact from releases: https://github.com/blackducksoftware/hub-teamcity/releases
 
 ## Documentation ##
