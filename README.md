@@ -3,7 +3,6 @@ Hub plugin for TeamCity. This plugin provides ability to run a scan using the BD
 
 ## Build ##
 [![Build Status](https://travis-ci.org/blackducksoftware/hub-teamcity.svg?branch=master)](https://travis-ci.org/blackducksoftware/hub-teamcity)
-[![Black Duck Security Risk](https://test.duckbuild.io/github/groups/blackducksoftware/locations/hub-teamcity/public/results/branches/master/badge-risk.svg)](https://test.duckbuild.io/github/groups/blackducksoftware/locations/hub-teamcity/public/results/branches/master)
 [![Coverage Status](https://coveralls.io/repos/github/blackducksoftware/hub-teamcity/badge.svg?branch=master)](https://coveralls.io/github/blackducksoftware/hub-teamcity?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
