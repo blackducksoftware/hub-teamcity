@@ -95,10 +95,10 @@ public class HubRiskReportTab extends SimpleCustomTab {
         if (build.getArtifactsDirectory() == null) {
             return null;
         }
-        String externalId = build.getBuildTypeExternalId();
+        final String externalId = build.getBuildTypeExternalId();
         // based on information found in the TeamCity blog:
         // https://blog.jetbrains.com/teamcity/2012/06/teamcity-ivy-gradle-maven/
-        final String prefix = "/repository/download/";
+        final String prefix = request.getContextPath() + "/repository/download/";
         final String indexHtml = HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME + "/riskreport.html";
         final String reportUrl = prefix + externalId + "/" + build.getBuildId() + ":id/" + indexHtml;
         return reportUrl;
