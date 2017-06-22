@@ -31,7 +31,8 @@
   </scm>
 
   <properties>
-    <hub.common.version>8.3.0</hub.common.version>
+    <hub.common.rest.version>2.1.1</hub.common.rest.version>
+    <hub.common.version>12.0.1</hub.common.version>
     <plugin.version>${project.version}</plugin.version>
     <teamcity.version>8.0</teamcity.version>
   </properties>
@@ -45,6 +46,11 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.blackducksoftware.integration</groupId>
+        <artifactId>hub-common-rest</artifactId>
+        <version>${hub.common.rest.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.blackducksoftware.integration</groupId>
         <artifactId>hub-common</artifactId>

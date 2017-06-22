@@ -40,16 +40,15 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.global.GlobalFieldKey;
 import com.blackducksoftware.integration.hub.global.HubCredentials;
 import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubProxyInfoFieldEnum;
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
 import com.blackducksoftware.integration.hub.global.HubServerConfigFieldEnum;
-import com.blackducksoftware.integration.hub.rest.CredentialsRestConnection;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
 import com.blackducksoftware.integration.log.IntLogger;
 import com.blackducksoftware.integration.validator.AbstractValidator;
+import com.blackducksoftware.integration.validator.FieldEnum;
 import com.blackducksoftware.integration.validator.ValidationResults;
 
 import jetbrains.buildServer.controllers.ActionErrors;
@@ -163,7 +162,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         }
     }
 
-    private void checkForErrors(final GlobalFieldKey key, final String fieldId,
+    private void checkForErrors(final FieldEnum key, final String fieldId,
             final ValidationResults results, final ActionErrors errors) {
         if (!results.isSuccess()) {
             errors.addError(fieldId, results.getResultString(key));

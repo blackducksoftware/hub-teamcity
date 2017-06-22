@@ -229,7 +229,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                     version = getProjectVersionFromScanStatus(services.createCodeLocationRequestService(logger),
                             services.createProjectVersionRequestService(logger),
                             metaService, scanSummaryList.get(0));
-                    project = getProjectFromVersion(services.createProjectRequestService(), metaService, version);
+                    project = getProjectFromVersion(services.createProjectRequestService(logger), metaService, version);
                     logger.info("Waiting for Bom to be updated");
                     services.createScanStatusDataService(logger, waitTimeForReport).assertBomImportScansFinished(scanSummaryList);
                 }
@@ -268,7 +268,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             throws IntegrationException {
         final CodeLocationView codeLocationItem = codeLocationRequestService
                 .getItem(metaService.getFirstLink(scanSummaryItem, MetaService.CODE_LOCATION_BOM_STATUS_LINK), CodeLocationView.class);
-        final String projectVersionUrl = codeLocationItem.getMappedProjectVersion();
+        final String projectVersionUrl = codeLocationItem.mappedProjectVersion;
         final ProjectVersionView projectVersion = projectVersionRequestService.getItem(projectVersionUrl, ProjectVersionView.class);
         return projectVersion;
     }
@@ -424,7 +424,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
             final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(policyStatusItem);
             final String policyStatusMessage = policyStatusDescription.getPolicyStatusMessage();
-            if (policyStatusItem.getOverallStatus() == VersionBomPolicyStatusOverallStatusEnum.IN_VIOLATION) {
+            if (policyStatusItem.overallStatus == VersionBomPolicyStatusOverallStatusEnum.IN_VIOLATION) {
                 build.stopBuild(policyStatusMessage);
             } else {
                 logger.info(policyStatusMessage);
