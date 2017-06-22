@@ -31,10 +31,6 @@
     </dependency>
     <dependency>
       <groupId>com.blackducksoftware.integration</groupId>
-      <artifactId>hub-common-rest</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.blackducksoftware.integration</groupId>
       <artifactId>hub-common</artifactId>
     </dependency>
     <dependency>
