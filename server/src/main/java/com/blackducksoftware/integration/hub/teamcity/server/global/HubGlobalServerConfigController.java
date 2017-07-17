@@ -39,6 +39,7 @@ import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
+import com.blackducksoftware.integration.exception.IntegrationCertificateException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.global.HubCredentials;
 import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
@@ -146,6 +147,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         if (results.isSuccess()) {
             final HubServerConfig config = builder.buildObject();
             configPersistenceManager.setHubServerConfig(config);
+            configPersistenceManager.setHubImportSSLCert(Boolean.valueOf(request.getParameter("hubImportSSLCert")));
             configPersistenceManager.setHubWorkspaceCheck(Boolean.valueOf(request.getParameter("hubWorkspaceCheck")));
         } else {
             checkForErrors(HubServerConfigFieldEnum.HUBURL, "errorUrl", results, errors);
@@ -173,23 +175,75 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
             BadPaddingException, IOException, IllegalArgumentException, EncryptionException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException {
-        final ActionErrors errors = new ActionErrors();
+        ActionErrors errors = new ActionErrors();
         checkInput(request, errors);
-        final HubServerConfig hubServerConfig = configPersistenceManager.getHubServerConfig();
 
-        if (errors.hasNoErrors()) {
+        if (errors.hasNoErrors() || hasSSLErrors(errors)) {
             final HubServerLogger serverLogger = new HubServerLogger();
+            String errorMsg = null;
             try {
-                // if you can construct a CredentialsRestConnection, it calls setCookies and connects to the hub,
-                // throwing an Exception if things go wrong
-                serverLogger.info("Validating the credentials for the Server : " + hubServerConfig.getHubUrl());
-                getRestConnection(serverLogger, hubServerConfig).connect();
+                HubServerConfig config = null;
+                try {
+                    config = getHubServerConfigBuilderFromRequest(request).build();
+                } catch (final IllegalStateException e) {
+                    if (e instanceof IntegrationCertificateException || e.getMessage().toLowerCase().contains("ssl")) {
+                        errorMsg = "Certificate could not be imported into the java keystore. Please ensure the correct user has read/write access.";
+                    } else {
+                        errorMsg = e.getMessage();
+                    }
+                }
+                if (config != null) {
+                    // if you can construct a CredentialsRestConnection, it calls setCookies and connects to the hub,
+                    // throwing an Exception if things go wrong
+                    serverLogger.info("Validating the credentials for the Server : " + config.getHubUrl());
+                    getRestConnection(serverLogger, config).connect();
+                    // If able to connect, it is likely that errors have been resolved
+                    errors = new ActionErrors();
+                    checkInput(request, errors);
+                } else if (errorMsg != null) {
+                    errors.addError("errorConnection", errorMsg);
+                }
             } catch (final Exception e) {
                 serverLogger.error(e);
                 errors.addError("errorConnection", e.toString());
             }
         }
         return errors;
+    }
+
+    private boolean hasSSLErrors(final ActionErrors errors) {
+        final ActionErrors.Error error = errors.findErrorById("errorUrl");
+        if (null != error) {
+            return error.getMessage().toLowerCase().contains("ssl");
+        }
+        return false;
+    }
+
+    private HubServerConfigBuilder getHubServerConfigBuilderFromRequest(final HttpServletRequest request) throws IllegalArgumentException, EncryptionException {
+        final HubServerConfigBuilder serverConfigBuilder = new HubServerConfigBuilder();
+
+        serverConfigBuilder.setHubUrl(request.getParameter("hubUrl"));
+        serverConfigBuilder.setTimeout(request.getParameter("hubTimeout"));
+        serverConfigBuilder.setUsername(request.getParameter("hubUser"));
+        String hubPass = getDecryptedWebPassword(request.getParameter("encryptedHubPass"));
+        if (isPasswordAstericks(hubPass) && configPersistenceManager.getHubServerConfig() != null
+                && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
+            hubPass = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
+        }
+        serverConfigBuilder.setPassword(hubPass);
+        serverConfigBuilder.setAutoImportHttpsCertificates(Boolean.valueOf(request.getParameter("hubImportSSLCert")));
+        serverConfigBuilder.setProxyHost(request.getParameter("hubProxyServer"));
+        serverConfigBuilder.setProxyPort(request.getParameter("hubProxyPort"));
+        serverConfigBuilder.setIgnoredProxyHosts(request.getParameter("hubNoProxyHost"));
+        serverConfigBuilder.setProxyUsername(request.getParameter("hubProxyUser"));
+        String proxyPass = getDecryptedWebPassword(request.getParameter("encryptedHubProxyPass"));
+        if (isPasswordAstericks(proxyPass) && configPersistenceManager.getHubServerConfig() != null
+                && configPersistenceManager.getHubServerConfig().getProxyInfo() != null) {
+            proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
+        }
+        serverConfigBuilder.setProxyPassword(proxyPass);
+
+        return serverConfigBuilder;
     }
 
     public RestConnection getRestConnection(final IntLogger logger, final HubServerConfig hubServerConfig) throws EncryptionException {

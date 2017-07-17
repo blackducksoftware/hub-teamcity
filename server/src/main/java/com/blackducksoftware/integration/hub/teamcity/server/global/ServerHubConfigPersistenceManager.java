@@ -54,6 +54,8 @@ public class ServerHubConfigPersistenceManager {
 
     private HubServerConfig hubServerConfig;
 
+    private boolean hubImportSSLCert;
+
     private boolean hubWorkspaceCheck;
 
     public ServerHubConfigPersistenceManager(@NotNull final ServerPaths serverPaths) {
@@ -75,6 +77,14 @@ public class ServerHubConfigPersistenceManager {
         this.hubServerConfig = hubServerConfig;
     }
 
+    public boolean isHubImportSSLCert() {
+        return hubImportSSLCert;
+    }
+
+    public void setHubImportSSLCert(final boolean hubImportSSLCerts) {
+        this.hubImportSSLCert = hubImportSSLCerts;
+    }
+
     public boolean isHubWorkspaceCheck() {
         return hubWorkspaceCheck;
     }
@@ -90,6 +100,7 @@ public class ServerHubConfigPersistenceManager {
                 try {
                     if (globalConfigJson.has("hubServerConfig")) {
                         setHubServerConfig(gson.fromJson(globalConfigJson.get("hubServerConfig"), HubServerConfig.class));
+                        setHubImportSSLCert(globalConfigJson.get("hubImportSSLCert").getAsBoolean());
                         setHubWorkspaceCheck(globalConfigJson.get("hubWorkspaceCheck").getAsBoolean());
                     } else {
                         throw new JsonParseException("The Hub Teamcity configuration must be from a previous version.");
@@ -97,6 +108,7 @@ public class ServerHubConfigPersistenceManager {
                 } catch (final JsonParseException e) {
                     // try to load the old config
                     setHubServerConfig(gson.fromJson(globalConfigJson, HubServerConfig.class));
+                    setHubImportSSLCert(false);
                     setHubWorkspaceCheck(true);
                 }
             } catch (final IOException e) {
@@ -118,6 +130,7 @@ public class ServerHubConfigPersistenceManager {
         final JsonObject globalConfigJson = new JsonObject();
         final JsonElement hubServerConfigJson = gson.toJsonTree(getHubServerConfig(), HubServerConfig.class);
         globalConfigJson.add("hubServerConfig", hubServerConfigJson);
+        globalConfigJson.addProperty("hubImportSSLCert", hubImportSSLCert);
         globalConfigJson.addProperty("hubWorkspaceCheck", hubWorkspaceCheck);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
             writer.write(gson.toJson(globalConfigJson));
