@@ -111,33 +111,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
     }
 
     public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException, EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        final HubCredentials credentials = getCredentialsFromRequest(request, "hubUser");
-
-        final String url = request.getParameter("hubUrl");
-        final String proxyServer = request.getParameter("hubProxyServer");
-        final String proxyPort = request.getParameter("hubProxyPort");
-        final String noProxyHosts = request.getParameter("hubNoProxyHost");
-        final String proxyUser = request.getParameter("hubProxyUser");
-        final String encProxyPassword = request.getParameter("encryptedHubProxyPass");
-        final String hubConnectionTimeout = request.getParameter("hubTimeout");
-
-        final HubServerConfigBuilder builder = new HubServerConfigBuilder();
-        if (credentials != null) {
-            builder.setUsername(credentials.getUsername());
-            builder.setPassword(credentials.getDecryptedPassword());
-        }
-        builder.setHubUrl(url);
-        builder.setProxyHost(proxyServer);
-        builder.setProxyPort(proxyPort);
-        builder.setIgnoredProxyHosts(noProxyHosts);
-        builder.setProxyUsername(proxyUser);
-        builder.setTimeout(hubConnectionTimeout);
-
-        String proxyPass = getDecryptedWebPassword(encProxyPassword);
-        if (isPasswordAstericks(proxyPass) && configPersistenceManager.getHubServerConfig() != null && configPersistenceManager.getHubServerConfig().getProxyInfo() != null) {
-            proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
-        }
-        builder.setProxyPassword(proxyPass);
+        final HubServerConfigBuilder builder = getHubServerConfigBuilderFromRequest(request);
 
         final AbstractValidator validator = builder.createValidator();
 
@@ -179,8 +153,10 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
                 HubServerConfig config = null;
                 try {
                     config = getHubServerConfigBuilderFromRequest(request).build();
+                } catch (final IntegrationCertificateException e) {
+                    errorMsg = e.getMessage();
                 } catch (final IllegalStateException e) {
-                    if (e instanceof IntegrationCertificateException || e.getMessage().toLowerCase().contains("ssl")) {
+                    if (e.getMessage().toLowerCase().contains("ssl")) {
                         errorMsg = "Certificate could not be imported into the java keystore. Please ensure the correct user has read/write access.";
                     } else {
                         errorMsg = e.getMessage();

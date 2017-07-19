@@ -116,7 +116,6 @@ public class ServerHubConfigPersistenceManager {
 
         final JsonObject globalConfigJson = new JsonObject();
         final JsonElement hubServerConfigJson = gson.toJsonTree(getHubServerConfig(), HubServerConfig.class);
-        Loggers.SERVER.info("Hub Server Config: " + getHubServerConfig());
         globalConfigJson.add("hubServerConfig", hubServerConfigJson);
         globalConfigJson.addProperty("hubWorkspaceCheck", hubWorkspaceCheck);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {

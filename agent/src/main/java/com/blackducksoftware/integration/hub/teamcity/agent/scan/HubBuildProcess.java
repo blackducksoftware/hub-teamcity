@@ -98,7 +98,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         this.artifactsWatcher = artifactsWatcher;
     }
 
-    public void setverbose(final boolean verbose) {
+    public void setVerbose(final boolean verbose) {
         this.verbose = verbose;
     }
 
@@ -276,10 +276,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         configBuilder.setPasswordLength(NumberUtils.toInt(passwordLength));
         configBuilder.setTimeout(timeout);
 
-        logger.alwaysLog("Auto import certs: " + autoImportHttpsCertificates); // TODO: remove
-        if (autoImportHttpsCertificates != null) {
-            configBuilder.setAutoImportHttpsCertificates(Boolean.valueOf(autoImportHttpsCertificates));
-        }
+        configBuilder.setAutoImportHttpsCertificates(Boolean.valueOf(autoImportHttpsCertificates));
 
         configBuilder.setProxyHost(proxyHost);
         configBuilder.setProxyPort(proxyPort);
