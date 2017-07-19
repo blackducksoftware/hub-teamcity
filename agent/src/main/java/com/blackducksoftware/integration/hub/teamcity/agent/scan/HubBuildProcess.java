@@ -92,8 +92,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     private Boolean verbose;
 
-    public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context,
-            @NotNull final ArtifactsWatcher artifactsWatcher) {
+    public HubBuildProcess(@NotNull final AgentRunningBuild build, @NotNull final BuildRunnerContext context, @NotNull final ArtifactsWatcher artifactsWatcher) {
         this.build = build;
         this.context = context;
         this.artifactsWatcher = artifactsWatcher;
@@ -115,8 +114,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
     }
 
     @Override
-    public BuildFinishedStatus call() throws IOException, NoSuchMethodException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, EncryptionException {
+    public BuildFinishedStatus call() throws IOException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, EncryptionException {
         final BuildProgressLogger buildLogger = build.getBuildLogger();
         final HubAgentBuildLogger hubLogger = new HubAgentBuildLogger(buildLogger);
 
@@ -163,8 +161,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             // configuration therefore we just want to make
             // sure the feature collection has something meaning that it was
             // configured.
-            if (features != null && features.iterator() != null && !features.isEmpty()
-                    && features.iterator().next() != null) {
+            if (features != null && features.iterator() != null && !features.isEmpty() && features.iterator().next() != null) {
                 isFailOnPolicySelected = true;
             }
 
@@ -210,8 +207,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             final boolean shouldWaitForScansFinished = isRiskReportGenerated || isFailOnPolicySelected;
             ProjectVersionView version = null;
             try {
-                version = cliDataService.installAndRunControlledScan(hubConfig, hubScanConfig, projectRequest,
-                        shouldWaitForScansFinished, new IntegrationInfo(ThirdPartyName.TEAM_CITY.getName(), thirdPartyVersion, pluginVersion));
+                version = cliDataService.installAndRunControlledScan(hubConfig, hubScanConfig, projectRequest, shouldWaitForScansFinished, new IntegrationInfo(ThirdPartyName.TEAM_CITY.getName(), thirdPartyVersion, pluginVersion));
 
             } catch (final HubIntegrationException e) {
 
@@ -223,13 +219,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 if (isRiskReportGenerated) {
                     project = getProjectFromVersion(services.createProjectRequestService(logger), metaService, version);
                     logger.info("Generating Risk Report");
-                    publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger, waitTimeForReport),
-                            project, version);
+                    publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger, waitTimeForReport), project, version);
                 }
                 if (isFailOnPolicySelected) {
                     logger.info("Checking for Policy violations.");
-                    checkPolicyFailures(build, logger, services, metaService, version,
-                            hubScanConfig.isDryRun());
+                    checkPolicyFailures(build, logger, services, metaService, version, hubScanConfig.isDryRun());
                 }
             } else {
                 if (isRiskReportGenerated) {
@@ -251,9 +245,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return hubServerConfig.createCredentialsRestConnection(logger);
     }
 
-    private ProjectView getProjectFromVersion(final ProjectRequestService projectRequestService, final MetaService metaService,
-            final ProjectVersionView version)
-            throws IntegrationException {
+    private ProjectView getProjectFromVersion(final ProjectRequestService projectRequestService, final MetaService metaService, final ProjectVersionView version) throws IntegrationException {
         final String projectURL = metaService.getFirstLink(version, MetaService.PROJECT_LINK);
         final ProjectView projectVersion = projectRequestService.getItem(projectURL, ProjectView.class);
         return projectVersion;
@@ -269,6 +261,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String password = commonVariables.getValue(HubConstantValues.HUB_PASSWORD);
         final String passwordLength = commonVariables.getValue(HubConstantValues.HUB_PASSWORD_LENGTH);
 
+        final String autoImportHttpsCertificates = commonVariables.getValue(HubConstantValues.HUB_IMPORT_SSL_CERT);
+
         final String proxyHost = commonVariables.getValue(HubConstantValues.HUB_PROXY_HOST);
         final String proxyPort = commonVariables.getValue(HubConstantValues.HUB_PROXY_PORT);
         final String ignoredProxyHosts = commonVariables.getValue(HubConstantValues.HUB_NO_PROXY_HOSTS);
@@ -281,6 +275,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         configBuilder.setPassword(password);
         configBuilder.setPasswordLength(NumberUtils.toInt(passwordLength));
         configBuilder.setTimeout(timeout);
+
+        logger.alwaysLog("Auto import certs: " + autoImportHttpsCertificates); // TODO: remove
+        if (autoImportHttpsCertificates != null) {
+            configBuilder.setAutoImportHttpsCertificates(Boolean.valueOf(autoImportHttpsCertificates));
+        }
+
         configBuilder.setProxyHost(proxyHost);
         configBuilder.setProxyPort(proxyPort);
         configBuilder.setIgnoredProxyHosts(ignoredProxyHosts);
@@ -296,8 +296,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return null;
     }
 
-    private HubScanConfig getScanConfig(final File workingDirectory, final File toolsDir,
-            final IntLogger logger, final CIEnvironmentVariables commonVariables) throws IOException {
+    private HubScanConfig getScanConfig(final File workingDirectory, final File toolsDir, final IntLogger logger, final CIEnvironmentVariables commonVariables) throws IOException {
 
         final String dryRun = commonVariables.getValue(HubConstantValues.HUB_DRY_RUN);
         final String cleanupLogs = commonVariables.getValue(HubConstantValues.HUB_CLEANUP_LOGS_ON_SUCCESS);
@@ -377,9 +376,8 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return variables;
     }
 
-    private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, final RiskReportDataService riskReportDataService,
-            final ProjectView project, final ProjectVersionView version) throws IOException, URISyntaxException, InterruptedException,
-            IntegrationException {
+    private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, final RiskReportDataService riskReportDataService, final ProjectView project, final ProjectVersionView version)
+            throws IOException, URISyntaxException, InterruptedException, IntegrationException {
 
         final String reportDirectoryPath = workingDirectory.getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
         final File reportDirectory = new File(reportDirectoryPath);
@@ -391,9 +389,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         Thread.sleep(2000);
     }
 
-    private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger,
-            final HubServicesFactory services, final MetaService metaService, final ProjectVersionView version,
-            final boolean isDryRun) {
+    private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger, final HubServicesFactory services, final MetaService metaService, final ProjectVersionView version, final boolean isDryRun) {
         try {
             if (isDryRun) {
                 logger.warn("Will not run the Failure conditions because this was a dry run scan.");

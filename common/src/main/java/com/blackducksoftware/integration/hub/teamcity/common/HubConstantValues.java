@@ -74,6 +74,8 @@ public final class HubConstantValues {
 
     public static final String HUB_PROXY_PASS_LENGTH = PLUGIN_PREFIX + "hubProxyPassLength";
 
+    public static final String HUB_IMPORT_SSL_CERT = PLUGIN_PREFIX + "autoImportHttpsCertificates";
+
     public static final String HUB_WORKSPACE_CHECK = PLUGIN_PREFIX + "hubWorkspaceCheck";
 
     public static final String HUB_MAVEN_SCOPES = PLUGIN_PREFIX + "mavenScopes";
