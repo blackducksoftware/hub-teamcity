@@ -107,8 +107,7 @@ public class ServerHubConfigPersistenceManager {
 
     public void persist() throws IOException {
         if (!configFile.getParentFile().exists() && configFile.getParentFile().mkdirs()) {
-            Loggers.SERVER.info("Directory created for the Hub configuration file at : "
-                    + configFile.getParentFile().getCanonicalPath());
+            Loggers.SERVER.info("Directory created for the Hub configuration file at : " + configFile.getParentFile().getCanonicalPath());
         } else if (configFile.exists() && configFile.delete()) {
             Loggers.SERVER.info("Old Hub configuration file removed, to be replaced by a new configuration.");
         }

@@ -39,6 +39,7 @@ import org.jdom.Element;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
+import com.blackducksoftware.integration.exception.IntegrationCertificateException;
 import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.global.HubCredentials;
 import com.blackducksoftware.integration.hub.global.HubCredentialsFieldEnum;
@@ -109,36 +110,8 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
 
     }
 
-    public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException,
-            EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        final HubCredentials credentials = getCredentialsFromRequest(request, "hubUser");
-
-        final String url = request.getParameter("hubUrl");
-        final String proxyServer = request.getParameter("hubProxyServer");
-        final String proxyPort = request.getParameter("hubProxyPort");
-        final String noProxyHosts = request.getParameter("hubNoProxyHost");
-        final String proxyUser = request.getParameter("hubProxyUser");
-        final String encProxyPassword = request.getParameter("encryptedHubProxyPass");
-        final String hubConnectionTimeout = request.getParameter("hubTimeout");
-
-        final HubServerConfigBuilder builder = new HubServerConfigBuilder();
-        if (credentials != null) {
-            builder.setUsername(credentials.getUsername());
-            builder.setPassword(credentials.getDecryptedPassword());
-        }
-        builder.setHubUrl(url);
-        builder.setProxyHost(proxyServer);
-        builder.setProxyPort(proxyPort);
-        builder.setIgnoredProxyHosts(noProxyHosts);
-        builder.setProxyUsername(proxyUser);
-        builder.setTimeout(hubConnectionTimeout);
-
-        String proxyPass = getDecryptedWebPassword(encProxyPassword);
-        if (isPasswordAstericks(proxyPass) && configPersistenceManager.getHubServerConfig() != null
-                && configPersistenceManager.getHubServerConfig().getProxyInfo() != null) {
-            proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
-        }
-        builder.setProxyPassword(proxyPass);
+    public void checkInput(final HttpServletRequest request, final ActionErrors errors) throws IllegalArgumentException, EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        final HubServerConfigBuilder builder = getHubServerConfigBuilderFromRequest(request);
 
         final AbstractValidator validator = builder.createValidator();
 
@@ -162,28 +135,45 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         }
     }
 
-    private void checkForErrors(final FieldEnum key, final String fieldId,
-            final ValidationResults results, final ActionErrors errors) {
+    private void checkForErrors(final FieldEnum key, final String fieldId, final ValidationResults results, final ActionErrors errors) {
         if (!results.isSuccess()) {
             errors.addError(fieldId, results.getResultString(key));
         }
     }
 
-    public ActionErrors testConnection(final HttpServletRequest request)
-            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
-            BadPaddingException, IOException, IllegalArgumentException, EncryptionException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException {
-        final ActionErrors errors = new ActionErrors();
+    public ActionErrors testConnection(final HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException,
+            EncryptionException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        ActionErrors errors = new ActionErrors();
         checkInput(request, errors);
-        final HubServerConfig hubServerConfig = configPersistenceManager.getHubServerConfig();
 
-        if (errors.hasNoErrors()) {
+        if (errors.hasNoErrors() || hasSSLErrors(errors)) {
             final HubServerLogger serverLogger = new HubServerLogger();
+            String errorMsg = null;
             try {
-                // if you can construct a CredentialsRestConnection, it calls setCookies and connects to the hub,
-                // throwing an Exception if things go wrong
-                serverLogger.info("Validating the credentials for the Server : " + hubServerConfig.getHubUrl());
-                getRestConnection(serverLogger, hubServerConfig).connect();
+                HubServerConfig config = null;
+                try {
+                    config = getHubServerConfigBuilderFromRequest(request).build();
+                } catch (final IntegrationCertificateException e) {
+                    errorMsg = e.getMessage();
+                } catch (final IllegalStateException e) {
+                    if (e.getMessage().toLowerCase().contains("ssl")) {
+                        errorMsg = "Certificate could not be imported into the java keystore. Please ensure the correct user has read/write access.";
+                    } else {
+                        errorMsg = e.getMessage();
+                    }
+                }
+                if (config != null) {
+                    // if you can construct a CredentialsRestConnection, it
+                    // calls setCookies and connects to the hub,
+                    // throwing an Exception if things go wrong
+                    serverLogger.info("Validating the credentials for the Server : " + config.getHubUrl());
+                    getRestConnection(serverLogger, config).connect();
+                    // If able to connect, it is likely that errors have been resolved
+                    errors = new ActionErrors();
+                    checkInput(request, errors);
+                } else if (errorMsg != null) {
+                    errors.addError("errorConnection", errorMsg);
+                }
             } catch (final Exception e) {
                 serverLogger.error(e);
                 errors.addError("errorConnection", e.toString());
@@ -192,26 +182,56 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         return errors;
     }
 
+    private boolean hasSSLErrors(final ActionErrors errors) {
+        final ActionErrors.Error error = errors.findErrorById("errorUrl");
+        if (null != error) {
+            return error.getMessage().toLowerCase().contains("ssl");
+        }
+        return false;
+    }
+
+    private HubServerConfigBuilder getHubServerConfigBuilderFromRequest(final HttpServletRequest request) throws IllegalArgumentException, EncryptionException {
+        final HubServerConfigBuilder serverConfigBuilder = new HubServerConfigBuilder();
+
+        serverConfigBuilder.setHubUrl(request.getParameter("hubUrl"));
+        serverConfigBuilder.setTimeout(request.getParameter("hubTimeout"));
+        serverConfigBuilder.setUsername(request.getParameter("hubUser"));
+        String hubPass = getDecryptedWebPassword(request.getParameter("encryptedHubPass"));
+        if (isPasswordAstericks(hubPass) && configPersistenceManager.getHubServerConfig() != null && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
+            hubPass = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
+        }
+        serverConfigBuilder.setPassword(hubPass);
+        serverConfigBuilder.setAutoImportHttpsCertificates(Boolean.valueOf(request.getParameter("autoImportHttpsCertificates")));
+        serverConfigBuilder.setProxyHost(request.getParameter("hubProxyServer"));
+        serverConfigBuilder.setProxyPort(request.getParameter("hubProxyPort"));
+        serverConfigBuilder.setIgnoredProxyHosts(request.getParameter("hubNoProxyHost"));
+        serverConfigBuilder.setProxyUsername(request.getParameter("hubProxyUser"));
+        String proxyPass = getDecryptedWebPassword(request.getParameter("encryptedHubProxyPass"));
+        if (isPasswordAstericks(proxyPass) && configPersistenceManager.getHubServerConfig() != null && configPersistenceManager.getHubServerConfig().getProxyInfo() != null) {
+            proxyPass = configPersistenceManager.getHubServerConfig().getProxyInfo().getDecryptedPassword();
+        }
+        serverConfigBuilder.setProxyPassword(proxyPass);
+
+        return serverConfigBuilder;
+    }
+
     public RestConnection getRestConnection(final IntLogger logger, final HubServerConfig hubServerConfig) throws EncryptionException {
         return hubServerConfig.createCredentialsRestConnection(logger);
     }
 
-    public HubCredentials getCredentialsFromRequest(final HttpServletRequest request, final String usernameKey)
-            throws IllegalArgumentException, EncryptionException {
+    public HubCredentials getCredentialsFromRequest(final HttpServletRequest request, final String usernameKey) throws IllegalArgumentException, EncryptionException {
         final String username = request.getParameter(usernameKey);
         String password = "";
         password = request.getParameter("encryptedHubPass");
 
         HubCredentials hubCredentials = null;
         final String decryptedPassword = getDecryptedWebPassword(password);
-        if (isPasswordAstericks(decryptedPassword) && configPersistenceManager.getHubServerConfig() != null
-                && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
+        if (isPasswordAstericks(decryptedPassword) && configPersistenceManager.getHubServerConfig() != null && configPersistenceManager.getHubServerConfig().getGlobalCredentials() != null) {
             final String savedPassword = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
             hubCredentials = new HubCredentials(username, savedPassword);
         } else {
             if (StringUtils.isNotBlank(decryptedPassword)) {
-                // Do not change the saved password unless the User has provided a
-                // new one
+                // Do not change the saved password unless the User has provided a new one
                 final String decryptedWebPassword = getDecryptedWebPassword(password);
                 if (StringUtils.isNotBlank(decryptedWebPassword)) {
                     hubCredentials = new HubCredentials(username, decryptedWebPassword);
@@ -222,8 +242,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
         return hubCredentials;
     }
 
-    private String getDecryptedWebPassword(final String webEncryptedPass)
-            throws IllegalArgumentException, EncryptionException {
+    private String getDecryptedWebPassword(final String webEncryptedPass) throws IllegalArgumentException, EncryptionException {
         if (StringUtils.isNotBlank(webEncryptedPass)) {
             final String webDecryptedPass = RSACipher.decryptWebRequestData(webEncryptedPass);
 

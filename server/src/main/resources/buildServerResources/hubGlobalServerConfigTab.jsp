@@ -130,7 +130,8 @@
             $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
             $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
             $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
-            $('hubWorkspaceCheck').checked= ${hubConfigPersistenceManager.hubWorkspaceCheck};
+            $('autoImportHttpsCertificates').checked = ${hubConfigPersistenceManager.hubServerConfig.isAutoImportHttpsCertificates()};
+            $('hubWorkspaceCheck').checked = ${hubConfigPersistenceManager.hubWorkspaceCheck};
             $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
             $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
             if ($('hubProxyPort').value == 0) {
@@ -150,7 +151,8 @@
                     $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
                     $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
                     $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
-                    $('hubWorkspaceCheck').checked= ${hubConfigPersistenceManager.hubWorkspaceCheck};
+                    $('autoImportHttpsCertificates').checked = ${hubConfigPersistenceManager.hubServerConfig.isAutoImportHttpsCertificates()};
+                    $('hubWorkspaceCheck').checked = ${hubConfigPersistenceManager.hubWorkspaceCheck};
                     $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
                     $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
                     if ($('hubProxyPort').value == 0) {
@@ -283,6 +285,17 @@
                 <td/>
                 <td>
                     <span class="error" id="errorTimeout" style="margin-left: 0;"></span>
+                </td>
+            </tr>
+            <tr>
+                <td width="200px" >
+                    <label class="label" for="autoImportHttpsCertificates">Import SSL Certificate:
+                        <bs:helpIcon
+                                iconTitle="This will import the SSL certificate of the specified HTTPS Hub server. Note: For this to work, the Java keystore must be writable by the proper user."/>
+                    </label>
+                </td>
+                <td>
+                    <forms:checkbox name="autoImportHttpsCertificates" id="autoImportHttpsCertificates" />
                 </td>
             </tr>
             <tr>

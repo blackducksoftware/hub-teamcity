@@ -56,8 +56,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
     }
 
     @Override
-    public void fixRunBuildParameters(@NotNull final SRunningBuild build,
-            @NotNull final Map<String, String> runParameters, @NotNull final Map<String, String> buildParameters) {
+    public void fixRunBuildParameters(@NotNull final SRunningBuild build, @NotNull final Map<String, String> runParameters, @NotNull final Map<String, String> buildParameters) {
         log = build.getBuildLog();
 
         if (isHubBuildStepConfigured(runParameters)) {
@@ -70,26 +69,25 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
     private void addGlobalParameterMap(final Map<String, String> runParameters) {
         final HubServerConfig hubServerConfig = serverPeristanceManager.getHubServerConfig();
         if (!runParameters.containsKey(HubConstantValues.HUB_URL)) {
-            runParameters.put(HubConstantValues.HUB_URL,
-                    StringUtils.trimToEmpty(hubServerConfig.getHubUrl().toString()));
+            runParameters.put(HubConstantValues.HUB_URL, StringUtils.trimToEmpty(hubServerConfig.getHubUrl().toString()));
         }
         if (!runParameters.containsKey(HubConstantValues.HUB_USERNAME)) {
             runParameters.put(HubConstantValues.HUB_USERNAME, StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getUsername()));
         }
         if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD)) {
-            runParameters.put(HubConstantValues.HUB_PASSWORD,
-                    StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getEncryptedPassword()));
+            runParameters.put(HubConstantValues.HUB_PASSWORD, StringUtils.trimToEmpty(hubServerConfig.getGlobalCredentials().getEncryptedPassword()));
         }
         if (!runParameters.containsKey(HubConstantValues.HUB_PASSWORD_LENGTH)) {
             runParameters.put(HubConstantValues.HUB_PASSWORD_LENGTH, Integer.toString(hubServerConfig.getGlobalCredentials().getActualPasswordLength()));
         }
         if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
-            runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT,
-                    String.valueOf(hubServerConfig.getTimeout()));
+            runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT, String.valueOf(hubServerConfig.getTimeout()));
+        }
+        if (!runParameters.containsKey(HubConstantValues.HUB_IMPORT_SSL_CERT)) {
+            runParameters.put(HubConstantValues.HUB_IMPORT_SSL_CERT, String.valueOf(hubServerConfig.isAutoImportHttpsCertificates()));
         }
         if (!runParameters.containsKey(HubConstantValues.HUB_WORKSPACE_CHECK)) {
-            runParameters.put(HubConstantValues.HUB_WORKSPACE_CHECK,
-                    String.valueOf(serverPeristanceManager.isHubWorkspaceCheck()));
+            runParameters.put(HubConstantValues.HUB_WORKSPACE_CHECK, String.valueOf(serverPeristanceManager.isHubWorkspaceCheck()));
         }
 
         final String ignoredProxyHosts = hubServerConfig.getProxyInfo().getIgnoredProxyHosts();
@@ -140,14 +138,13 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
         if (e != null) {
             final StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            log.message(HubConstantValues.PLUGIN_LOG + sw.toString(), Status.NORMAL, new Date(), "", "",
-                    Collections.EMPTY_LIST);
+            log.message(HubConstantValues.PLUGIN_LOG + sw.toString(), Status.NORMAL, new Date(), "", "", Collections.EMPTY_LIST);
         }
     }
 
     private boolean isHubBuildStepConfigured(@NotNull final Map<String, String> runParameters) {
-        return runParameters.containsKey(HubConstantValues.HUB_PROJECT_NAME) || runParameters.containsKey(HubConstantValues.HUB_PROJECT_VERSION)
-                || runParameters.containsKey(HubConstantValues.HUB_SCAN_TARGETS) || runParameters.containsKey(HubConstantValues.HUB_SCAN_MEMORY);
+        return runParameters.containsKey(HubConstantValues.HUB_PROJECT_NAME) || runParameters.containsKey(HubConstantValues.HUB_PROJECT_VERSION) || runParameters.containsKey(HubConstantValues.HUB_SCAN_TARGETS)
+                || runParameters.containsKey(HubConstantValues.HUB_SCAN_MEMORY);
     }
 
 }
