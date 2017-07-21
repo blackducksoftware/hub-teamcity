@@ -29,10 +29,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
+import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionRequestPhaseEnum;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -81,6 +85,22 @@ public class ServerHubConfigPersistenceManager {
 
     public void setHubWorkspaceCheck(final boolean hubWorkspaceCheck) {
         this.hubWorkspaceCheck = hubWorkspaceCheck;
+    }
+
+    public List<String> getPhaseList() {
+        final List<String> phaseList = new LinkedList<>();
+        for (final ProjectVersionRequestPhaseEnum phase : ProjectVersionRequestPhaseEnum.values()) {
+            phaseList.add(phase.toString());
+        }
+        return phaseList;
+    }
+
+    public List<String> getDistributionList() {
+        final List<String> distributionList = new LinkedList<>();
+        for (final ProjectVersionDistributionEnum dist : ProjectVersionDistributionEnum.values()) {
+            distributionList.add(dist.toString());
+        }
+        return distributionList;
     }
 
     public void loadSettings() {

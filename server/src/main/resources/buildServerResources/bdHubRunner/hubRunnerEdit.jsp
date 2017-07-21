@@ -12,7 +12,6 @@
 	type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager"
 	scope="request" />
 
-
 <style type="text/css">
 .bdLongTextArea{
 	min-width: 40em !important;
@@ -58,6 +57,72 @@
 							<span class="smallNote"> Version of the Hub Project. </span>
 					</td>
 				</tr>
+				
+				<tr class="noBorder" id="blackDuckHubPhase"
+                    style="">
+                    <th>
+                        <label
+                            for="com.blackducksoftware.integration.hub.phase">
+                                Phase: <bs:helpIcon
+                                iconTitle="The Phase of this Project-Version." />
+                        </label>
+                    </th>
+                    <td>
+                        <props:selectProperty
+                            name="com.blackducksoftware.integration.hub.phase"
+                            className="longField">
+                            <c:forEach var="phase"
+                                items="${hubConfigPersistenceManager.getPhaseList()}">
+                                <c:set var="selected" value="false" />
+                                
+                                <props:option value="${phase}"
+                                    selected="${selected}">
+                                    <c:out
+                                        value="${phase}" />
+                                </props:option>
+                            </c:forEach>
+                        </props:selectProperty>
+                    </td>
+                </tr>
+                
+                <tr class="noBorder" id="blackDuckHubDistribution"
+                    style="">
+                    <th>
+                        <label
+                            for="com.blackducksoftware.integration.hub.distribution">
+                                Distribution: <bs:helpIcon
+                                iconTitle="The Distribution of this Project-Version." />
+                        </label>
+                    </th>
+                    <td>
+                        <props:selectProperty
+                            name="com.blackducksoftware.integration.hub.distribution"
+                            className="longField">
+                            <c:forEach var="dist"
+                                items="${hubConfigPersistenceManager.getDistributionList()}">
+                                <c:set var="selected" value="false" />
+                                
+                                <props:option value="${dist}"
+                                    selected="${selected}">
+                                    <c:out
+                                        value="${dist}" />
+                                </props:option>
+                            </c:forEach>
+                        </props:selectProperty>
+                    </td>
+                </tr>
+				
+				<tr class="noBorder" id="blackDuckHubProjectLevelAdjustments" style="">
+                    <th>
+                        <label for="com.blackducksoftware.integration.hub.projectLevelAdjustments">
+                            Match Adjustments: <bs:helpIcon
+                                iconTitle="Always maintain component adjustments to all versions of this project." />
+                        </label>
+                    </th>
+                    <td>
+                        <props:checkboxProperty name="com.blackducksoftware.integration.hub.projectLevelAdjustments" className="longField" />
+                    </td>
+                </tr>
 				
 				<tr class="noBorder" id="blackDuckHubGenerateRiskReport" style="">
 					<th>

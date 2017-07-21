@@ -34,6 +34,12 @@ public final class HubConstantValues {
 
     public static final String HUB_PROJECT_VERSION = PLUGIN_PREFIX + "projectVersion";
 
+    public static final String HUB_PHASE = PLUGIN_PREFIX + "phase";
+
+    public static final String HUB_DISTRIBUTION = PLUGIN_PREFIX + "distribution";
+
+    public static final String HUB_MATCH_ADJUSTMENTS = PLUGIN_PREFIX + "projectLevelAdjustments";
+
     public static final String HUB_GENERATE_RISK_REPORT = PLUGIN_PREFIX + "generateRiskReport";
 
     public static final String HUB_MAX_WAIT_TIME_FOR_RISK_REPORT = PLUGIN_PREFIX + "maxWaitTimeForRiskReport";

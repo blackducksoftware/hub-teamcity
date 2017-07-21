@@ -19,6 +19,17 @@
                 name="com.blackducksoftware.integration.hub.projectVersion" />
         </div>
         <div class="parameter">
+            Phase: <props:displayValue
+                name="com.blackducksoftware.integration.hub.phase" />
+        </div>
+        <div class="parameter">
+            Distribution: <props:displayValue
+                name="com.blackducksoftware.integration.hub.distribution" />
+        </div>
+        <div class="parameter">
+            Match Adjustments: <props:displayValue name="com.blackducksoftware.integration.hub.projectLevelAdjustments" />
+        </div>
+        <div class="parameter">
             Generate Black Duck Risk Report: <props:displayValue name="com.blackducksoftware.integration.hub.generateRiskReport" />
         </div>
         <div class="parameter">

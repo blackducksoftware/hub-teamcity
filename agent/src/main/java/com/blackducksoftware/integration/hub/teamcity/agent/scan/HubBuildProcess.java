@@ -354,8 +354,11 @@ public class HubBuildProcess extends HubCallableBuildProcess {
 
     private ProjectRequest getProjectRequest(final IntLogger logger, final CIEnvironmentVariables commonVariables) {
         final ProjectRequestBuilder projectRequestBuilder = new ProjectRequestBuilder();
-        projectRequestBuilder.setProjectName((commonVariables.getValue(HubConstantValues.HUB_PROJECT_NAME)));
-        projectRequestBuilder.setVersionName((commonVariables.getValue(HubConstantValues.HUB_PROJECT_VERSION)));
+        projectRequestBuilder.setProjectName(commonVariables.getValue(HubConstantValues.HUB_PROJECT_NAME));
+        projectRequestBuilder.setVersionName(commonVariables.getValue(HubConstantValues.HUB_PROJECT_VERSION));
+        projectRequestBuilder.setPhase(commonVariables.getValue(HubConstantValues.HUB_PHASE));
+        projectRequestBuilder.setDistribution(commonVariables.getValue(HubConstantValues.HUB_DISTRIBUTION));
+        projectRequestBuilder.setProjectLevelAdjustments(Boolean.valueOf(commonVariables.getValue(HubConstantValues.HUB_MATCH_ADJUSTMENTS)));
         try {
             return projectRequestBuilder.build();
         } catch (final IllegalStateException e) {
