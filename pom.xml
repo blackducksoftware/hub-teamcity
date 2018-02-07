@@ -33,6 +33,7 @@
   <properties>
     <hub.common.version>13.1.2</hub.common.version>
     <plugin.version>${project.version}</plugin.version>
+    <sonar.projectName>Integrations - Black Duck Hub Plugin for TeamCity</sonar.projectName>
     <teamcity.version>8.0</teamcity.version>
   </properties>
 
