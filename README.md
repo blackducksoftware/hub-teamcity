@@ -1,3 +1,6 @@
+# Warning
+This product is now deprecated. Please use Detect for all scanning and discovery solutions going forward.  https://github.com/blackducksoftware/hub-detect
+
 ## Overview ##
 Hub plugin for TeamCity. This plugin provides ability to run a scan using the BD Hub CLI on build input and/or output. You can scan multiple targets, fail builds based on Hub policies, and display Hub reports for a particular Build.
 
