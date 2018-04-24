@@ -26,7 +26,6 @@ package com.blackducksoftware.integration.hub.teamcity.agent.scan;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,31 +38,32 @@ import org.jetbrains.annotations.NotNull;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
 import com.blackducksoftware.integration.exception.IntegrationException;
-import com.blackducksoftware.integration.hub.api.item.MetaService;
-import com.blackducksoftware.integration.hub.api.project.ProjectRequestService;
-import com.blackducksoftware.integration.hub.builder.HubScanConfigBuilder;
-import com.blackducksoftware.integration.hub.builder.HubServerConfigBuilder;
-import com.blackducksoftware.integration.hub.dataservice.cli.CLIDataService;
-import com.blackducksoftware.integration.hub.dataservice.policystatus.PolicyStatusDescription;
-import com.blackducksoftware.integration.hub.dataservice.report.RiskReportDataService;
+import com.blackducksoftware.integration.hub.api.generated.component.ProjectRequest;
+import com.blackducksoftware.integration.hub.api.generated.enumeration.PolicyStatusApprovalStatusType;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectVersionView;
+import com.blackducksoftware.integration.hub.api.generated.view.ProjectView;
+import com.blackducksoftware.integration.hub.api.generated.view.VersionBomPolicyStatusView;
+import com.blackducksoftware.integration.hub.api.view.MetaHandler;
+import com.blackducksoftware.integration.hub.configuration.HubScanConfig;
+import com.blackducksoftware.integration.hub.configuration.HubScanConfigBuilder;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfigBuilder;
 import com.blackducksoftware.integration.hub.exception.HubIntegrationException;
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.model.enumeration.VersionBomPolicyStatusOverallStatusEnum;
-import com.blackducksoftware.integration.hub.model.request.ProjectRequest;
-import com.blackducksoftware.integration.hub.model.view.ProjectVersionView;
-import com.blackducksoftware.integration.hub.model.view.ProjectView;
-import com.blackducksoftware.integration.hub.model.view.VersionBomPolicyStatusView;
-import com.blackducksoftware.integration.hub.phonehome.IntegrationInfo;
-import com.blackducksoftware.integration.hub.request.builder.ProjectRequestBuilder;
 import com.blackducksoftware.integration.hub.rest.RestConnection;
-import com.blackducksoftware.integration.hub.scan.HubScanConfig;
+import com.blackducksoftware.integration.hub.service.HubService;
 import com.blackducksoftware.integration.hub.service.HubServicesFactory;
+import com.blackducksoftware.integration.hub.service.PhoneHomeService;
+import com.blackducksoftware.integration.hub.service.ReportService;
+import com.blackducksoftware.integration.hub.service.SignatureScannerService;
+import com.blackducksoftware.integration.hub.service.model.HostnameHelper;
+import com.blackducksoftware.integration.hub.service.model.PolicyStatusDescription;
+import com.blackducksoftware.integration.hub.service.model.ProjectRequestBuilder;
+import com.blackducksoftware.integration.hub.service.model.ProjectVersionWrapper;
 import com.blackducksoftware.integration.hub.teamcity.agent.HubAgentBuildLogger;
 import com.blackducksoftware.integration.hub.teamcity.common.HubBundle;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
-import com.blackducksoftware.integration.hub.util.HostnameHelper;
 import com.blackducksoftware.integration.log.IntLogger;
-import com.blackducksoftware.integration.phone.home.enums.ThirdPartyName;
+import com.blackducksoftware.integration.phonehome.PhoneHomeRequestBody;
 import com.blackducksoftware.integration.util.CIEnvironmentVariables;
 
 import jetbrains.buildServer.agent.AgentBuildFeature;
@@ -98,15 +98,15 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         this.artifactsWatcher = artifactsWatcher;
     }
 
-    public void setVerbose(final boolean verbose) {
-        this.verbose = verbose;
-    }
-
     public boolean isVerbose() {
         if (verbose == null) {
             verbose = true;
         }
         return verbose;
+    }
+
+    public void setVerbose(final boolean verbose) {
+        this.verbose = verbose;
     }
 
     public void setHubLogger(final HubAgentBuildLogger logger) {
@@ -165,36 +165,43 @@ public class HubBuildProcess extends HubCallableBuildProcess {
                 isFailOnPolicySelected = true;
             }
 
-            long waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
+            long waitTimeForReport;
             final String maxWaitTimeForRiskReport = commonVariables.getValue(HubConstantValues.HUB_MAX_WAIT_TIME_FOR_RISK_REPORT);
             if (StringUtils.isNotBlank(maxWaitTimeForRiskReport)) {
                 waitTimeForReport = NumberUtils.toInt(maxWaitTimeForRiskReport);
                 if (waitTimeForReport <= 0) {
                     // 5 minutes is the default
-                    waitTimeForReport = 5 * 60 * 1000;
+                    waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
                 } else {
                     waitTimeForReport = waitTimeForReport * 60 * 1000;
                 }
             } else {
-                waitTimeForReport = 5 * 60 * 1000;
+                waitTimeForReport = DEFAULT_MAX_WAIT_TIME_MILLISEC;
             }
 
             logger.info("--> Generate Risk Report : " + isRiskReportGenerated);
             logger.info("--> Bom wait time : " + maxWaitTimeForRiskReport);
             logger.info("--> Check Policies : " + isFailOnPolicySelected);
 
-            final RestConnection restConnection = getRestConnection(logger, hubConfig);
-
-            restConnection.connect();
-
-            final HubServicesFactory services = new HubServicesFactory(restConnection);
-            services.addEnvironmentVariables(variables);
-            final MetaService metaService = services.createMetaService(logger);
-            final CLIDataService cliDataService = services.createCLIDataService(logger);
             final File workingDirectory = context.getWorkingDirectory();
             final File toolsDir = new File(build.getAgentConfiguration().getAgentToolsDirectory(), "HubCLI");
-
             final HubScanConfig hubScanConfig = getScanConfig(workingDirectory, toolsDir, hubLogger, commonVariables);
+
+            final RestConnection restConnection = getRestConnection(logger, hubConfig);
+            restConnection.connect();
+
+            HubServicesFactory services = new HubServicesFactory(restConnection);
+            services.addEnvironmentVariables(variables);
+
+            PhoneHomeService phoneHomeService = services.createPhoneHomeService();
+            PhoneHomeRequestBody.Builder builder = phoneHomeService.createInitialPhoneHomeRequestBodyBuilder();
+            builder.setArtifactId("hub-teamcity");
+            builder.setArtifactVersion(pluginVersion);
+            builder.addToMetaData("teamcity.version", thirdPartyVersion);
+            phoneHomeService.phoneHome(builder);
+
+            final SignatureScannerService signatureScannerService = services.createSignatureScannerService(hubConfig.getTimeout() * 60 * 1000);
+
             final ProjectRequest projectRequest = getProjectRequest(hubLogger, commonVariables);
             if (hubScanConfig == null) {
                 logger.error("Please verify the Black Duck Hub Runner configuration is correct.");
@@ -205,25 +212,30 @@ public class HubBuildProcess extends HubCallableBuildProcess {
             }
 
             final boolean shouldWaitForScansFinished = isRiskReportGenerated || isFailOnPolicySelected;
-            ProjectVersionView version = null;
+            ProjectVersionWrapper projectVersionWrapper = null;
             try {
-                version = cliDataService.installAndRunControlledScan(hubConfig, hubScanConfig, projectRequest, shouldWaitForScansFinished, new IntegrationInfo(ThirdPartyName.TEAM_CITY.getName(), thirdPartyVersion, pluginVersion));
+                projectVersionWrapper = signatureScannerService.installAndRunControlledScan(hubConfig, hubScanConfig, projectRequest, shouldWaitForScansFinished);
 
             } catch (final HubIntegrationException e) {
-
+                logger.error(e.getMessage(), e);
                 result = BuildFinishedStatus.FINISHED_FAILED;
+                return result;
+            } catch (final InterruptedException e) {
+                logger.error("BD scan was interrupted.");
+                result = BuildFinishedStatus.INTERRUPTED;
                 return result;
             }
             if (!hubScanConfig.isDryRun()) {
+                final MetaHandler metaHandler = new MetaHandler(logger);
+
                 ProjectView project = null;
                 if (isRiskReportGenerated) {
-                    project = getProjectFromVersion(services.createProjectRequestService(logger), metaService, version);
                     logger.info("Generating Risk Report");
-                    publishRiskReportFiles(logger, workingDirectory, services.createRiskReportDataService(logger, waitTimeForReport), project, version);
+                    publishRiskReportFiles(logger, workingDirectory, services.createReportService(waitTimeForReport), projectVersionWrapper.getProjectView(), projectVersionWrapper.getProjectVersionView());
                 }
                 if (isFailOnPolicySelected) {
                     logger.info("Checking for Policy violations.");
-                    checkPolicyFailures(build, logger, services, metaService, version, hubScanConfig.isDryRun());
+                    checkPolicyFailures(build, logger, services.createHubService(), metaHandler, projectVersionWrapper.getProjectVersionView(), hubScanConfig.isDryRun());
                 }
             } else {
                 if (isRiskReportGenerated) {
@@ -245,12 +257,6 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return hubServerConfig.createCredentialsRestConnection(logger);
     }
 
-    private ProjectView getProjectFromVersion(final ProjectRequestService projectRequestService, final MetaService metaService, final ProjectVersionView version) throws IntegrationException {
-        final String projectURL = metaService.getFirstLink(version, MetaService.PROJECT_LINK);
-        final ProjectView projectVersion = projectRequestService.getItem(projectURL, ProjectView.class);
-        return projectVersion;
-    }
-
     private HubServerConfig getHubServerConfig(final IntLogger logger, final CIEnvironmentVariables commonVariables) {
         final HubServerConfigBuilder configBuilder = new HubServerConfigBuilder();
 
@@ -261,7 +267,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String password = commonVariables.getValue(HubConstantValues.HUB_PASSWORD);
         final String passwordLength = commonVariables.getValue(HubConstantValues.HUB_PASSWORD_LENGTH);
 
-        final String autoImportHttpsCertificates = commonVariables.getValue(HubConstantValues.HUB_IMPORT_SSL_CERT);
+        final String alwaysTrustServerCertificates = commonVariables.getValue(HubConstantValues.HUB_TRUST_SERVER_CERT);
 
         final String proxyHost = commonVariables.getValue(HubConstantValues.HUB_PROXY_HOST);
         final String proxyPort = commonVariables.getValue(HubConstantValues.HUB_PROXY_PORT);
@@ -276,7 +282,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         configBuilder.setPasswordLength(NumberUtils.toInt(passwordLength));
         configBuilder.setTimeout(timeout);
 
-        configBuilder.setAutoImportHttpsCertificates(Boolean.valueOf(autoImportHttpsCertificates));
+        configBuilder.setAlwaysTrustServerCertificate(Boolean.valueOf(alwaysTrustServerCertificates));
 
         configBuilder.setProxyHost(proxyHost);
         configBuilder.setProxyPort(proxyPort);
@@ -376,12 +382,12 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         return variables;
     }
 
-    private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, final RiskReportDataService riskReportDataService, final ProjectView project, final ProjectVersionView version)
-            throws IOException, URISyntaxException, InterruptedException, IntegrationException {
+    private void publishRiskReportFiles(final IntLogger logger, final File workingDirectory, final ReportService reportSerivce, final ProjectView project, final ProjectVersionView version)
+            throws IOException, InterruptedException, IntegrationException {
 
         final String reportDirectoryPath = workingDirectory.getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME;
         final File reportDirectory = new File(reportDirectoryPath);
-        riskReportDataService.createReportFiles(reportDirectory, project, version);
+        reportSerivce.createReportFiles(reportDirectory, project, version);
         artifactsWatcher.addNewArtifactsPath(reportDirectoryPath + "=>" + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME);
 
         // If we do not wait, the report tab will not be added and
@@ -389,27 +395,33 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         Thread.sleep(2000);
     }
 
-    private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger, final HubServicesFactory services, final MetaService metaService, final ProjectVersionView version, final boolean isDryRun) {
+    private void checkPolicyFailures(final AgentRunningBuild build, final IntLogger logger, final HubService hubService, final MetaHandler metaHandler, final ProjectVersionView version, final boolean isDryRun) {
         try {
             if (isDryRun) {
                 logger.warn("Will not run the Failure conditions because this was a dry run scan.");
                 return;
             }
-            final String policyStatusLink = metaService.getFirstLink(version, MetaService.POLICY_STATUS_LINK);
-
-            final VersionBomPolicyStatusView policyStatusItem = services.createHubResponseService().getItem(policyStatusLink, VersionBomPolicyStatusView.class);
-            if (policyStatusItem == null) {
-                final String message = "Could not find any information about the Policy status of the bom.";
-                logger.error(message);
-                build.stopBuild(message);
+            String policyStatusLink = null;
+            try {
+                policyStatusLink = metaHandler.getFirstLink(version, ProjectVersionView.POLICY_STATUS_LINK);
+            } catch (final Exception e) {
+                logger.warn("Could not get the policy status link, the Hub policy module is not enabled");
             }
+            if (null != policyStatusLink) {
+                VersionBomPolicyStatusView policyStatusItem = hubService.getResponse(version, ProjectVersionView.POLICY_STATUS_LINK_RESPONSE);
+                if (policyStatusItem == null) {
+                    final String message = "Could not find any information about the Policy status of the bom.";
+                    logger.error(message);
+                    build.stopBuild(message);
+                }
 
-            final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(policyStatusItem);
-            final String policyStatusMessage = policyStatusDescription.getPolicyStatusMessage();
-            if (policyStatusItem.overallStatus == VersionBomPolicyStatusOverallStatusEnum.IN_VIOLATION) {
-                build.stopBuild(policyStatusMessage);
-            } else {
-                logger.info(policyStatusMessage);
+                final PolicyStatusDescription policyStatusDescription = new PolicyStatusDescription(policyStatusItem);
+                final String policyStatusMessage = policyStatusDescription.getPolicyStatusMessage();
+                if (policyStatusItem.overallStatus == PolicyStatusApprovalStatusType.IN_VIOLATION) {
+                    build.stopBuild(policyStatusMessage);
+                } else {
+                    logger.info(policyStatusMessage);
+                }
             }
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);

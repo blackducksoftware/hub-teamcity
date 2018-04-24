@@ -32,7 +32,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.server.global.HubServerListener;
 import com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager;
@@ -45,10 +45,8 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
 public class HubParametersPreprocessor implements ParametersPreprocessor {
     private final ServerHubConfigPersistenceManager serverPeristanceManager;
-
-    private BuildLog log = null;
-
     private final PluginDescriptor pluginDescriptor;
+    private BuildLog log = null;
 
     public HubParametersPreprocessor(@NotNull final HubServerListener serverListener, @NotNull final PluginDescriptor pluginDescriptor) {
         serverPeristanceManager = serverListener.getConfigManager();
@@ -83,8 +81,8 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
         if (!runParameters.containsKey(HubConstantValues.HUB_CONNECTION_TIMEOUT)) {
             runParameters.put(HubConstantValues.HUB_CONNECTION_TIMEOUT, String.valueOf(hubServerConfig.getTimeout()));
         }
-        if (!runParameters.containsKey(HubConstantValues.HUB_IMPORT_SSL_CERT)) {
-            runParameters.put(HubConstantValues.HUB_IMPORT_SSL_CERT, String.valueOf(hubServerConfig.isAutoImportHttpsCertificates()));
+        if (!runParameters.containsKey(HubConstantValues.HUB_TRUST_SERVER_CERT)) {
+            runParameters.put(HubConstantValues.HUB_TRUST_SERVER_CERT, String.valueOf(hubServerConfig.isAlwaysTrustServerCertificate()));
         }
         if (!runParameters.containsKey(HubConstantValues.HUB_WORKSPACE_CHECK)) {
             runParameters.put(HubConstantValues.HUB_WORKSPACE_CHECK, String.valueOf(serverPeristanceManager.isHubWorkspaceCheck()));
@@ -144,7 +142,7 @@ public class HubParametersPreprocessor implements ParametersPreprocessor {
 
     private boolean isHubBuildStepConfigured(@NotNull final Map<String, String> runParameters) {
         return runParameters.containsKey(HubConstantValues.HUB_PROJECT_NAME) || runParameters.containsKey(HubConstantValues.HUB_PROJECT_VERSION) || runParameters.containsKey(HubConstantValues.HUB_SCAN_TARGETS)
-                || runParameters.containsKey(HubConstantValues.HUB_SCAN_MEMORY);
+                       || runParameters.containsKey(HubConstantValues.HUB_SCAN_MEMORY);
     }
 
 }

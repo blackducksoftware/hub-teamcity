@@ -45,13 +45,13 @@ public class HubAgentBuildLogger extends IntLogger {
     }
 
     @Override
-    public void setLogLevel(final LogLevel level) {
-        loggerLevel = level;
+    public LogLevel getLogLevel() {
+        return loggerLevel;
     }
 
     @Override
-    public LogLevel getLogLevel() {
-        return loggerLevel;
+    public void setLogLevel(final LogLevel level) {
+        loggerLevel = level;
     }
 
     public void targetStarted(final String txt) {
@@ -71,14 +71,14 @@ public class HubAgentBuildLogger extends IntLogger {
 
     @Override
     public void info(final String txt) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.INFO)) {
+        if (loggerLevel.isLoggable(LogLevel.INFO)) {
             logger.progressMessage(txt);
         }
     }
 
     @Override
     public void error(final String txt, final Throwable e) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
+        if (loggerLevel.isLoggable(LogLevel.ERROR)) {
             logger.error(txt);
             if (e != null) {
                 final StringWriter sw = new StringWriter();
@@ -90,35 +90,35 @@ public class HubAgentBuildLogger extends IntLogger {
 
     @Override
     public void error(final String txt) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
+        if (loggerLevel.isLoggable(LogLevel.ERROR)) {
             logger.error(txt);
         }
     }
 
     @Override
     public void warn(final String txt) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.WARN)) {
+        if (loggerLevel.isLoggable(LogLevel.WARN)) {
             logger.progressMessage(txt);
         }
     }
 
     @Override
     public void trace(final String txt) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.TRACE)) {
+        if (loggerLevel.isLoggable(LogLevel.TRACE)) {
             logger.progressMessage(txt);
         }
     }
 
     @Override
     public void debug(final String txt) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.DEBUG)) {
+        if (loggerLevel.isLoggable(LogLevel.DEBUG)) {
             logger.progressMessage(txt);
         }
     }
 
     @Override
     public void debug(final String txt, final Throwable e) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.DEBUG)) {
+        if (loggerLevel.isLoggable(LogLevel.DEBUG)) {
             logger.progressMessage(txt);
             if (e != null) {
                 final StringWriter sw = new StringWriter();
@@ -130,7 +130,7 @@ public class HubAgentBuildLogger extends IntLogger {
 
     @Override
     public void error(final Throwable e) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.ERROR)) {
+        if (loggerLevel.isLoggable(LogLevel.ERROR)) {
             final StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             logger.error(sw.toString());
@@ -139,7 +139,7 @@ public class HubAgentBuildLogger extends IntLogger {
 
     @Override
     public void trace(final String txt, final Throwable e) {
-        if (LogLevel.isLoggable(loggerLevel, LogLevel.TRACE)) {
+        if (loggerLevel.isLoggable(LogLevel.TRACE)) {
             logger.progressMessage(txt);
             if (e != null) {
                 final StringWriter sw = new StringWriter();

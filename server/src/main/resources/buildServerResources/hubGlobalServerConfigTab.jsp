@@ -1,9 +1,9 @@
 <%@ include file="/include.jsp" %>
 <%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
 
-<jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" scope="request" />
+<jsp:useBean id="hubConfigPersistenceManager" type="com.blackducksoftware.integration.hub.teamcity.server.global.ServerHubConfigPersistenceManager" scope="request"/>
 
-<c:url var="controllerUrl" value="/admin/hub/serverHubConfigTab.html"/> 
+<c:url var="controllerUrl" value="/admin/hub/serverHubConfigTab.html"/>
 <c:url var="closeLogoUrl" value="${teamcityPluginResourcesPath}images/close.gif"/>
 
 <bs:linkScript>
@@ -17,10 +17,12 @@
         border: 1px solid #ccc;
         font-size: 12px;
     }
+
     .textFieldLong {
         width: 100%;
         display: inline-block;
     }
+
     .label {
         width: 200px;
         display: inline-block;
@@ -30,19 +32,19 @@
 
 <script type="text/javascript">
 
-	function getElementValue(elem) {
-		if(elem != null && elem.firstChild != null){
-		 	return elem.firstChild.nodeValue;
-		} else {
-			return "";
-		}
-	}
+    function getElementValue(elem) {
+        if (elem != null && elem.firstChild != null) {
+            return elem.firstChild.nodeValue;
+        } else {
+            return "";
+        }
+    }
 
-	 var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
-        getContainer: function() {
+    var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
+        getContainer: function () {
             return $('testConnectionDialog');
         },
-        showTestDialog: function(successful, connectionDetails) {
+        showTestDialog: function (successful, connectionDetails) {
             if (successful) {
                 $('testConnectionStatus').innerHTML = 'Connection successful!';
                 $('testConnectionStatus').className = 'testConnectionSuccess';
@@ -55,43 +57,43 @@
             $('testConnectionDetails').style.overflow = 'auto';
             this.showCentered();
         },
-        testConnection: function() {
+        testConnection: function () {
             var that = this;
 
             // will serialize form params, and submit form to form.action
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?testConnection=true', OO.extend(BS.ErrorsAwareListener, {
-                errorUrl: function(elem) {
+                errorUrl: function (elem) {
                     $('errorUrl').innerHTML = getElementValue(elem);
                 },
-                errorTimeout: function(elem) {
+                errorTimeout: function (elem) {
                     $('errorTimeout').innerHTML = getElementValue(elem);
                 },
-                errorUserName: function(elem) {
+                errorUserName: function (elem) {
                     $('errorUserName').innerHTML = getElementValue(elem);
                 },
-                errorPassword: function(elem) {
+                errorPassword: function (elem) {
                     $('errorPassword').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyServer: function(elem) {
+                errorHubProxyServer: function (elem) {
                     $('errorHubProxyServer').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyPort: function(elem) {
+                errorHubProxyPort: function (elem) {
                     $('errorHubProxyPort').innerHTML = getElementValue(elem);
                 },
-                errorHubNoProxyHost: function(elem) {
+                errorHubNoProxyHost: function (elem) {
                     $('errorHubNoProxyHost').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyUser: function(elem) {
+                errorHubProxyUser: function (elem) {
                     $('errorHubProxyUser').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyPass: function(elem) {
+                errorHubProxyPass: function (elem) {
                     $('errorHubProxyPass').innerHTML = getElementValue(elem);
                 },
-                errorConnection: function(elem) {
+                errorConnection: function (elem) {
                     TestConnectionDialog.showTestDialog(false, getElementValue(elem));
                 },
-                onSuccessfulSave: function() {
+                onSuccessfulSave: function () {
                     TestConnectionDialog.showTestDialog(true,
                         'Successful Connection');
                     // Need to enable the form again, the AbstractPasswordForm disables it by default.
@@ -104,13 +106,13 @@
     }));
 
     var Config = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
-        getContainer: function() {
+        getContainer: function () {
             return $('savingDialog');
         },
-        savingIndicator: function() {
+        savingIndicator: function () {
             return $('saving');
         },
-        showConfigDialog: function(successful, savingDetails) {
+        showConfigDialog: function (successful, savingDetails) {
             if (successful) {
                 $('savingStatus').innerHTML = 'Saving successful!';
                 //Use testConnection css class
@@ -125,7 +127,7 @@
             $('savingDetails').style.overflow = 'auto';
             this.showCentered();
         },
-        load: function() {
+        load: function () {
             $('hubUrl').value = "${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}";
             $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
             $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
@@ -141,12 +143,12 @@
             $('hubProxyUser').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}";
             $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
         },
-        save: function() {
+        save: function () {
             var that = this;
             // will serialize form params, and submit form to form.action
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?saving=true', OO.extend(BS.ErrorsAwareListener, {
-                load: function() {
+                load: function () {
                     $('hubUrl').value = "${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}";
                     $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
                     $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
@@ -162,37 +164,37 @@
                     $('hubProxyUser').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}";
                     $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
                 },
-                errorUrl: function(elem) {
+                errorUrl: function (elem) {
                     $('errorUrl').innerHTML = getElementValue(elem);
                 },
-                errorTimeout: function(elem) {
+                errorTimeout: function (elem) {
                     $('errorTimeout').innerHTML = getElementValue(elem);
                 },
-                errorUserName: function(elem) {
+                errorUserName: function (elem) {
                     $('errorUserName').innerHTML = getElementValue(elem);
                 },
-                errorPassword: function(elem) {
+                errorPassword: function (elem) {
                     $('errorPassword').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyServer: function(elem) {
+                errorHubProxyServer: function (elem) {
                     $('errorHubProxyServer').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyPort: function(elem) {
+                errorHubProxyPort: function (elem) {
                     $('errorHubProxyPort').innerHTML = getElementValue(elem);
                 },
-                errorHubNoProxyHost: function(elem) {
+                errorHubNoProxyHost: function (elem) {
                     $('errorHubNoProxyHost').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyUser: function(elem) {
+                errorHubProxyUser: function (elem) {
                     $('errorHubProxyUser').innerHTML = getElementValue(elem);
                 },
-                errorHubProxyPass: function(elem) {
+                errorHubProxyPass: function (elem) {
                     $('errorHubProxyPass').innerHTML = getElementValue(elem);
                 },
-                errorSaving: function(elem) {
+                errorSaving: function (elem) {
                     Config.showConfigDialog(false, getElementValue(elem));
                 },
-                onSuccessfulSave: function() {
+                onSuccessfulSave: function () {
                     Config.showConfigDialog(true, 'Saving was successful.');
                     // Need to enable the form again, the AbstractPasswordForm disables it by default.
                     that.enable();
@@ -202,8 +204,8 @@
             return false;
         }
     }));
-    
-    $j(document).ready(function() {
+
+    $j(document).ready(function () {
         Config.load();
     });
 </script>
@@ -216,11 +218,11 @@
                 <td width="200px">
                     <label class="label" for="hubUrl">Server URL:
                         <span class="mandatoryAsterix" title="Mandatory field">*</span>
-                        <bs:helpIcon iconTitle="Specify the URL of your Hub installation, for example: http://hub.blackducksoftware" />
+                        <bs:helpIcon iconTitle="Specify the URL of your Hub installation, for example: http://hub.blackducksoftware"/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubUrl" id="hubUrl" />
+                    <forms:textField className="textFieldLong" name="hubUrl" id="hubUrl"/>
                 </td>
             </tr>
             <tr>
@@ -233,11 +235,11 @@
                 <td width="200px">
                     <label class="label" for="hubUser">User Name:
                         <span class="mandatoryAsterix" title="Mandatory field">*</span>
-                        <bs:helpIcon iconTitle="Hub user name." />
+                        <bs:helpIcon iconTitle="Hub user name."/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubUser" id="hubUser" />
+                    <forms:textField className="textFieldLong" name="hubUser" id="hubUser"/>
                 </td>
             </tr>
             <tr>
@@ -249,11 +251,11 @@
             <tr>
                 <td width="200px">
                     <label class="label" for="hubPass">User Password:
-                        <bs:helpIcon iconTitle="Password of the user entered above." />
+                        <bs:helpIcon iconTitle="Password of the user entered above."/>
                     </label>
                 </td>
                 <td>
-                    <forms:passwordField className="textFieldLong" name="hubPass" id="hubPass" />
+                    <forms:passwordField className="textFieldLong" name="hubPass" id="hubPass"/>
                 </td>
             </tr>
             <tr>
@@ -270,43 +272,43 @@
                 </td>
             </tr>
             <tr>
-                <td width="200px" >
+                <td width="200px">
                     <label class="label" for="hubTimeout">Timeout (secs):
-                    <span class="mandatoryAsterix" title="Mandatory field">*</span>
+                        <span class="mandatoryAsterix" title="Mandatory field">*</span>
                         <bs:helpIcon
                                 iconTitle="Hub connection timeout."/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubTimeout" id="hubTimeout" />
+                    <forms:textField className="textFieldLong" name="hubTimeout" id="hubTimeout"/>
                 </td>
             </tr>
-             <tr>
+            <tr>
                 <td/>
                 <td>
                     <span class="error" id="errorTimeout" style="margin-left: 0;"></span>
                 </td>
             </tr>
             <tr>
-                <td width="200px" >
-                    <label class="label" for="autoImportHttpsCertificates">Import SSL Certificate:
+                <td width="200px">
+                    <label class="label" for="alwaysTrustServerCertificates">Trust Server Certificate:
                         <bs:helpIcon
-                                iconTitle="This will import the SSL certificate of the specified HTTPS Hub server. Note: For this to work, the Java keystore must be writable by the proper user."/>
+                                iconTitle="This will trust the SSL certificate of the specified HTTPS Hub server. Note: For this to work, the Java keystore must be writable by the proper user."/>
                     </label>
                 </td>
                 <td>
-                    <forms:checkbox name="autoImportHttpsCertificates" id="autoImportHttpsCertificates" />
+                    <forms:checkbox name="alwaysTrustServerCertificates" id="alwaysTrustServerCertificates"/>
                 </td>
             </tr>
             <tr>
-                <td width="200px" >
+                <td width="200px">
                     <label class="label" for="hubWorkspaceCheck">Perform Workspace Check:
                         <bs:helpIcon
                                 iconTitle="If checked the scans will only scan targets that are in the workspace. The scans will resolve all targets to their canonical paths and check to see if they are within the workspace."/>
                     </label>
                 </td>
                 <td>
-                    <forms:checkbox name="hubWorkspaceCheck" id="hubWorkspaceCheck" />
+                    <forms:checkbox name="hubWorkspaceCheck" id="hubWorkspaceCheck"/>
                 </td>
             </tr>
         </table>
@@ -315,11 +317,12 @@
             <tr>
                 <td width="200px">
                     <label class="label" for="hubProxyServer">Proxy Host Name:
-                        <bs:helpIcon iconTitle="If the TeamCity server is behind a firewall and does not have direct access to the internet, you may want to specify a proxy server. This will send any requests from the Hub Plugin to this server first." />
+                        <bs:helpIcon
+                                iconTitle="If the TeamCity server is behind a firewall and does not have direct access to the internet, you may want to specify a proxy server. This will send any requests from the Hub Plugin to this server first."/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubProxyServer" id="hubProxyServer" />
+                    <forms:textField className="textFieldLong" name="hubProxyServer" id="hubProxyServer"/>
                 </td>
             </tr>
             <tr>
@@ -331,11 +334,11 @@
             <tr>
                 <td width="200px">
                     <label class="label" for="hubProxyPort">Proxy Port:
-                        <bs:helpIcon iconTitle="The port to be used to connect to the Proxy Server" />
+                        <bs:helpIcon iconTitle="The port to be used to connect to the Proxy Server"/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubProxyPort" id="hubProxyPort" />
+                    <forms:textField className="textFieldLong" name="hubProxyPort" id="hubProxyPort"/>
                 </td>
             </tr>
             <tr>
@@ -347,11 +350,11 @@
             <tr>
                 <td width="200px">
                     <label class="label" for="hubNoProxyHost">No Proxy Host Names:
-                        <bs:helpIcon iconTitle="Specify host name regular expression patterns that shouldn't go through the proxy, in a comma separated list. Ex. .*blackducksoftware.com.*" />
+                        <bs:helpIcon iconTitle="Specify host name regular expression patterns that shouldn't go through the proxy, in a comma separated list. Ex. .*blackducksoftware.com.*"/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubNoProxyHost" id="hubNoProxyHost" />
+                    <forms:textField className="textFieldLong" name="hubNoProxyHost" id="hubNoProxyHost"/>
                 </td>
             </tr>
             <tr>
@@ -364,11 +367,11 @@
                 <td width="200px">
                     <label class="label" for="hubProxyUser">
                         Proxy Username:
-                        <bs:helpIcon iconTitle="The username to use in the Proxy authentication. We currently only support proxies with Basic authenticaiton or no authentication." />
+                        <bs:helpIcon iconTitle="The username to use in the Proxy authentication. We currently only support proxies with Basic authenticaiton or no authentication."/>
                     </label>
                 </td>
                 <td>
-                    <forms:textField className="textFieldLong" name="hubProxyUser" id="hubProxyUser" />
+                    <forms:textField className="textFieldLong" name="hubProxyUser" id="hubProxyUser"/>
                 </td>
             </tr>
             <tr>
@@ -381,11 +384,11 @@
                 <td width="200px">
                     <label class="label" for="hubProxyPass">
                         Proxy Password:
-                        <bs:helpIcon iconTitle="The password to use in the Proxy authentication. We currently only support proxies with Basic authenticaiton or no authentication." />
+                        <bs:helpIcon iconTitle="The password to use in the Proxy authentication. We currently only support proxies with Basic authenticaiton or no authentication."/>
                     </label>
                 </td>
                 <td>
-                    <forms:passwordField className="textFieldLong" name="hubProxyPass" id="hubProxyPass" />
+                    <forms:passwordField className="textFieldLong" name="hubProxyPass" id="hubProxyPass"/>
                 </td>
             </tr>
             <tr>
@@ -399,7 +402,7 @@
         <div class="saveButtonsBlock" id="saveButtonsBlock">
             <input type="button" value="Save" id=saveButton class="btn btn_primary submitButton" onclick="Config.save();"></input>
             <input type="button" value="Test connection" class="btn btn_primary submitButton" id="testConnection" onclick="TestConnectionDialog.testConnection();"></input>
-            <input type="hidden" id="publicKey" name="publicKey" value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>" />
+            <input type="hidden" id="publicKey" name="publicKey" value="<c:out value='${hubConfigPersistenceManager.hexEncodedPublicKey}'/>"/>
         </div>
     </form>
 </div>
@@ -408,7 +411,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="BS.TestConnectionDialog.close();" showdiscardchangesmessage='false'>
-                <img src="${closeLogoUrl}" />
+                <img src="${closeLogoUrl}"/>
             </a>
         </div>
         <div class="dialogHandle">
@@ -426,7 +429,7 @@
     <div class="dialogHeader">
         <div class="closeWindow">
             <a title="Close dialog window" onclick="Config.close();" showdiscardchangesmessage='false'>
-                <img src="${closeLogoUrl}" />
+                <img src="${closeLogoUrl}"/>
             </a>
         </div>
         <div class="dialogHandle">

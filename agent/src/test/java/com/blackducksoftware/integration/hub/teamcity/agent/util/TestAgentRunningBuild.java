@@ -29,7 +29,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import jetbrains.buildServer.agent.AgentBuildFeature;
+import jetbrains.buildServer.agent.AgentCheckoutMode;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildInterruptReason;
@@ -37,6 +41,7 @@ import jetbrains.buildServer.agent.BuildParametersMap;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.ResolvedParameters;
 import jetbrains.buildServer.agent.UnresolvedParameters;
+import jetbrains.buildServer.agentServer.AgentBuild;
 import jetbrains.buildServer.artifacts.ArtifactDependencyInfo;
 import jetbrains.buildServer.parameters.ValueResolver;
 import jetbrains.buildServer.util.Option;
@@ -125,6 +130,12 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
         return null;
     }
 
+    @NotNull
+    @Override
+    public String getBuildTypeExternalId() {
+        return null;
+    }
+
     @Override
     public String getBuildTypeName() {
         return null;
@@ -137,6 +148,12 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
 
     @Override
     public File getDefaultCheckoutDirectory() {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public String getVcsSettingsHashForCheckoutMode(final AgentCheckoutMode agentCheckoutMode) {
         return null;
     }
 
@@ -173,6 +190,12 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
     @Override
     public boolean isCheckoutOnServer() {
         return false;
+    }
+
+    @NotNull
+    @Override
+    public AgentBuild.CheckoutType getCheckoutType() {
+        return null;
     }
 
     @Override
@@ -224,6 +247,12 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
 
     @Override
     public File getCheckoutDirectory() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public AgentCheckoutMode getEffectiveCheckoutMode() {
         return null;
     }
 
@@ -296,4 +325,9 @@ public class TestAgentRunningBuild implements AgentRunningBuild {
         return false;
     }
 
+    @NotNull
+    @Override
+    public String describe(final boolean verbose) {
+        return null;
+    }
 }

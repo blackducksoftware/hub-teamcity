@@ -26,6 +26,8 @@ package com.blackducksoftware.integration.hub.teamcity.agent.util;
 import java.io.File;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
+
 import jetbrains.buildServer.agent.BuildAgentConfiguration;
 import jetbrains.buildServer.agent.BuildAgentSystemInfo;
 import jetbrains.buildServer.agent.BuildParametersMap;
@@ -103,6 +105,12 @@ public class TestBuildAgentConfiguration implements BuildAgentConfiguration {
         return null;
     }
 
+    @NotNull
+    @Override
+    public String getPingCode() {
+        return null;
+    }
+
     @Override
     public BuildParametersMap getBuildParameters() {
         return null;
@@ -115,6 +123,12 @@ public class TestBuildAgentConfiguration implements BuildAgentConfiguration {
 
     @Override
     public File getCacheDirectory(final String arg0) {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public File getSystemDirectory() {
         return null;
     }
 

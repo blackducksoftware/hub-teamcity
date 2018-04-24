@@ -28,7 +28,7 @@ import java.net.URL;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.blackducksoftware.integration.hub.global.HubCredentials;
+import com.blackducksoftware.integration.hub.Credentials;
 
 public class HubParameterValidator {
     private final HubAgentBuildLogger logger;
@@ -53,7 +53,7 @@ public class HubParameterValidator {
         return validUrl;
     }
 
-    public boolean isHubCredentialConfigured(final HubCredentials credential) {
+    public boolean isHubCredentialConfigured(final Credentials credential) {
         boolean validCredential = true;
         if (credential == null) {
             logger.error("There are no credentials configured.");

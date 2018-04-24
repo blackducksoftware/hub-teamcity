@@ -46,16 +46,16 @@
       <artifactId>server-api</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.intellij</groupId>
-      <artifactId>openapi</artifactId>
-      <version>7.0.3</version>
-      <scope>provided</scope>
-    </dependency>
+    <!--<dependency>-->
+    <!--<groupId>com.intellij</groupId>-->
+    <!--<artifactId>openapi</artifactId>-->
+    <!--<version>7.0.3</version>-->
+    <!--<scope>provided</scope>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>1.1.1</version>
+      <version>1.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>

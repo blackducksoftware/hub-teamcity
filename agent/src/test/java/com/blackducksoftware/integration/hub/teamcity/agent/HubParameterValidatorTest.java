@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.blackducksoftware.integration.exception.EncryptionException;
-import com.blackducksoftware.integration.hub.global.HubCredentials;
+import com.blackducksoftware.integration.hub.Credentials;
 import com.blackducksoftware.integration.hub.teamcity.agent.util.TestBuildProgressLogger;
 
 public class HubParameterValidatorTest {
@@ -113,7 +113,7 @@ public class HubParameterValidatorTest {
     @Test
     public void testIsHubCredentialConfiguredValidCredentials() throws EncryptionException {
         final HubParameterValidator validator = new HubParameterValidator(buildLogger);
-        final HubCredentials credential = new HubCredentials("user", "password");
+        final Credentials credential = new Credentials("user", "password");
         assertTrue(validator.isHubCredentialConfigured(credential));
         assertTrue(testLogger.getErrorMessages().size() == 0);
     }

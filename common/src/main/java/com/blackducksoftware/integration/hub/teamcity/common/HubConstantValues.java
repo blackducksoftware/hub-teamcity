@@ -82,21 +82,13 @@ public final class HubConstantValues {
 
     public static final String HUB_IMPORT_SSL_CERT = PLUGIN_PREFIX + "autoImportHttpsCertificates";
 
+    public static final String HUB_TRUST_SERVER_CERT = PLUGIN_PREFIX + "alwaysTrustServerCertificates";
+
     public static final String HUB_WORKSPACE_CHECK = PLUGIN_PREFIX + "hubWorkspaceCheck";
-
-    public static final String HUB_MAVEN_SCOPES = PLUGIN_PREFIX + "mavenScopes";
-
-    public static final String HUB_GRADLE_CONFIGS = PLUGIN_PREFIX + "gradleConfigs";
 
     public static final String PLUGIN_LOG = "[Hub Plugin] ";
 
-    public static final String HUB_BUILD_INFO = "build-info.json";
-
     public static final String HUB_RISK_REPORT_FILENAME = "riskreport.html";
-
-    public static final String HUB_CLI_ENV_VAR = "BD_HUB_SCAN";
-
-    public static final String HUB_LOG_LEVEL = "HUB_LOG_LEVEL";
 
     public static final String HUB_FAILURE_TYPE = PLUGIN_PREFIX + "hubFailureType";
 

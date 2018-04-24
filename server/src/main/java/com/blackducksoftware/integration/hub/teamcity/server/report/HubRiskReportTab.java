@@ -31,9 +31,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.blackducksoftware.integration.hub.service.model.HubResourceBundleHelper;
 import com.blackducksoftware.integration.hub.teamcity.common.HubConstantValues;
 import com.blackducksoftware.integration.hub.teamcity.server.UrlUtil;
-import com.blackducksoftware.integration.hub.util.HubResourceBundleHelper;
 
 import jetbrains.buildServer.controllers.BuildDataExtensionUtil;
 import jetbrains.buildServer.log.Loggers;
@@ -83,7 +83,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
                 return null;
             }
             return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME
-                    + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME);
+                                    + File.separator + HubConstantValues.HUB_RISK_REPORT_FILENAME);
         } catch (final IOException e) {
             Loggers.SERVER.error("Could not create the risk report file: " + e.getMessage());
             return null;

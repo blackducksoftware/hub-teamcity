@@ -23,17 +23,21 @@
  */
 package com.blackducksoftware.integration.hub.teamcity.helper;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import jetbrains.buildServer.messages.Status;
 import jetbrains.buildServer.serverSide.buildLog.BlockLogMessage;
 import jetbrains.buildServer.serverSide.buildLog.BuildLog;
 import jetbrains.buildServer.serverSide.buildLog.LogMessage;
 import jetbrains.buildServer.serverSide.buildLog.LogMessageFilter;
+import jetbrains.buildServer.serverSide.buildLog.MessageAttrs;
 
 public class TestBuildLog implements BuildLog {
     private final List<LogMessage> messages = new ArrayList<LogMessage>();
@@ -58,6 +62,12 @@ public class TestBuildLog implements BuildLog {
         return null;
     }
 
+    @NotNull
+    @Override
+    public String getCurrentPath() {
+        return null;
+    }
+
     @Override
     public List<LogMessage> getMessages() {
         return messages;
@@ -65,6 +75,11 @@ public class TestBuildLog implements BuildLog {
 
     @Override
     public Iterator<LogMessage> getMessagesIterator() {
+        return null;
+    }
+
+    @Override
+    public Iterator<LogMessage> getVerboseIterator() {
         return null;
     }
 
@@ -130,6 +145,11 @@ public class TestBuildLog implements BuildLog {
         return message;
     }
 
+    @Override
+    public LogMessage message(final String text, final Status status, final MessageAttrs attrs) {
+        return null;
+    }
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public LogMessage message(final String text, final Status status, final Date date, final String renderingHint,
@@ -142,6 +162,11 @@ public class TestBuildLog implements BuildLog {
     @Override
     public BlockLogMessage openBlock(final String arg0, final String arg1, final Date arg2, final String arg3,
             final String arg4) {
+        return null;
+    }
+
+    @Override
+    public BlockLogMessage openBlock(final String blockName, final String blockType, final MessageAttrs attrs) {
         return null;
     }
 
@@ -206,6 +231,11 @@ public class TestBuildLog implements BuildLog {
     @Override
     public long getSizeEstimateAsLong() {
         return 0;
+    }
+
+    @Override
+    public File getMainLogFile() {
+        return null;
     }
 
 }

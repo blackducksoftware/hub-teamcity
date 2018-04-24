@@ -34,9 +34,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.blackducksoftware.integration.hub.global.HubServerConfig;
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionDistributionEnum;
-import com.blackducksoftware.integration.hub.model.enumeration.ProjectVersionRequestPhaseEnum;
+import com.blackducksoftware.integration.hub.api.generated.enumeration.ProjectVersionDistributionType;
+import com.blackducksoftware.integration.hub.api.generated.enumeration.ProjectVersionPhaseType;
+import com.blackducksoftware.integration.hub.configuration.HubServerConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -89,7 +89,7 @@ public class ServerHubConfigPersistenceManager {
 
     public List<String> getPhaseList() {
         final List<String> phaseList = new LinkedList<>();
-        for (final ProjectVersionRequestPhaseEnum phase : ProjectVersionRequestPhaseEnum.values()) {
+        for (final ProjectVersionPhaseType phase : ProjectVersionPhaseType.values()) {
             phaseList.add(phase.toString());
         }
         return phaseList;
@@ -97,7 +97,7 @@ public class ServerHubConfigPersistenceManager {
 
     public List<String> getDistributionList() {
         final List<String> distributionList = new LinkedList<>();
-        for (final ProjectVersionDistributionEnum dist : ProjectVersionDistributionEnum.values()) {
+        for (final ProjectVersionDistributionType dist : ProjectVersionDistributionType.values()) {
             distributionList.add(dist.toString());
         }
         return distributionList;
