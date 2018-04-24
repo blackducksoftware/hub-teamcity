@@ -1,7 +1,7 @@
 /**
  * Black Duck Hub Plug-In for TeamCity Server
  *
- * Copyright (C) 2017 Black Duck Software, Inc.
+ * Copyright (C) 2018 Black Duck Software, Inc.
  * http://www.blackducksoftware.com/
  *
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -47,10 +47,10 @@ public class MockHttpServletRequest {
 
     public static void requestHasParamters(final HttpServletRequest mockedRequest, final boolean hasParameters) {
         if (hasParameters) {
-            final Enumeration<?> enumeration = Collections.enumeration(Arrays.asList(""));
+            final Enumeration<String> enumeration = Collections.enumeration(Arrays.asList(""));
             Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
         } else {
-            final Enumeration<?> enumeration = Collections.emptyEnumeration();
+            final Enumeration<String> enumeration = Collections.emptyEnumeration();
 
             Mockito.when(mockedRequest.getParameterNames()).thenReturn(enumeration);
         }
