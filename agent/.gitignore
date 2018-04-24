@@ -4,3 +4,8 @@
 /.project
 /bin/
 /.settings/
+
+### IntelliJ ###
+.idea
+*.iml
+out/

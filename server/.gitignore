@@ -3,3 +3,8 @@
 /.project
 /build/
 /.settings/
+
+### IntelliJ ###
+.idea
+*.iml
+out/
