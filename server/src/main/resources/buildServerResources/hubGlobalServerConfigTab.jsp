@@ -40,6 +40,28 @@
         }
     }
 
+    function getStringValue(string) {
+        if (null != string && undefined != string) {
+            return string;
+        } else {
+            return "";
+        }
+    }
+
+    function getBooleanValue(string, defaultValue) {
+        if (null != string && undefined != string) {
+            if (string.toLowerCase() == 'true') {
+                return true;
+            }
+            if (string.toLowerCase() == 'false') {
+                return false;
+            }
+            return defaultValue;
+        } else {
+            return defaultValue;
+        }
+    }
+
     TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
         getContainer: function () {
             return $('testConnectionDialog');
@@ -128,20 +150,20 @@
             this.showCentered();
         },
         load: function () {
-            $('hubUrl').value = "${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}";
-            $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
-            $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
-            $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
-            $('alwaysTrustServerCertificate').checked = ${hubConfigPersistenceManager.hubServerConfig.isAlwaysTrustServerCertificate()};
-            $('hubWorkspaceCheck').checked = ${hubConfigPersistenceManager.hubWorkspaceCheck};
-            $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
-            $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
+            $('hubUrl').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}");
+            $('hubUser').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}");
+            $('hubPass').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}");
+            $('hubTimeout').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getTimeout()}");
+            $('alwaysTrustServerCertificate').checked = getBooleanValue("${hubConfigPersistenceManager.hubServerConfig.isAlwaysTrustServerCertificate()}", false);
+            $('hubWorkspaceCheck').checked = getBooleanValue("${hubConfigPersistenceManager.hubWorkspaceCheck}", false);
+            $('hubProxyServer').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}");
+            $('hubProxyPort').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}");
             if ($('hubProxyPort').value == 0) {
                 $('hubProxyPort').value = "";
             }
-            $('hubNoProxyHost').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getIgnoredProxyHosts()}";
-            $('hubProxyUser').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}";
-            $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
+            $('hubNoProxyHost').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getIgnoredProxyHosts()}");
+            $('hubProxyUser').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}");
+            $('hubProxyPass').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}");
         },
         save: function () {
             var that = this;
@@ -149,20 +171,20 @@
             // if XML with errors is returned, corresponding error listener methods will be called
             BS.FormSaver.save(this, $('bdHubForm').action + '?saving=true', OO.extend(BS.ErrorsAwareListener, {
                 load: function () {
-                    $('hubUrl').value = "${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}";
-                    $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
-                    $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
-                    $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
-                    $('alwaysTrustServerCertificate').checked = ${hubConfigPersistenceManager.hubServerConfig.isAlwaysTrustServerCertificate()};
-                    $('hubWorkspaceCheck').checked = ${hubConfigPersistenceManager.hubWorkspaceCheck};
-                    $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
-                    $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
+                    $('hubUrl').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getHubUrl()}");
+                    $('hubUser').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}");
+                    $('hubPass').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}");
+                    $('hubTimeout').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getTimeout()}");
+                    $('alwaysTrustServerCertificate').checked = getBooleanValue("${hubConfigPersistenceManager.hubServerConfig.isAlwaysTrustServerCertificate()}", false);
+                    $('hubWorkspaceCheck').checked = getBooleanValue("${hubConfigPersistenceManager.hubWorkspaceCheck}", false);
+                    $('hubProxyServer').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}");
+                    $('hubProxyPort').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}");
                     if ($('hubProxyPort').value == 0) {
                         $('hubProxyPort').value = "";
                     }
-                    $('hubNoProxyHost').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getIgnoredProxyHosts()}";
-                    $('hubProxyUser').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}";
-                    $('hubProxyPass').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}";
+                    $('hubNoProxyHost').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getIgnoredProxyHosts()}");
+                    $('hubProxyUser').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getUsername()}");
+                    $('hubProxyPass').value = getStringValue("${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getMaskedPassword()}");
                 },
                 errorUrl: function (elem) {
                     $('errorUrl').innerHTML = getElementValue(elem);
