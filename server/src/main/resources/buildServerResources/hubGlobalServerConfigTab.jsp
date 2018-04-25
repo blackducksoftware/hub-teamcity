@@ -293,7 +293,7 @@
                 <td width="200px">
                     <label class="label" for="alwaysTrustServerCertificates">Trust Server Certificate:
                         <bs:helpIcon
-                                iconTitle="This will trust the SSL certificate of the specified HTTPS Hub server. Note: For this to work, the Java keystore must be writable by the proper user."/>
+                                iconTitle="This will trust the SSL certificate of the specified HTTPS Hub server."/>
                     </label>
                 </td>
                 <td>

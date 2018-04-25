@@ -33,6 +33,8 @@
   <properties>
     <hub.common.version>30.0.2</hub.common.version>
     <plugin.version>${project.version}</plugin.version>
+    <source.java.version>1.8</source.java.version>
+    <target.java.version>1.8</target.java.version>
     <teamcity.version>10.0</teamcity.version>
   </properties>
 
