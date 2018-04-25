@@ -194,7 +194,7 @@ public class HubGlobalServerConfigController extends BaseFormXmlController {
             hubPass = configPersistenceManager.getHubServerConfig().getGlobalCredentials().getDecryptedPassword();
         }
         serverConfigBuilder.setPassword(hubPass);
-        serverConfigBuilder.setAlwaysTrustServerCertificate(Boolean.valueOf(request.getParameter("alwaysTrustServerCertificates")));
+        serverConfigBuilder.setAlwaysTrustServerCertificate(Boolean.valueOf(request.getParameter("alwaysTrustServerCertificate")));
         serverConfigBuilder.setProxyHost(request.getParameter("hubProxyServer"));
         serverConfigBuilder.setProxyPort(request.getParameter("hubProxyPort"));
         serverConfigBuilder.setIgnoredProxyHosts(request.getParameter("hubNoProxyHost"));

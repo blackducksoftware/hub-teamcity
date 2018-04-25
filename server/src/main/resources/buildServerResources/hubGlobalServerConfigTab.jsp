@@ -40,7 +40,7 @@
         }
     }
 
-    var TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
+    TestConnectionDialog = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
         getContainer: function () {
             return $('testConnectionDialog');
         },
@@ -105,7 +105,7 @@
         }
     }));
 
-    var Config = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
+    Config = OO.extend(BS.AbstractPasswordForm, OO.extend(BS.AbstractModalDialog, {
         getContainer: function () {
             return $('savingDialog');
         },
@@ -132,7 +132,7 @@
             $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
             $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
             $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
-            $('autoImportHttpsCertificates').checked = ${hubConfigPersistenceManager.hubServerConfig.isAutoImportHttpsCertificates()};
+            $('alwaysTrustServerCertificate').checked = ${hubConfigPersistenceManager.hubServerConfig.isAlwaysTrustServerCertificate()};
             $('hubWorkspaceCheck').checked = ${hubConfigPersistenceManager.hubWorkspaceCheck};
             $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
             $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
@@ -153,7 +153,7 @@
                     $('hubUser').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getUsername()}";
                     $('hubPass').value = "${hubConfigPersistenceManager.hubServerConfig.getGlobalCredentials().getMaskedPassword()}";
                     $('hubTimeout').value = "${hubConfigPersistenceManager.hubServerConfig.getTimeout()}";
-                    $('autoImportHttpsCertificates').checked = ${hubConfigPersistenceManager.hubServerConfig.isAutoImportHttpsCertificates()};
+                    $('alwaysTrustServerCertificate').checked = ${hubConfigPersistenceManager.hubServerConfig.isAlwaysTrustServerCertificate()};
                     $('hubWorkspaceCheck').checked = ${hubConfigPersistenceManager.hubWorkspaceCheck};
                     $('hubProxyServer').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getHost()}";
                     $('hubProxyPort').value = "${hubConfigPersistenceManager.hubServerConfig.getProxyInfo().getPort()}";
@@ -291,13 +291,13 @@
             </tr>
             <tr>
                 <td width="200px">
-                    <label class="label" for="alwaysTrustServerCertificates">Trust Server Certificate:
+                    <label class="label" for="alwaysTrustServerCertificate">Trust Server Certificate:
                         <bs:helpIcon
                                 iconTitle="This will trust the SSL certificate of the specified HTTPS Hub server."/>
                     </label>
                 </td>
                 <td>
-                    <forms:checkbox name="alwaysTrustServerCertificates" id="alwaysTrustServerCertificates"/>
+                    <forms:checkbox name="alwaysTrustServerCertificate" id="alwaysTrustServerCertificate"/>
                 </td>
             </tr>
             <tr>

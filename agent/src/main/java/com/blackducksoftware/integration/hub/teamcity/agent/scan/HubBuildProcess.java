@@ -267,7 +267,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         final String password = commonVariables.getValue(HubConstantValues.HUB_PASSWORD);
         final String passwordLength = commonVariables.getValue(HubConstantValues.HUB_PASSWORD_LENGTH);
 
-        final String alwaysTrustServerCertificates = commonVariables.getValue(HubConstantValues.HUB_TRUST_SERVER_CERT);
+        final String alwaysTrustServerCertificate = commonVariables.getValue(HubConstantValues.HUB_TRUST_SERVER_CERT);
 
         final String proxyHost = commonVariables.getValue(HubConstantValues.HUB_PROXY_HOST);
         final String proxyPort = commonVariables.getValue(HubConstantValues.HUB_PROXY_PORT);
@@ -282,7 +282,7 @@ public class HubBuildProcess extends HubCallableBuildProcess {
         configBuilder.setPasswordLength(NumberUtils.toInt(passwordLength));
         configBuilder.setTimeout(timeout);
 
-        configBuilder.setAlwaysTrustServerCertificate(Boolean.valueOf(alwaysTrustServerCertificates));
+        configBuilder.setAlwaysTrustServerCertificate(Boolean.valueOf(alwaysTrustServerCertificate));
 
         configBuilder.setProxyHost(proxyHost);
         configBuilder.setProxyPort(proxyPort);

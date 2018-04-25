@@ -20,6 +20,11 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.11</version>
+    </dependency>
+    <dependency>
       <groupId>com.blackducksoftware.integration</groupId>
       <artifactId>hub-teamcity-common</artifactId>
       <version>${plugin.version}</version>

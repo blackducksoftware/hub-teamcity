@@ -25,6 +25,11 @@
       <artifactId>hub-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.11</version>
+    </dependency>
+    <dependency>
       <groupId>org.jdom</groupId>
       <artifactId>jdom</artifactId>
     </dependency>
@@ -46,12 +51,6 @@
       <artifactId>server-api</artifactId>
       <scope>provided</scope>
     </dependency>
-    <!--<dependency>-->
-    <!--<groupId>com.intellij</groupId>-->
-    <!--<artifactId>openapi</artifactId>-->
-    <!--<version>7.0.3</version>-->
-    <!--<scope>provided</scope>-->
-    <!--</dependency>-->
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>

@@ -79,7 +79,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
     private File getRiskReportFile(final HttpServletRequest request, final SBuildServer server) {
         try {
             final SBuild build = BuildDataExtensionUtil.retrieveBuild(request, server);
-            if (build.getArtifactsDirectory() == null) {
+            if (null == build || null == build.getArtifactsDirectory()) {
                 return null;
             }
             return new File(build.getArtifactsDirectory().getCanonicalPath() + File.separator + HubConstantValues.HUB_RISK_REPORT_DIRECTORY_NAME
@@ -92,7 +92,7 @@ public class HubRiskReportTab extends SimpleCustomTab {
 
     private String getRiskReportUrl(final HttpServletRequest request, final SBuildServer server) {
         final SBuild build = BuildDataExtensionUtil.retrieveBuild(request, server);
-        if (build.getArtifactsDirectory() == null) {
+        if (null == build || null == build.getArtifactsDirectory()) {
             return null;
         }
         final String externalId = build.getBuildTypeExternalId();

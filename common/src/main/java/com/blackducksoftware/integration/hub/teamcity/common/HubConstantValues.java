@@ -82,7 +82,7 @@ public final class HubConstantValues {
 
     public static final String HUB_IMPORT_SSL_CERT = PLUGIN_PREFIX + "autoImportHttpsCertificates";
 
-    public static final String HUB_TRUST_SERVER_CERT = PLUGIN_PREFIX + "alwaysTrustServerCertificates";
+    public static final String HUB_TRUST_SERVER_CERT = PLUGIN_PREFIX + "alwaysTrustServerCertificate";
 
     public static final String HUB_WORKSPACE_CHECK = PLUGIN_PREFIX + "hubWorkspaceCheck";
 
